@@ -1,0 +1,12 @@
+[
+  {
+    "sourceFile": "./locales/en.json",
+    "targetLanguages": ["es", "fr", "de", "ja", "zh"],
+    "generatePluralForms": true,
+    "useContractions": true,
+    "useShortening": false,
+    "saveFilteredStrings": true,
+    "translateOnlyNewStrings": false,
+    "verbose": true
+  }
+]

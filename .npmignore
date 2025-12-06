@@ -1,0 +1,35 @@
+# Source files
+src/
+
+# Examples
+examples/
+
+# Test data
+test-data/
+
+# Scripts
+scripts/
+
+# Development files
+tsconfig.json
+.gitignore
+
+# Tests
+*.test.ts
+*.spec.ts
+test/
+tests/
+
+# Documentation (only README is needed)
+docs/
+QUICKSTART.md
+PACKAGE-INFO.md
+COMPLETION-SUMMARY.md
+CONTRIBUTING.md
+
+# Build files
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/

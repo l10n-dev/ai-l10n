@@ -1,0 +1,18 @@
+{
+  "description": "This demonstrates i18n, l10n, plurals, nested objects, and namespaces.",
+  "item_count_one": "You have {{count}} item.",
+  "item_count_other": "You have {{count}} items.",
+  "order_summary": "Order Summary {{amount}} {{currency}}",
+  "welcome": "Welcome to the i18n example!",
+  "key1_interval": "(1)[one item];(2-7)[a few items];(7-inf)[a lot of items];",
+  "number": 24,
+  "boolean": true,
+  "nested": {
+    "level1": {
+      "level2": {
+        "message": "This is a nested message."
+      }
+    }
+  },
+  "title": "Common namespace example"
+}

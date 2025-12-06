@@ -1,0 +1,59 @@
+{
+  "name": "ai-l10n",
+  "version": "1.0.0",
+  "description": "Easy-to-use AI-powered auto-translation for JSON and ARB localization files",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ai-l10n": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "verify": "node scripts/verify.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "localization",
+    "l10n",
+    "i18n",
+    "translation",
+    "ai",
+    "json",
+    "arb",
+    "flutter",
+    "auto-translate",
+    "internationalization",
+    "translate",
+    "language",
+    "multilingual",
+    "automation",
+    "cli",
+    "typescript"
+  ],
+  "author": "l10n.dev",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AntonovAnton/ai-l10n.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AntonovAnton/ai-l10n/issues"
+  },
+  "homepage": "https://github.com/AntonovAnton/ai-l10n#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

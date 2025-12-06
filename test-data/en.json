@@ -1,0 +1,20 @@
+{
+  "welcome": "Welcome to our application",
+  "greeting": "Hello, {{name}}!",
+  "farewell": "Goodbye",
+  "messages": {
+    "success": "Operation completed successfully",
+    "error": "An error occurred",
+    "loading": "Loading..."
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "password": "Password must be at least 8 characters"
+  }
+}

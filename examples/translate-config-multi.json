@@ -1,0 +1,18 @@
+[
+  {
+    "sourceFile": "./locales/en.json",
+    "targetLanguages": ["es", "fr", "de"],
+    "translateOnlyNewStrings": true,
+    "verbose": false
+  },
+  {
+    "sourceFile": "./locales/admin/en.json",
+    "targetLanguages": ["es", "fr"],
+    "translateOnlyNewStrings": true
+  },
+  {
+    "sourceFile": "./locales/errors/en.json",
+    "targetLanguages": ["es", "fr", "de", "ja"],
+    "generatePluralForms": true
+  }
+]
