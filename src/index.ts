@@ -439,6 +439,13 @@ export class AiTranslator {
   async getApiKey(): Promise<string | undefined> {
     return await this.apiKeyManager.getApiKey();
   }
+
+  /**
+   * Mask the API key for display purposes
+   */
+  async displayApiKey(): Promise<string> {
+    return await this.apiKeyManager.displayApiKey();
+  }
 }
 
 // Export main class and types

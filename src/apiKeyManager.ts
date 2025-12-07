@@ -6,6 +6,12 @@ import { URLS } from "./constants";
 export class ApiKeyManager {
   private readonly configDir: string;
   private readonly configFile: string;
+  private readonly noApiKeyMessage =
+    "ℹ️ API Key not found. Please provide it via:\n" +
+    "1. Configuration option (apiKey)\n" +
+    "2. Environment variable (L10N_API_KEY)\n" +
+    "3. Run 'ai-l10n config --api-key YOUR_KEY' to save it\n" +
+    `Get your API key from ${URLS.API_KEYS}`;
 
   constructor() {
     // Store API key in user's home directory
@@ -69,13 +75,7 @@ export class ApiKeyManager {
       return storedApiKey;
     }
 
-    throw new Error(
-      "API Key not found. Please provide it via:\n" +
-        "1. Configuration option (apiKey)\n" +
-        "2. Environment variable (L10N_API_KEY)\n" +
-        "3. Run 'ai-l10n config --api-key YOUR_KEY' to save it\n" +
-        `Get your API key from ${URLS.API_KEYS}`
-    );
+    throw new Error(this.noApiKeyMessage);
   }
 
   async clearApiKey(): Promise<void> {
@@ -93,5 +93,19 @@ export class ApiKeyManager {
         }`
       );
     }
+  }
+
+  async displayApiKey(): Promise<string> {
+    const apiKey = await this.getApiKey();
+    if (!apiKey) {
+      return this.noApiKeyMessage;
+    }
+
+    // Mask the API key (show first 8 and last 4 characters)
+    const key =
+      apiKey.length <= 12
+        ? `${apiKey.substring(0, 4)}...`
+        : `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`;
+    return `✅ API Key is configured. Key: ${key}`;
   }
 }

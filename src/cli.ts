@@ -4,7 +4,6 @@ import { Command } from "commander";
 import * as path from "path";
 import * as fs from "fs";
 import { AiTranslator, TranslationConfig } from "./index";
-import { URLS } from "./constants";
 
 const program = new Command();
 
@@ -71,20 +70,7 @@ program
     } else if (options.apiKey) {
       await translator.setApiKey(options.apiKey);
     } else {
-      const apiKey = await translator.getApiKey();
-      if (apiKey) {
-        console.log("✅ API Key is configured");
-        console.log(
-          `Key: ${apiKey.substring(0, 8)}...${apiKey.substring(
-            apiKey.length - 4
-          )}`
-        );
-      } else {
-        console.log("ℹ️ No API Key configured");
-        console.log("Set it with: ai-l10n config --api-key YOUR_KEY");
-        console.log("Or use environment variable: L10N_API_KEY");
-        console.log(`\nGet your API key from: ${URLS.API_KEYS}`);
-      }
+      console.log(await translator.displayApiKey());
     }
   });
 
