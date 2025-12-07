@@ -328,7 +328,7 @@ export class AiTranslator {
       useContractions,
       useShortening,
       generatePluralForms,
-      client: "ai-l10n-npm-package",
+      client: "ai-l10n-npmjs",
       returnTranslationsAsString: true,
       translateOnlyNewStrings,
       targetStrings,
