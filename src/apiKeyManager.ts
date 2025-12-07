@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import { URLS } from "./constants";
 
 export class ApiKeyManager {
   private readonly configDir: string;
@@ -73,7 +74,7 @@ export class ApiKeyManager {
         "1. Configuration option (apiKey)\n" +
         "2. Environment variable (L10N_API_KEY)\n" +
         "3. Run 'ai-l10n config --api-key YOUR_KEY' to save it\n" +
-        "Get your API key from https://l10n.dev/ws/keys"
+        `Get your API key from ${URLS.API_KEYS}`
     );
   }
 

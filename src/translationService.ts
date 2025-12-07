@@ -1,3 +1,4 @@
+import { URLS } from "./constants";
 import { ILogger } from "./logger";
 
 /**
@@ -64,8 +65,8 @@ export interface LanguagePredictionResponse {
 }
 
 export class L10nTranslationService {
-  private readonly baseUrl = "https://l10n.dev/api";
-  private readonly pricingUrl = "https://l10n.dev/#pricing";
+  private readonly baseUrl = URLS.API_BASE;
+  private readonly pricingUrl = URLS.PRICING;
 
   constructor(private readonly logger: ILogger) {}
 

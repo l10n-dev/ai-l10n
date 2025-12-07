@@ -4,6 +4,7 @@ import { Command } from "commander";
 import * as path from "path";
 import * as fs from "fs";
 import { AiTranslator, TranslationConfig } from "./index";
+import { URLS } from "./constants";
 
 const program = new Command();
 
@@ -82,7 +83,7 @@ program
         console.log("ℹ️ No API Key configured");
         console.log("Set it with: ai-l10n config --api-key YOUR_KEY");
         console.log("Or use environment variable: L10N_API_KEY");
-        console.log("\nGet your API key from: https://l10n.dev/ws/keys");
+        console.log(`\nGet your API key from: ${URLS.API_KEYS}`);
       }
     }
   });
