@@ -9,7 +9,7 @@ import {
   FileSchema,
   FinishReason,
 } from "./translationService";
-import { URLS } from "./constants";
+import { CONFIG, URLS } from "./constants";
 import { ConsoleLogger } from "./consoleLogger";
 
 /**
@@ -328,7 +328,7 @@ export class AiTranslator {
       useContractions,
       useShortening,
       generatePluralForms,
-      client: "ai-l10n-npmjs",
+      client: CONFIG.CLIENT,
       returnTranslationsAsString: true,
       translateOnlyNewStrings,
       targetStrings,

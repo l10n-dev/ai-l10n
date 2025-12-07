@@ -1,6 +1,7 @@
 // Configuration constants shared across the package
 export const CONFIG = {
   SECTION: "ai-l10n",
+  CLIENT: "ai-l10n-npmjs",
   KEYS: {
     API_KEY: "apiKey",
     USE_CONTRACTIONS: "useContractions",
