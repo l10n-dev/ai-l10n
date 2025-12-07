@@ -48,7 +48,7 @@ ai-l10n/
 - `AiTranslator` class with `translate()` method
 - TypeScript support with full type definitions
 - Configuration interface `TranslationConfig`
-- Result types `TranslateResult` and `TranslationOutput`
+- Result types `TranslationSummary` and `TranslationOutput`
 
 ### 2. **CLI Tool** (`src/cli.ts`)
 - `ai-l10n translate` - Translate files
@@ -62,9 +62,7 @@ ai-l10n/
 
 ### 4. **Translation Service** (`src/translationService.ts`)
 - HTTP client for l10n.dev API
-- Error handling and retry logic
-- Usage tracking and balance reporting
-- Content filtering support
+- Error handling
 
 ### 5. **Project Structure Detection** (`src/i18nProjectManager.ts`)
 - Auto-detect folder-based structure (en/, es/, fr/)

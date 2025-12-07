@@ -5,10 +5,12 @@ import { I18nProjectManager } from "./i18nProjectManager";
 import {
   L10nTranslationService,
   TranslationRequest,
+  TranslationResult,
   FileSchema,
   FinishReason,
 } from "./translationService";
 import { URLS } from "./constants";
+import { ConsoleLogger } from "./consoleLogger";
 
 /**
  * Configuration options for translation
@@ -81,7 +83,7 @@ export interface TranslationOutput {
 /**
  * Result of translate operation
  */
-export interface TranslateResult {
+export interface TranslationSummary {
   success: boolean;
   results: TranslationOutput[];
   totalCharsUsed: number;
@@ -92,20 +94,22 @@ export interface TranslateResult {
  * Main class for AI-powered localization
  */
 export class AiTranslator {
+  private logger: ConsoleLogger;
   private apiKeyManager: ApiKeyManager;
   private translationService: L10nTranslationService;
   private i18nProjectManager: I18nProjectManager;
 
   constructor() {
+    this.logger = new ConsoleLogger();
     this.apiKeyManager = new ApiKeyManager();
-    this.translationService = new L10nTranslationService(this.apiKeyManager);
+    this.translationService = new L10nTranslationService(this.logger);
     this.i18nProjectManager = new I18nProjectManager();
   }
 
   /**
    * Translate a localization file to one or more target languages
    */
-  async translate(config: TranslationConfig): Promise<TranslateResult> {
+  async translate(config: TranslationConfig): Promise<TranslationSummary> {
     const verbose = config.verbose ?? false;
 
     try {
@@ -134,7 +138,7 @@ export class AiTranslator {
       }
 
       // Ensure API key is available
-      await this.apiKeyManager.ensureApiKey(config.apiKey);
+      const apiKey = await this.apiKeyManager.ensureApiKey(config.apiKey);
 
       // Determine target languages
       let targetLanguages = config.targetLanguages;
@@ -202,6 +206,7 @@ export class AiTranslator {
             );
 
             const result = await this.performTranslation(
+              apiKey,
               sourceFilePath,
               targetLanguage,
               targetFilePath,
@@ -288,6 +293,7 @@ export class AiTranslator {
   }
 
   private async performTranslation(
+    apiKey: string,
     sourceFilePath: string,
     targetLanguage: string,
     targetFilePath: string,
@@ -330,7 +336,7 @@ export class AiTranslator {
     };
 
     // Call translation service
-    const result = await this.translationService.translateJson(request);
+    const result = await this.translationService.translateJson(request, apiKey);
 
     if (!result) {
       return {
@@ -362,12 +368,7 @@ export class AiTranslator {
       result.filteredStrings &&
       Object.keys(result.filteredStrings).length > 0
     ) {
-      this.handleFilteredStrings(
-        result.filteredStrings,
-        result.finishReason,
-        outputPath,
-        saveFilteredStrings
-      );
+      this.handleFilteredStrings(result, outputPath, saveFilteredStrings);
     }
 
     const charsUsed = result.usage.charsUsed || 0;
@@ -384,25 +385,24 @@ export class AiTranslator {
   }
 
   private handleFilteredStrings(
-    filteredStrings: Record<string, unknown>,
-    finishReason: string | undefined,
+    result: TranslationResult,
     targetFilePath: string,
     saveFilteredStrings: boolean
   ): void {
     let reasonMessage: string;
-    if (finishReason === "contentFilter") {
+    if (result.finishReason === FinishReason.contentFilter) {
       reasonMessage = "content policy violations";
-    } else if (finishReason === "length") {
+    } else if (result.finishReason === FinishReason.length) {
       reasonMessage = "AI context limit was reached (content too long)";
     } else {
       return;
     }
 
-    const filteredCount = this.countAllKeys(filteredStrings);
+    const filteredStringsJson = JSON.stringify(result.filteredStrings, null, 2);
     console.warn(
-      `  ⚠️ ${filteredCount} string(s) were excluded due to ${reasonMessage}`
+      `  ⚠️ ${result.filteredStringsCount} string(s) were excluded due to ${reasonMessage}`
     );
-    if (finishReason === "contentFilter") {
+    if (result.finishReason === FinishReason.contentFilter) {
       console.warn(`  ℹ️ View content policy at: ${URLS.CONTENT_POLICY}`);
     }
 
@@ -412,31 +412,11 @@ export class AiTranslator {
       const dir = path.dirname(targetFilePath);
       const filteredPath = path.join(dir, `${base}.filtered${ext}`);
 
-      fs.writeFileSync(
-        filteredPath,
-        JSON.stringify(filteredStrings, null, 2),
-        "utf8"
-      );
+      fs.writeFileSync(filteredPath, filteredStringsJson, "utf8");
       console.log(`  📝 Filtered strings saved to: ${filteredPath}`);
+    } else {
+      console.log(`  📝 Filtered strings:\n${filteredStringsJson}`);
     }
-  }
-
-  private countAllKeys(obj: any): number {
-    let count = 0;
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-
-        if (typeof value === "string") {
-          // Count only string values
-          count += 1;
-        } else if (typeof value === "object" && value !== null) {
-          // Recurse into both objects AND arrays
-          count += this.countAllKeys(value);
-        }
-      }
-    }
-    return count;
   }
 
   /**
