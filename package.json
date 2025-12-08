@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Easy-to-use AI-powered auto-translation for JSON and ARB localization files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

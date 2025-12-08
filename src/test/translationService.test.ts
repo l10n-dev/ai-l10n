@@ -92,11 +92,12 @@ suite("L10nTranslationService Test Suite", () => {
   });
 
   suite("JSON Translation", () => {
-    test("translate throws error when no API Key is set", async () => {
-      await assert.rejects(
-        async () => await service.translate(createRequest(), ""),
-        /API Key not set. Please configure your API Key first./
-      );
+    test("translate returns null when no API Key is set", async () => {
+      const result = await service.translate(createRequest(), "");
+      assert.strictEqual(result, null);
+      
+      // Verify error was logged
+      assert.ok((mockLogger.showAndLogError as sinon.SinonStub).called);
     });
 
     test("translate makes correct API call with valid API Key", async () => {
@@ -188,10 +189,13 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockErrorResponse);
 
-      await assert.rejects(
-        async () => await service.translate(createRequest(), apiKey),
-        /Unauthorized. Please check your API Key./
-      );
+      const result = await service.translate(createRequest(), apiKey);
+      
+      // 401 errors now return null instead of throwing
+      assert.strictEqual(result, null);
+      
+      // Verify error was logged
+      assert.ok((mockLogger.showAndLogError as sinon.SinonStub).called);
     });
 
     test("translate handles 402 Payment Required error with specific message", async () => {
@@ -317,24 +321,29 @@ suite("L10nTranslationService Test Suite", () => {
     test("handles insufficientBalance finish reason", async () => {
       const apiKey = "valid-api-key";
 
+      const expectedResult = {
+        targetLanguageCode: "es",
+        translations: JSON.stringify({ hello: "hola" }),
+        usage: { charsUsed: 5 },
+        finishReason: "insufficientBalance",
+        completedChunks: 1,
+        totalChunks: 1,
+      };
+
       const mockResponse = {
         ok: true,
-        json: sinon.stub().resolves({
-          targetLanguageCode: "es",
-          translations: JSON.stringify({ hello: "hola" }),
-          usage: { charsUsed: 5 },
-          finishReason: "insufficientBalance",
-          completedChunks: 1,
-          totalChunks: 1,
-        }),
+        json: sinon.stub().resolves(expectedResult),
       };
 
       mockFetch.resolves(mockResponse);
 
       const result = await service.translate(createRequest(), apiKey);
 
-      // insufficientBalance finish reason now returns null instead of throwing
-      assert.strictEqual(result, null);
+      // insufficientBalance finish reason now returns result with partial translations
+      assert.deepStrictEqual(result, expectedResult);
+      
+      // Verify error was logged
+      assert.ok((mockLogger.showAndLogError as sinon.SinonStub).called);
     });
 
     test("throws error for error finish reason", async () => {

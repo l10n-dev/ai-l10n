@@ -65,16 +65,13 @@ export interface LanguagePredictionResponse {
 }
 
 export class L10nTranslationService {
-  private readonly baseUrl = URLS.API_BASE;
-  private readonly pricingUrl = URLS.PRICING;
-
   constructor(private readonly logger: ILogger) {}
 
   async predictLanguages(
     input: string,
     limit: number = 10
   ): Promise<Language[]> {
-    const url = new URL(`${this.baseUrl}/languages/predict`);
+    const url = new URL(`${URLS.API_BASE}/languages/predict`);
     url.searchParams.append("input", input);
     url.searchParams.append("limit", limit.toString());
 
@@ -108,14 +105,21 @@ export class L10nTranslationService {
     apiKey: string
   ): Promise<TranslationResult | null> {
     if (!apiKey) {
-      throw new Error("API Key not set. Please configure your API Key first.");
+      this.logger.showAndLogError(
+        "API Key not set. Please configure your API Key first.",
+        null,
+        "",
+        "Get API Key",
+        URLS.API_KEYS
+      );
+      return null;
     }
 
     this.logger.logInfo(
       `Starting translation to ${request.targetLanguageCode}`
     );
 
-    const response = await fetch(`${this.baseUrl}/translate`, {
+    const response = await fetch(`${URLS.API_BASE}/translate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -164,7 +168,14 @@ export class L10nTranslationService {
         }
         case 401:
           errorMessage = "Unauthorized. Please check your API Key.";
-          break;
+          this.logger.showAndLogError(
+            errorMessage,
+            errorData,
+            "",
+            "Get API Key",
+            URLS.API_KEYS
+          );
+          return null;
         case 402: {
           // Try to extract required characters from the error response
           let message =
@@ -182,7 +193,7 @@ export class L10nTranslationService {
             errorData,
             "",
             "Visit l10n.dev",
-            this.pricingUrl
+            URLS.PRICING
           );
           return null;
         }
@@ -220,9 +231,9 @@ export class L10nTranslationService {
             undefined,
             "",
             "Visit l10n.dev",
-            this.pricingUrl
+            URLS.PRICING
           );
-          return null;
+          return result;
         case FinishReason.error:
           throw new Error("Translation failed due to an error.");
         // Note: FinishReason.contentFilter and FinishReason.length return partial results with filteredStrings
