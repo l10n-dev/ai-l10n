@@ -1,12 +1,12 @@
-const { AiTranslator } = require('ai-l10n');
+const { AiTranslator } = require("ai-l10n");
 
 async function main() {
   const translator = new AiTranslator();
 
   // Simple translation example for JavaScript users
   const result = await translator.translate({
-    sourceFile: './locales/en.json',
-    targetLanguages: ['es', 'fr', 'de'],
+    sourceFile: "./test-data/en.json",
+    targetLanguages: ["es", "fr", "de"],
   });
 
   console.log(`✅ Translation complete!`);
@@ -14,7 +14,7 @@ async function main() {
   console.log(`   Used ${result.totalCharsUsed} characters`);
 
   // Show individual results
-  result.results.forEach(translation => {
+  result.results.forEach((translation) => {
     if (translation.success) {
       console.log(`   ✓ ${translation.language}: ${translation.outputPath}`);
     } else {

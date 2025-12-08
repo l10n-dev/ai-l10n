@@ -47,6 +47,6 @@ export class ConsoleLogger implements ILogger {
    * Log warning message
    */
   logWarning(message: string): void {
-    console.warn(`⚠️ ${message}`);
+    console.warn(`⚠️  ${message}`);
   }
 }

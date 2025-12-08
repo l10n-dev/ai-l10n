@@ -336,7 +336,7 @@ export class AiTranslator {
     };
 
     // Call translation service
-    const result = await this.translationService.translateJson(request, apiKey);
+    const result = await this.translationService.translate(request, apiKey);
 
     if (!result) {
       return {
@@ -400,7 +400,7 @@ export class AiTranslator {
 
     const filteredStringsJson = JSON.stringify(result.filteredStrings, null, 2);
     console.warn(
-      `  ⚠️ ${result.filteredStringsCount} string(s) were excluded due to ${reasonMessage}`
+      `  ⚠️  ${result.filteredStringsCount} string(s) were excluded due to ${reasonMessage}`
     );
     if (result.finishReason === FinishReason.contentFilter) {
       console.warn(`  ℹ️ View content policy at: ${URLS.CONTENT_POLICY}`);

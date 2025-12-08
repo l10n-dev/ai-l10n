@@ -1,6 +1,6 @@
 [
   {
-    "sourceFile": "./locales/en.json",
+    "sourceFile": "./test-data/en.json",
     "targetLanguages": ["es", "fr", "de", "ja", "zh"],
     "generatePluralForms": true,
     "useContractions": true,

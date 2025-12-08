@@ -1,18 +1,13 @@
 [
   {
-    "sourceFile": "./locales/en.json",
+    "sourceFile": "./test-data/en.json",
     "targetLanguages": ["es", "fr", "de"],
     "translateOnlyNewStrings": true,
     "verbose": false
   },
   {
-    "sourceFile": "./locales/admin/en.json",
-    "targetLanguages": ["es", "fr"],
+    "sourceFile": "./test-data/en/common.json",
+    "targetLanguages": ["ja"],
     "translateOnlyNewStrings": true
-  },
-  {
-    "sourceFile": "./locales/errors/en.json",
-    "targetLanguages": ["es", "fr", "de", "ja"],
-    "generatePluralForms": true
   }
 ]

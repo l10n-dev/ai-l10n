@@ -92,14 +92,14 @@ suite("L10nTranslationService Test Suite", () => {
   });
 
   suite("JSON Translation", () => {
-    test("translateJson throws error when no API Key is set", async () => {
+    test("translate throws error when no API Key is set", async () => {
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), ""),
+        async () => await service.translate(createRequest(), ""),
         /API Key not set. Please configure your API Key first./
       );
     });
 
-    test("translateJson makes correct API call with valid API Key", async () => {
+    test("translate makes correct API call with valid API Key", async () => {
       const apiKey = "valid-api-key";
 
       const sourceStrings = { hello: "Hello", world: "World" };
@@ -131,7 +131,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockFetchResponse);
 
-      const result = await service.translateJson(request, apiKey);
+      const result = await service.translate(request, apiKey);
 
       assert.deepStrictEqual(result, mockTranslationResult);
 
@@ -158,7 +158,7 @@ suite("L10nTranslationService Test Suite", () => {
       assert.strictEqual(requestBody.schema, null);
     });
 
-    test("translateJson handles 400 Bad Request error", async () => {
+    test("translate handles 400 Bad Request error", async () => {
       const apiKey = "valid-api-key";
 
       const mockErrorResponse = {
@@ -172,12 +172,12 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /Invalid source strings format/
       );
     });
 
-    test("translateJson handles 401 Unauthorized error", async () => {
+    test("translate handles 401 Unauthorized error", async () => {
       const apiKey = "invalid-api-key";
 
       const mockErrorResponse = {
@@ -189,12 +189,12 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /Unauthorized. Please check your API Key./
       );
     });
 
-    test("translateJson handles 402 Payment Required error with specific message", async () => {
+    test("translate handles 402 Payment Required error with specific message", async () => {
       const apiKey = "valid-api-key";
 
       const mockErrorResponse = {
@@ -210,13 +210,13 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       // 402 errors now return null instead of throwing
       assert.strictEqual(result, null);
     });
 
-    test("translateJson handles 413 Request Too Large error", async () => {
+    test("translate handles 413 Request Too Large error", async () => {
       const apiKey = "valid-api-key";
 
       const mockErrorResponse = {
@@ -228,12 +228,12 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /Request too large. Maximum request size is 5 MB./
       );
     });
 
-    test("translateJson handles 500 Internal Server Error", async () => {
+    test("translate handles 500 Internal Server Error", async () => {
       const apiKey = "valid-api-key";
 
       const mockErrorResponse = {
@@ -247,7 +247,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /An internal server error occurred \(Error code: INTERNAL_ERROR_123\)/
       );
     });
@@ -271,7 +271,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /is required is invalid must be BCP-47 format/
       );
     });
@@ -290,7 +290,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /Field validation failed Invalid input format/
       );
     });
@@ -307,7 +307,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /An internal server error occurred \(Error code: unknown\)/
       );
     });
@@ -331,7 +331,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       // insufficientBalance finish reason now returns null instead of throwing
       assert.strictEqual(result, null);
@@ -355,7 +355,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockResponse);
 
       await assert.rejects(
-        async () => await service.translateJson(createRequest(), apiKey),
+        async () => await service.translate(createRequest(), apiKey),
         /Translation failed due to an error\./
       );
     });
@@ -389,7 +389,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
       assert.deepStrictEqual(result, expectedResult);
     });
 
@@ -422,7 +422,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
       assert.deepStrictEqual(result, expectedResult);
     });
 
@@ -445,7 +445,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
       assert.deepStrictEqual(result, expectedResult);
     });
 
@@ -467,7 +467,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
       assert.deepStrictEqual(result, expectedResult);
     });
   });
@@ -497,7 +497,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       assert.strictEqual(result?.filteredStringsCount, 3);
     });
@@ -534,7 +534,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       assert.strictEqual(result?.filteredStringsCount, 5);
     });
@@ -565,7 +565,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       assert.strictEqual(result?.filteredStringsCount, 6);
     });
@@ -590,7 +590,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       assert.strictEqual(result?.filteredStringsCount, 0);
     });
@@ -614,7 +614,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       assert.strictEqual(result?.filteredStringsCount, undefined);
     });
@@ -649,7 +649,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result = await service.translateJson(createRequest(), apiKey);
+      const result = await service.translate(createRequest(), apiKey);
 
       // Should only count string1, string2, and string3 (3 string values)
       assert.strictEqual(result?.filteredStringsCount, 3);

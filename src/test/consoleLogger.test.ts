@@ -213,7 +213,7 @@ suite("ConsoleLogger Test Suite", () => {
       logger.logWarning("Warning message");
 
       assert.ok(consoleWarnStub.calledOnce);
-      assert.ok(consoleWarnStub.firstCall.args[0].includes("⚠️"));
+      assert.ok(consoleWarnStub.firstCall.args[0].includes("⚠️  "));
       assert.ok(consoleWarnStub.firstCall.args[0].includes("Warning message"));
     });
 
@@ -221,7 +221,7 @@ suite("ConsoleLogger Test Suite", () => {
       logger.logWarning("");
 
       assert.ok(consoleWarnStub.calledOnce);
-      assert.strictEqual(consoleWarnStub.firstCall.args[0], "⚠️ ");
+      assert.strictEqual(consoleWarnStub.firstCall.args[0], "⚠️  ");
     });
 
     test("logs multiline warning", () => {
@@ -236,7 +236,7 @@ suite("ConsoleLogger Test Suite", () => {
       logger.logWarning("Detailed warning with info");
 
       const output = consoleWarnStub.firstCall.args[0];
-      assert.strictEqual(output, "⚠️ Detailed warning with info");
+      assert.strictEqual(output, "⚠️  Detailed warning with info");
     });
   });
 

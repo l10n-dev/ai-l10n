@@ -103,7 +103,7 @@ export class L10nTranslationService {
     return result.languages;
   }
 
-  async translateJson(
+  async translate(
     request: TranslationRequest,
     apiKey: string
   ): Promise<TranslationResult | null> {
