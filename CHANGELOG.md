@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-12-08
+
+### Added
+- Comprehensive API reference documentation in README
+- Custom logger integration documentation for VS Code extensions and other environments
+- Complete unit test coverage (139+ tests)
+- Test suites for all major classes:
+  - AiTranslator (30 tests)
+  - ApiKeyManager (26 tests)
+  - ConsoleLogger (23 tests)
+  - I18nProjectManager (36 tests)
+  - L10nTranslationService (24 tests)
+
+### Changed
+- Enhanced README with detailed API types and methods documentation
+- Improved error handling examples in documentation
+- Added best practices section for API usage
+
+### Fixed
+- Minor documentation improvements and clarifications
+
 ## [1.0.0] - 2025-12-07
 
 ### Added

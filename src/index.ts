@@ -1,3 +1,4 @@
+import { ILogger } from "./logger";
 import * as fs from "fs";
 import * as path from "path";
 import { ApiKeyManager } from "./apiKeyManager";
@@ -449,5 +450,6 @@ export class AiTranslator {
 }
 
 // Export main class and types
-export { FileSchema, FinishReason };
+export { URLS, ILogger, ConsoleLogger };
+export * from "./translationService";
 export * from "./i18nProjectManager";
