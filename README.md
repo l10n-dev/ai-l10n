@@ -790,14 +790,14 @@ interface Language {
 
 The API throws errors for various conditions:
 
-- **Missing API Key**: `"API Key not set. Please configure your API Key first."`
 - **Invalid Request (400)**: Validation error with details
-- **Unauthorized (401)**: `"Unauthorized. Please check your API Key."`
-- **Insufficient Balance (402)**: Returns `null` with warning logged
 - **Request Too Large (413)**: `"Request too large. Maximum request size is 5 MB."`
 - **Server Error (500)**: `"An internal server error occurred..."`
 
-When `FinishReason.insufficientBalance` is returned, the method returns `null` instead of throwing.
+Returns `null` with error logged instead of throwing error:
+- **Missing API Key**: `"API Key not set. Please configure your API Key first."`
+- **Unauthorized (401)**: `"Unauthorized. Please check your API Key."`
+- **Insufficient Balance (402)**: `"Not enough characters remaining for this translation. You can try translating a smaller portion of your file or purchase more characters."`
 
 ## License
 

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-12-08
+
+### Fixed
+- Improved error handling in `L10nTranslationService.translate()` method:
+  - Now returns `null` instead of throwing error for 401 Unauthorized responses
+  - Enhanced error messages with actionable links to get API keys
+  - Better handling of insufficient balance scenarios
+  - Fixed `insufficientBalance` finish reason to return result instead of null
+- Improved logger integration with actionable error dialogs
+
 ## [1.0.1] - 2025-12-08
 
 ### Added
