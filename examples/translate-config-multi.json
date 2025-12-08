@@ -1,0 +1,13 @@
+[
+  {
+    "sourceFile": "./test-data/en.json",
+    "targetLanguages": ["es", "fr", "de"],
+    "translateOnlyNewStrings": true,
+    "verbose": false
+  },
+  {
+    "sourceFile": "./test-data/en/common.json",
+    "targetLanguages": ["ja"],
+    "translateOnlyNewStrings": true
+  }
+]

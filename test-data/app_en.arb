@@ -1,0 +1,81 @@
+{
+  "@@locale": "en",
+  "@@context": "ARB localization file in English",
+  "@@author": "Localization Team",
+  "@@last_modified": "2024-06-01T12:00:00Z",
+  "appTitle": "Localization Demo",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "welcomeMessage": "Welcome to Flutter Localization!",
+  "@welcomeMessage": {
+    "description": "Welcome message shown on the home screen"
+  },
+  "helloWorld": "Hello World!",
+  "@helloWorld": {
+    "description": "Simple hello world greeting"
+  },
+  "greeting": "Hello, {name}!",
+  "@greeting": {
+    "description": "Personalized greeting with a name parameter",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "John"
+      }
+    }
+  },
+  "itemCount": "{count, plural, =0{No items} =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "description": "Display item count with pluralization",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "loginButton": "Login",
+  "@loginButton": {
+    "description": "Login button text"
+  },
+  "logoutButton": "Logout",
+  "@logoutButton": {
+    "description": "Logout button text"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings menu item"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile menu item"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Language selection label"
+  },
+  "lastUpdated": "Last updated on {date}",
+  "@lastUpdated": {
+    "description": "Shows when content was last updated",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "priceDisplay": "Price: {price}",
+  "@priceDisplay": {
+    "description": "Display a price with currency formatting",
+    "placeholders": {
+      "price": {
+        "type": "double",
+        "format": "currency",
+        "optionalParameters": {
+          "symbol": "$"
+        }
+      }
+    }
+  }
+}
