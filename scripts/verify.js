@@ -107,7 +107,7 @@ if (failed > 0) {
   console.log(`   CLI: ${pkg.bin['ai-l10n']}`);
   
   // Check SDK dependency
-  const sdkDep = pkg.dependencies['@ai-l10n/sdk'];
+  const sdkDep = pkg.dependencies['ai-l10n-sdk'];
   if (sdkDep && sdkDep.startsWith('file:')) {
     console.log(`\n⚠️  SDK Dependency: ${sdkDep} (local development mode)`);
     console.log('   Change to version number before publishing!');

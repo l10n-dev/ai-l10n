@@ -1,11 +1,16 @@
-# @ai-l10n/sdk
+# ai-l10n-sdk
+
+[![npm version](https://img.shields.io/npm/v/ai-l10n-sdk.svg)](https://www.npmjs.com/package/ai-l10n-sdk)
+[![License: AGPL-3.0](https://img.shields.io/badge/agpl-v3.svg)](https://opensource.org/license/agpl-v3)
 
 This is the core SDK package for ai-l10n, providing programmatic access to AI translation capabilities. Use this package when you want to integrate localization functionality into your applications without the CLI tool.
+
+Powered by [l10n](https://l10n.dev).dev
 
 ## Installation
 
 ```bash
-npm install @ai-l10n/sdk
+npm install ai-l10n-sdk
 ```
 
 ## Related Packages
@@ -17,7 +22,7 @@ npm install @ai-l10n/sdk
 ### Basic Translation
 
 ```typescript
-import { AiTranslator } from '@ai-l10n/sdk';
+import { AiTranslator } from 'ai-l10n-sdk';
 
 const translator = new AiTranslator();
 
@@ -46,7 +51,7 @@ await translator.translate({
 ### Advanced Configuration
 
 ```typescript
-import { AiTranslator, TranslationConfig } from '@ai-l10n/sdk';
+import { AiTranslator, TranslationConfig } from 'ai-l10n-sdk';
 
 const translator = new AiTranslator();
 
@@ -130,7 +135,7 @@ interface ILogger {
 The default `ConsoleLogger` implementation:
 
 ```typescript
-import { ConsoleLogger } from '@ai-l10n/sdk';
+import { ConsoleLogger } from 'ai-l10n-sdk';
 
 const logger = new ConsoleLogger();
 
@@ -154,7 +159,7 @@ logger.showAndLogError(
 #### Constructor
 
 ```typescript
-import { AiTranslator, ILogger, ConsoleLogger } from '@ai-l10n/sdk';
+import { AiTranslator, ILogger, ConsoleLogger } from 'ai-l10n-sdk';
 
 // Default: uses ConsoleLogger
 const translator = new AiTranslator();

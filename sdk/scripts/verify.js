@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔍 Verifying @ai-l10n/sdk package...\n');
+console.log('🔍 Verifying ai-l10n-sdk package...\n');
 
 const checks = [];
 
