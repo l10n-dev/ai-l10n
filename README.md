@@ -256,10 +256,10 @@ locales/
   en/
     common.json
     errors.json
-  es/           # Auto-detected
+  es/              # Auto-detected
     common.json
     errors.json
-  fr/           # Auto-detected
+  zh-Hans-CN/      # Auto-detected
     common.json
 ```
 
@@ -267,20 +267,20 @@ locales/
 
 ```
 locales/
-  en.json       # Source
-  es.json       # Auto-detected
-  fr.json       # Auto-detected
-  de.json       # Auto-detected
+  en.json          # Source
+  es.json          # Auto-detected
+  fr-FR.json       # Auto-detected
+  zh-Hans-CN.json  # Auto-detected
 ```
 
 ### File-Based Structure (Flutter ARB)
 
 ```
 lib/l10n/
-  app_en.arb        # Source
-  app_es.arb        # Auto-detected
-  app_fr.arb        # Auto-detected
-  app_de.arb        # Auto-detected
+  app_en.arb           # Source
+  app_es.arb           # Auto-detected
+  app_fr_FR.arb        # Auto-detected
+  app_zh_Hans-CN.arb   # Auto-detected
 ```
 
 ## Configuration Options
