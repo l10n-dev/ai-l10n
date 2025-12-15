@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Independent npm package for use in other projects (VS Code extensions, etc.)
   - Complete TypeScript API with full type definitions
   - Custom logger support through `ILogger` interface
-  - All core functionality: AiTranslator, L10nTranslationService, ApiKeyManager
+  - All core functionality: AiTranslator, L10nTranslationService
   - Comprehensive README with API examples
   - 139 passing tests
 

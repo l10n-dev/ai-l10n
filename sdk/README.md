@@ -147,62 +147,6 @@ logger.showAndLogError(
 );
 ```
 
-### Custom Logger Example: Web Application
-
-```typescript
-import { ILogger } from '@ai-l10n/sdk';
-
-class WebLogger implements ILogger {
-  private logs: Array<{ type: string; message: string; timestamp: Date }> = [];
-  
-  private addLog(type: string, message: string): void {
-    this.logs.push({ type, message, timestamp: new Date() });
-    // Update UI, send to analytics, etc.
-    this.updateUI();
-  }
-  
-  logInfo(message: string): void {
-    console.log(message);
-    this.addLog('info', message);
-  }
-  
-  logWarning(message: string, error?: unknown): void {
-    console.warn(message, error);
-    this.addLog('warning', `${message}${error ? ': ' + String(error) : ''}`);
-  }
-  
-  logError(message: string, error?: unknown): void {
-    console.error(message, error);
-    this.addLog('error', `${message}${error ? ': ' + String(error) : ''}`);
-  }
-  
-  showAndLogError(
-    message: string,
-    error?: unknown,
-    context?: string,
-    linkBtnText?: string,
-    url?: string
-  ): void {
-    this.addLog('error', message);
-    
-    // Show toast notification, modal, etc.
-    this.showErrorToast(message, linkBtnText, url);
-  }
-  
-  private updateUI(): void {
-    // Update your UI with logs
-  }
-  
-  private showErrorToast(message: string, linkText?: string, url?: string): void {
-    // Show error in your UI
-  }
-  
-  getLogs() {
-    return this.logs;
-  }
-}
-```
-
 ## API Reference
 
 ### AiTranslator Class

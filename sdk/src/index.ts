@@ -453,4 +453,3 @@ export * from "./i18nProjectManager";
 export { L10nTranslationService } from "./translationService";
 export { ILogger } from "./logger";
 export { ConsoleLogger } from "./consoleLogger";
-export { ApiKeyManager } from "./apiKeyManager";
