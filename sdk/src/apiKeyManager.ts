@@ -2,6 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { URLS } from "./constants";
+import { ILogger } from "./logger";
+import { ConsoleLogger } from "./consoleLogger";
 
 export class ApiKeyManager {
   private readonly configDir: string;
@@ -13,7 +15,7 @@ export class ApiKeyManager {
     "3. Run 'ai-l10n config --api-key YOUR_KEY' to save it\n" +
     `Get your API key from ${URLS.API_KEYS}`;
 
-  constructor() {
+  constructor(private readonly logger: ILogger = new ConsoleLogger()) {
     // Store API key in user's home directory
     this.configDir = path.join(os.homedir(), ".ai-l10n");
     this.configFile = path.join(this.configDir, "config.json");
@@ -29,7 +31,7 @@ export class ApiKeyManager {
       const config = JSON.parse(configData);
       return config.apiKey;
     } catch (error) {
-      console.warn("Failed to read API key from config:", error);
+      this.logger.logWarning("Failed to read API key from config:", error);
       return undefined;
     }
   }
@@ -47,7 +49,7 @@ export class ApiKeyManager {
         JSON.stringify(config, null, 2),
         "utf8"
       );
-      console.log("✅ API Key saved successfully!");
+      this.logger.logInfo("✅ API Key saved successfully!");
     } catch (error) {
       throw new Error(
         `Failed to save API key: ${
@@ -82,9 +84,9 @@ export class ApiKeyManager {
     try {
       if (fs.existsSync(this.configFile)) {
         fs.unlinkSync(this.configFile);
-        console.log("✅ API Key cleared successfully!");
+        this.logger.logInfo("✅ API Key cleared successfully!");
       } else {
-        console.log("ℹ️ No API Key found to clear.");
+        this.logger.logInfo("ℹ️ No API Key found to clear.");
       }
     } catch (error) {
       throw new Error(

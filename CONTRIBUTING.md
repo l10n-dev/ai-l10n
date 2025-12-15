@@ -6,7 +6,7 @@ Thank you for your interest in contributing to ai-l10n! This document provides g
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/AntonovAnton/ai-l10n.git
+   git clone https://github.com/l10n-dev/ai-l10n.git
    cd ai-l10n
    ```
 

@@ -1,0 +1,55 @@
+{
+  "name": "@ai-l10n/sdk",
+  "version": "1.1.0",
+  "description": "Lightweight SDK for AI-powered localization automation - programmatic API (no CLI)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha",
+    "prepare": "npm run build",
+    "verify": "node scripts/verify.js"
+  },
+  "keywords": [
+    "localization",
+    "l10n",
+    "i18n",
+    "translation",
+    "ai",
+    "internationalization",
+    "json",
+    "arb",
+    "flutter",
+    "sdk",
+    "api",
+    "typescript"
+  ],
+  "author": "l10n.dev",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/l10n-dev/ai-l10n.git",
+    "directory": "sdk"
+  },
+  "homepage": "https://github.com/l10n-dev/ai-l10n#readme",
+  "bugs": {
+    "url": "https://github.com/l10n-dev/ai-l10n/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.10",
+    "@types/sinon": "^17.0.3",
+    "mocha": "^11.0.1",
+    "sinon": "^19.0.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.0"
+  }
+}

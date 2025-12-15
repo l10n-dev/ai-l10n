@@ -7,7 +7,7 @@ AI-powered translation for app localization. Automatically translate your i18n f
 
 Powered by [l10n](https://l10n.dev).dev
 
-![ai-localization example](https://raw.githubusercontent.com/AntonovAnton/ai-l10n/main/demonstration-dark-ai-l10n.gif)
+![ai-localization example](https://raw.githubusercontent.com/l10n-dev/ai-l10n/main/demonstration-dark-ai-l10n.gif)
 
 ## Features
 
@@ -27,12 +27,15 @@ Powered by [l10n](https://l10n.dev).dev
 
 ## Installation
 
+### For CLI + Programmatic (SDK)
 ```bash
 npm install ai-l10n
-# or
-yarn add ai-l10n
-# or
-pnpm add ai-l10n
+```
+
+### For SDK Only
+
+```bash
+npm install @ai-l10n/sdk
 ```
 
 ## Getting Started
@@ -132,84 +135,17 @@ import { AiTranslator } from 'ai-l10n';
 
 const translator = new AiTranslator();
 
-// Basic translation
 const result = await translator.translate({
   sourceFile: './locales/en.json',
   targetLanguages: ['es', 'fr', 'de'],
 });
-
-console.log(`Translated to ${result.results.length} languages`);
-console.log(`Used ${result.totalCharsUsed} characters`);
 ```
 
-#### Update Existing Translations
-
-```typescript
-// Only translate new keys, preserve existing translations
-// If targetLanguages is not provided or empty, 
-// languages will be auto-detected from project structure
-await translator.translate({
-  sourceFile: './locales/en.json',
-  translateOnlyNewStrings: true,
-});
-```
-
-#### Advanced Configuration
-
-```typescript
-const config: TranslationConfig = {
-  sourceFile: './locales/en.json',
-  targetLanguages: ['es', 'fr', 'de', 'ja', 'zh-CN'],
-  apiKey: 'your-api-key', // Optional, can use env variable
-  generatePluralForms: true,
-  useShortening: false,
-  useContractions: true,
-  saveFilteredStrings: true,
-  translateOnlyNewStrings: false,
-  verbose: true,
-};
-
-const result = await translator.translate(config);
-
-// Check results
-for (const translation of result.results) {
-  if (translation.success) {
-    console.log(`✅ ${translation.language}: ${translation.outputPath}`);
-  } else {
-    console.log(`❌ ${translation.language}: ${translation.error}`);
-  }
-}
-```
-
-#### Flutter ARB Files
-
-Full support for ARB (Application Resource Bundle) files used in Flutter applications:
-
-```typescript
-const result = await translator.translate({
-  sourceFile: './lib/l10n/app_en_US.arb',
-  targetLanguages: ['es_ES', 'fr_FR', 'de']
-});
-```
-
-**ARB Features:**
-- **Automatic Metadata Updates**: The API automatically updates `@@locale` to the target language code and `@@last_modified` to the current UTC timestamp
-- **Custom Prefixes**: Supports custom file naming patterns (e.g., `app_en_US.arb`, `my_app_fr.arb`)
-- **Underscore Format**: ARB files use underscores instead of hyphens (e.g., `en_US` instead of `en-US`)
-- **Perfect for Flutter**: Seamlessly integrates with Flutter's localization workflow
-
-#### Multiple Files
-
-```typescript
-const files = ['./locales/en/common.json', './locales/en/admin.json', './locales/en/errors.json'];
-
-for (const file of files) {
-  await translator.translate({
-    sourceFile: file,
-    targetLanguages: ['es', 'fr', 'de'],
-  });
-}
-```
+**📚 See the [@ai-l10n/sdk README](https://github.com/AntonovAnton/ai-l10n/tree/main/sdk#readme) for:**
+- Complete API documentation and TypeScript interfaces
+- Advanced usage examples
+- Custom logger integration
+- Error handling and type definitions
 
 ### NPM Scripts Integration
 
@@ -320,10 +256,10 @@ locales/
   en/
     common.json
     errors.json
-  es/           # Auto-detected
+  es/              # Auto-detected
     common.json
     errors.json
-  fr/           # Auto-detected
+  zh-Hans-CN/      # Auto-detected
     common.json
 ```
 
@@ -331,20 +267,20 @@ locales/
 
 ```
 locales/
-  en.json       # Source
-  es.json       # Auto-detected
-  fr.json       # Auto-detected
-  de.json       # Auto-detected
+  en.json          # Source
+  es.json          # Auto-detected
+  fr-FR.json       # Auto-detected
+  zh-Hans-CN.json  # Auto-detected
 ```
 
 ### File-Based Structure (Flutter ARB)
 
 ```
 lib/l10n/
-  app_en.arb        # Source
-  app_es.arb        # Auto-detected
-  app_fr.arb        # Auto-detected
-  app_de.arb        # Auto-detected
+  app_en.arb           # Source
+  app_es.arb           # Auto-detected
+  app_fr_FR.arb        # Auto-detected
+  app_zh_Hans-CN.arb   # Auto-detected
 ```
 
 ## Configuration Options
@@ -434,7 +370,7 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 ## Support
 
 - 📧 Email: support@l10n.dev
-- 🐛 Issues: [GitHub Issues](https://github.com/AntonovAnton/ai-l10n/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/l10n-dev/ai-l10n/issues)
 - 📚 API Documentation: [l10n.dev/api/doc](https://l10n.dev/api/doc)
 - 🌐 Website: [l10n](https://l10n.dev).dev
 
@@ -457,8 +393,6 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 > - Monitor progress in real-time
 > - Download files when complete with full control (delete anytime)
 > - Use the API for automation and CI/CD workflows
->
-> l10n.dev is built by developers for developers, with privacy, reliability, and quality as top priorities.
 
 ## Important: Working with Arrays in JSON
 
@@ -484,320 +418,6 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 
 For object-based JSON structures (recommended for i18n), this is not a concern as translations are matched by key names.
 
-## API Reference
-
-### AiTranslator Class
-
-The main class for AI-powered localization. Uses `ConsoleLogger` by default for output, making it suitable for CLI usage and Node.js applications.
-
-> **💡 Custom Logger Integration:** For integration in other environments (like VS Code extensions), you can use `L10nTranslationService` directly with a custom logger implementing the `ILogger` interface. This allows you to redirect output to extension channels, custom UIs, or other logging systems instead of console output.
-
-#### Constructor
-
-```typescript
-const translator = new AiTranslator();
-```
-
-Creates a new translator instance with console logging enabled.
-
-#### Methods
-
-##### `translate(config: TranslationConfig): Promise<TranslationSummary>`
-
-Translates a i18n file to one or more target languages.
-
-**Parameters:**
-- `config: TranslationConfig` - Translation configuration object
-
-**Returns:** `Promise<TranslationSummary>` - Summary of translation results
-
-### Types
-
-#### TranslationConfig
-
-Configuration options for translation.
-
-```typescript
-interface TranslationConfig {
-  /**
-   * Path to the source file to translate (JSON or ARB)
-   */
-  sourceFile: string;
-
-  /**
-   * Target language codes (e.g., ["es", "fr", "de-DE", "zh-Hans-CN"])
-   * If not provided, will be auto-detected from project structure
-   */
-  targetLanguages?: string[];
-
-  /**
-   * API key for l10n.dev service
-   * Can also be set via L10N_API_KEY environment variable
-   */
-  apiKey?: string;
-
-  /**
-   * Generates additional plural form strings (e.g., for i18next) with plural suffixes.
-   * Do not enable for strict source-to-target mapping (default: false)
-   */
-  generatePluralForms?: boolean;
-
-  /**
-   * Use shortening in translations (default: false)
-   */
-  useShortening?: boolean;
-
-  /**
-   * Use contractions in translations (default: true)
-   */
-  useContractions?: boolean;
-
-  /**
-   * Save filtered strings to separate file (default: true)
-   * Filtered strings are in i18n JSON format and contain source strings that violated
-   * content policies. Review the translation for successfully translated content.
-   */
-  saveFilteredStrings?: boolean;
-
-  /**
-   * If true, update existing files with only new translations
-   * If false, create new files with unique names (default: false)
-   */
-  translateOnlyNewStrings?: boolean;
-
-  /**
-   * Enable verbose logging (default: false)
-   */
-  verbose?: boolean;
-}
-```
-
-#### TranslationSummary
-
-Result of a translation operation.
-
-```typescript
-interface TranslationSummary {
-  /** Whether at least one translation succeeded */
-  success: boolean;
-  
-  /** Array of individual translation results */
-  results: TranslationOutput[];
-  
-  /** Total characters used across all translations */
-  totalCharsUsed: number;
-  
-  /** Remaining character balance (if available) */
-  remainingBalance?: number;
-}
-```
-
-#### TranslationOutput
-
-Result of a single language translation.
-
-```typescript
-interface TranslationOutput {
-  /** Whether translation succeeded */
-  success: boolean;
-  
-  /** Target language code */
-  language: string;
-  
-  /** Path to output file (if successful) */
-  outputPath?: string;
-  
-  /** Characters used for this translation */
-  charsUsed?: number;
-  
-  /** Error message (if failed) */
-  error?: string;
-}
-```
-
-### L10nTranslationService
-
-Low-level service for interacting with the l10n.dev API. Can be used directly with a custom logger for integration in non-console environments.
-
-#### Constructor
-
-```typescript
-import { L10nTranslationService } from "ai-l10n";
-
-// With custom logger (e.g., for VS Code extension)
-const service = new L10nTranslationService(customLogger);
-```
-
-**Parameters:**
-- `logger: ILogger` - Logger implementation for output (use `ConsoleLogger` or implement custom `ILogger` interface)
-
-> **💡 VS Code Extension Integration:** This service is used in the [l10n.dev VS Code extension](https://marketplace.visualstudio.com/items?itemName=l10n.l10n-dev) with a custom logger that outputs to the extension's output channel instead of console.
-
-#### Methods
-
-##### `translate(request: TranslationRequest, apiKey: string): Promise<TranslationResult | null>`
-
-Translates JSON content using the l10n.dev API.
-
-**Parameters:**
-- `request: TranslationRequest` - Translation request configuration
-- `apiKey: string` - API key for authentication
-
-**Returns:** `Promise<TranslationResult | null>` - Translation result or null if insufficient balance
-
-**Throws:** Error for various failure conditions (invalid request, unauthorized, server error, etc.)
-
-##### `predictLanguages(input: string, limit?: number): Promise<Language[]>`
-
-Predicts possible source languages from input text (name in English or native language name, region, or script)
-
-**Parameters:**
-- `input: string` - Text to analyze
-- `limit?: number` - Maximum number of predictions (default: 10)
-
-**Returns:** `Promise<Language[]>` - Array of predicted languages with codes and names
-
-#### Types
-
-##### TranslationRequest
-
-```typescript
-interface TranslationRequest {
-  /** Source strings as JSON string */
-  sourceStrings: string;
-  
-  /** Target language code (e.g., "es", "fr-FR") */
-  targetLanguageCode: string;
-  
-  /** Use contractions (e.g., "don't" vs "do not") */
-  useContractions?: boolean;
-  
-  /** Use shortened forms when translation is longer than source text */
-  useShortening?: boolean;
-  
-  /** Generate plural forms for i18next */
-  generatePluralForms?: boolean;
-  
-  /** Return translations as JSON string */
-  returnTranslationsAsString: boolean;
-  
-  /** Client identifier */
-  client: string;
-  
-  /** Only translate new strings */
-  translateOnlyNewStrings?: boolean;
-  
-  /** Existing target strings (for incremental updates) */
-  targetStrings?: string;
-  
-  /** File schema format */
-  schema: FileSchema | null;
-}
-```
-
-##### TranslationResult
-
-```typescript
-interface TranslationResult {
-  /** Target language code */
-  targetLanguageCode: string;
-  
-  /** Translated content as JSON string */
-  translations?: string;
-  
-  /** Usage statistics */
-  usage: TranslationUsage;
-  
-  /** Reason translation finished */
-  finishReason?: FinishReason;
-  
-  /** Number of chunks completed */
-  completedChunks: number;
-  
-  /** Total number of chunks */
-  totalChunks: number;
-  
-  /** Remaining character balance */
-  remainingBalance?: number;
-  
-  /** Strings filtered due to content policy or length */
-  filteredStrings?: Record<string, unknown>;
-  
-  /** Count of filtered strings */
-  filteredStringsCount?: number;
-}
-```
-
-##### FileSchema
-
-Supported file schema formats for translation requests.
-
-```typescript
-enum FileSchema {
-  /** OpenAPI specification format */
-  OpenAPI = "openApi",
-  
-  /** Flutter ARB (Application Resource Bundle) format */
-  ARBFlutter = "arbFlutter"
-}
-```
-
-##### FinishReason
-
-Reasons why a translation finished.
-
-```typescript
-enum FinishReason {
-  /** Translation completed successfully */
-  stop = "stop",
-  
-  /** Translation stopped due to length/context limits */
-  length = "length",
-  
-  /** Some content was filtered due to content policy */
-  contentFilter = "contentFilter",
-  
-  /** Insufficient character balance */
-  insufficientBalance = "insufficientBalance",
-  
-  /** Translation failed with error */
-  error = "error"
-}
-```
-
-##### TranslationUsage
-
-```typescript
-interface TranslationUsage {
-  /** Number of characters used */
-  charsUsed?: number;
-}
-```
-
-##### Language
-
-```typescript
-interface Language {
-  /** Language code (e.g., "es", "fr-FR") */
-  code: string;
-  
-  /** Human-readable language name */
-  name: string;
-}
-```
-
-#### Error Handling
-
-The API throws errors for various conditions:
-
-- **Invalid Request (400)**: Validation error with details
-- **Request Too Large (413)**: `"Request too large. Maximum request size is 5 MB."`
-- **Server Error (500)**: `"An internal server error occurred..."`
-
-Returns `null` with error logged instead of throwing error:
-- **Missing API Key**: `"API Key not set. Please configure your API Key first."`
-- **Unauthorized (401)**: `"Unauthorized. Please check your API Key."`
-- **Insufficient Balance (402)**: `"Not enough characters remaining for this translation. You can try translating a smaller portion of your file or purchase more characters."`
 
 ## License
 

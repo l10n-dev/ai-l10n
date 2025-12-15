@@ -1,3 +1,4 @@
+import { ConsoleLogger } from "./consoleLogger";
 import { URLS } from "./constants";
 import { ILogger } from "./logger";
 
@@ -65,7 +66,7 @@ export interface LanguagePredictionResponse {
 }
 
 export class L10nTranslationService {
-  constructor(private readonly logger: ILogger) {}
+  constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
   async predictLanguages(
     input: string,

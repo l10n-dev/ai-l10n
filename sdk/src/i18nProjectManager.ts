@@ -1,5 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
+import { ILogger } from "./logger";
+import { ConsoleLogger } from "./consoleLogger";
 
 enum ProjectStructureType {
   FolderBased = "folder",
@@ -20,6 +22,8 @@ export class I18nProjectManager {
   // ARB files use underscores instead of hyphens
   private readonly arbLanguageCodeRegex =
     /^(?<language>[a-z]{2,3})(_(?<script>[A-Z][a-z]{3}))?(_(?<region>[A-Z]{2,3}|[0-9]{3}))?$/;
+
+  constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
   detectLanguagesFromProject(sourceFilePath: string): string[] {
     const languageCodes = new Set<string>();
@@ -47,7 +51,10 @@ export class I18nProjectManager {
           }
         }
       } catch (error) {
-        console.warn("Error scanning for language directories:", error);
+        this.logger.logWarning(
+          "Error scanning for language directories:",
+          error
+        );
       }
     } else if (structureInfo.type === ProjectStructureType.FileBased) {
       // For file-based, scan the base path for language files
@@ -69,7 +76,7 @@ export class I18nProjectManager {
           }
         }
       } catch (error) {
-        console.warn("Error scanning for language files:", error);
+        this.logger.logWarning("Error scanning for language files:", error);
       }
     }
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * Verification script to check package integrity
+ * Verification script to check SDK package integrity
  */
 
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔍 Verifying ai-l10n package...\n');
+console.log('🔍 Verifying @ai-l10n/sdk package...\n');
 
 const checks = [];
 
@@ -35,26 +35,35 @@ checks.push({
   check: () => fs.existsSync('dist/index.d.ts'),
 });
 
-// Check 5: CLI exists and is executable
-checks.push({
-  name: 'CLI (dist/cli.js) exists',
-  check: () => fs.existsSync('dist/cli.js'),
-});
-
-// Check 6: README exists
+// Check 5: README exists
 checks.push({
   name: 'README.md exists',
   check: () => fs.existsSync('README.md'),
 });
 
-// Check 7: LICENSE exists
+// Check 6: LICENSE exists
 checks.push({
   name: 'LICENSE exists',
   check: () => fs.existsSync('LICENSE'),
 });
 
+// Check 7: CHANGELOG exists
+checks.push({
+  name: 'CHANGELOG.md exists',
+  check: () => fs.existsSync('CHANGELOG.md'),
+});
+
 // Check 8: All source files compiled
-const sourceFiles = ['index', 'cli'];
+const sourceFiles = [
+  'index',
+  'apiKeyManager',
+  'translationService',
+  'i18nProjectManager',
+  'constants',
+  'logger',
+  'consoleLogger'
+];
+
 sourceFiles.forEach(file => {
   checks.push({
     name: `${file}.js compiled`,
@@ -66,10 +75,20 @@ sourceFiles.forEach(file => {
   });
 });
 
-// Check 9: SDK dependency check script exists
-checks.push({
-  name: 'SDK dependency check script exists',
-  check: () => fs.existsSync('scripts/check-sdk-dependency.js'),
+// Check 9: Test files exist
+const testFiles = [
+  'aiTranslator.test.ts',
+  'apiKeyManager.test.ts',
+  'translationService.test.ts',
+  'i18nProjectManager.test.ts',
+  'consoleLogger.test.ts'
+];
+
+testFiles.forEach(file => {
+  checks.push({
+    name: `Test file src/test/${file} exists`,
+    check: () => fs.existsSync(`src/test/${file}`),
+  });
 });
 
 // Run all checks
@@ -104,21 +123,11 @@ if (failed > 0) {
   console.log(`   Version: ${pkg.version}`);
   console.log(`   Main: ${pkg.main}`);
   console.log(`   Types: ${pkg.types}`);
-  console.log(`   CLI: ${pkg.bin['ai-l10n']}`);
-  
-  // Check SDK dependency
-  const sdkDep = pkg.dependencies['@ai-l10n/sdk'];
-  if (sdkDep && sdkDep.startsWith('file:')) {
-    console.log(`\n⚠️  SDK Dependency: ${sdkDep} (local development mode)`);
-    console.log('   Change to version number before publishing!');
-  } else if (sdkDep) {
-    console.log(`   SDK Dependency: ${sdkDep}`);
-  }
   
   console.log('\n🚀 Next steps:');
-  console.log('   1. Test locally: npm link');
-  console.log('   2. Run prepublish check: npm run prepublishOnly');
-  console.log('   3. Update SDK dependency if needed (file:./sdk → ^version)');
-  console.log('   4. Update version: npm version [patch|minor|major]');
-  console.log('   5. Publish: npm publish');
+  console.log('   1. Run tests: npm test');
+  console.log('   2. Test locally: npm link');
+  console.log('   3. Update version if needed: npm version [patch|minor|major]');
+  console.log('   4. Publish: npm publish --access public');
+  console.log('\n💡 Note: Remember to update main package dependency after publishing!');
 }

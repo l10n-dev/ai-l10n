@@ -52,7 +52,7 @@ git commit -m "chore: release v1.0.0"
 git tag v1.0.0
 
 # Push (create repo on GitHub first if needed)
-git remote add origin https://github.com/AntonovAnton/ai-l10n.git
+git remote add origin https://github.com/l10n-dev/ai-l10n.git
 git push -u origin main --tags
 ```
 
@@ -89,7 +89,7 @@ ai-l10n --version
 ## 4️⃣ Post-Publishing
 
 ### Create GitHub Release
-1. Go to: https://github.com/AntonovAnton/ai-l10n/releases/new
+1. Go to: https://github.com/l10n-dev/ai-l10n/releases/new
 2. Tag: `v1.0.0`
 3. Title: `Release v1.0.0`
 4. Description: Copy from CHANGELOG.md

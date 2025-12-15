@@ -117,7 +117,7 @@ npm run translate
 ## Need Help?
 
 - 📧 Email: support@l10n.dev
-- 🐛 Issues: [GitHub Issues](https://github.com/AntonovAnton/ai-l10n/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/l10n-dev/ai-l10n/issues)
 - 📚 Docs: [l10n.dev](https://l10n.dev)
 
 ---
