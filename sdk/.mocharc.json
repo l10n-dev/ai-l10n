@@ -1,0 +1,6 @@
+{
+  "node-option": ["import=tsx"],
+  "ui": "tdd",
+  "extension": ["ts"],
+  "spec": ["src/test/**/*.test.ts"]
+}
