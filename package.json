@@ -46,7 +46,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "@ai-l10n/sdk": "file:./sdk",
+    "@ai-l10n/sdk": "^1.1.0",
     "commander": "^11.1.0"
   },
   "devDependencies": {
