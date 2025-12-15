@@ -1,4 +1,4 @@
-# Changelog - @ai-l10n/sdk
+# Changelog - ai-l10n-sdk
 
 All notable changes to the SDK package will be documented in this file.
 

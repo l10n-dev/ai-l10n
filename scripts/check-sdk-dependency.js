@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Pre-publish check to ensure @ai-l10n/sdk dependency matches package version
+ * Pre-publish check to ensure ai-l10n-sdk dependency matches package version
  * This script prevents publishing with "file:./sdk" dependency and ensures version sync
  */
 
@@ -16,21 +16,21 @@ const sdkPackageJson = JSON.parse(fs.readFileSync(sdkPackageJsonPath, 'utf8'));
 
 const mainVersion = packageJson.version;
 const sdkVersion = sdkPackageJson.version;
-const sdkDependency = packageJson.dependencies['@ai-l10n/sdk'];
+const sdkDependency = packageJson.dependencies['ai-l10n-sdk'];
 
 if (!sdkDependency) {
-  console.error('❌ Error: @ai-l10n/sdk dependency not found in package.json');
+  console.error('❌ Error: ai-l10n-sdk dependency not found in package.json');
   process.exit(1);
 }
 
 if (sdkDependency.startsWith('file:')) {
   console.error('\n❌ Cannot publish with local file dependency!\n');
-  console.error('The @ai-l10n/sdk dependency is set to:', sdkDependency);
+  console.error('The ai-l10n-sdk dependency is set to:', sdkDependency);
   console.error('\nTo publish, you need to:');
   console.error('1. First publish the SDK package:');
   console.error(`   cd sdk && npm publish --access public\n`);
   console.error('2. Then update package.json dependency to match the version:');
-  console.error(`   "@ai-l10n/sdk": "^${sdkVersion}"\n`);
+  console.error(`   "ai-l10n-sdk": "^${sdkVersion}"\n`);
   console.error('3. Then publish this package:');
   console.error('   npm publish\n');
   console.error('Note: You can keep "file:./sdk" for local development');
@@ -57,7 +57,7 @@ if (dependencyVersion !== mainVersion) {
   console.error(`SDK dependency specified:  ${sdkDependency}`);
   console.error(`Expected:                  ^${mainVersion}\n`);
   console.error('Update package.json dependency to:');
-  console.error(`  "@ai-l10n/sdk": "^${mainVersion}"\n`);
+  console.error(`  "ai-l10n-sdk": "^${mainVersion}"\n`);
   process.exit(1);
 }
 

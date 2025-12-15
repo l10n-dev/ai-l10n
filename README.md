@@ -35,7 +35,7 @@ npm install ai-l10n
 ### For SDK Only
 
 ```bash
-npm install @ai-l10n/sdk
+npm install ai-l10n-sdk
 ```
 
 ## Getting Started
@@ -141,7 +141,7 @@ const result = await translator.translate({
 });
 ```
 
-**📚 See the [@ai-l10n/sdk README](https://github.com/AntonovAnton/ai-l10n/tree/main/sdk#readme) for:**
+**📚 See the [ai-l10n-sdk README](https://github.com/AntonovAnton/ai-l10n/tree/main/sdk#readme) for:**
 - Complete API documentation and TypeScript interfaces
 - Advanced usage examples
 - Custom logger integration

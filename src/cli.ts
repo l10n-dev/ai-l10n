@@ -3,7 +3,7 @@
 import { Command } from "commander";
 import * as path from "path";
 import * as fs from "fs";
-import { AiTranslator, TranslationConfig } from "@ai-l10n/sdk";
+import { AiTranslator, TranslationConfig } from "ai-l10n-sdk";
 
 const program = new Command();
 
