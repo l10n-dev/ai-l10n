@@ -95,7 +95,24 @@ runs:
           exit 1
         fi
 
-        echo "Running: npx ai-l10n batch ${{ inputs.config-file }}"
+        echo "🔍 Debug Information:"
+        echo "  Node version: $(node --version)"
+        echo "  npm version: $(npm --version)"
+        echo "  Working directory: $(pwd)"
+        echo "  Config file: ${{ inputs.config-file }}"
+        echo "  API key set: $([ -n "$L10N_API_KEY" ] && echo 'yes' || echo 'no')"
+        echo "  API key length: ${#L10N_API_KEY}"
+        echo ""
+        
+        echo "📦 Installed ai-l10n version:"
+        npx ai-l10n --version 2>&1 || echo "  (version check failed)"
+        echo ""
+        
+        echo "📄 Config contents:"
+        cat "${{ inputs.config-file }}"
+        echo ""
+        
+        echo "🚀 Running: npx ai-l10n batch ${{ inputs.config-file }}"
         npx ai-l10n batch ${{ inputs.config-file }} || {
           EXIT_CODE=$?
           echo ""
