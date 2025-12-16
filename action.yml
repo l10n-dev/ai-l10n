@@ -94,9 +94,9 @@ runs:
           echo "Error: Config file '${{ inputs.config-file }}' not found"
           exit 1
         fi
-        
-        echo "Running: npx ai-l10n batch ${{ inputs.config-file }} --verbose"
-        npx ai-l10n batch ${{ inputs.config-file }} --verbose || {
+
+        echo "Running: npx ai-l10n batch ${{ inputs.config-file }}"
+        npx ai-l10n batch ${{ inputs.config-file }} || {
           EXIT_CODE=$?
           echo ""
           echo "❌ Translation failed with exit code: $EXIT_CODE"
