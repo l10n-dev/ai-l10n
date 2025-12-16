@@ -67,7 +67,7 @@ jobs:
           # Using default github.token (works if "Allow GitHub Actions to create PRs" is enabled in repo settings)
           # Alternatively, use: github-token: ${{ secrets.PAT_TOKEN }}
           config-file: "ai-l10n.config.json"
-          pull-request: false
+          pull-request: true
           commit-message: "test: translation test"
           pull-request-title: "test: translation test"
 
