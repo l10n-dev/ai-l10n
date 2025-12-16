@@ -36,10 +36,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 # Colors for output
-function Write-Step { Write-Host "► $args" -ForegroundColor Cyan }
-function Write-Success { Write-Host "✓ $args" -ForegroundColor Green }
-function Write-Warning { Write-Host "⚠ $args" -ForegroundColor Yellow }
-function Write-Error { Write-Host "✗ $args" -ForegroundColor Red }
+function Write-Step { Write-Host "[*] $args" -ForegroundColor Cyan }
+function Write-Success { Write-Host "[+] $args" -ForegroundColor Green }
+function Write-Warning { Write-Host "[!] $args" -ForegroundColor Yellow }
+function Write-Error { Write-Host "[-] $args" -ForegroundColor Red }
 
 # Read version from package.json
 Write-Step "Reading version from package.json..."
@@ -124,9 +124,9 @@ if ($DryRun) {
 # Create/update major version tag
 Write-Step "Creating/updating major version tag $majorTag..."
 if ($DryRun) {
-    Write-Host "[DRY RUN] git tag -f -a $majorTag -m 'Latest $majorTag.x release'"
+    Write-Host "[DRY RUN] git tag -f -a $majorTag -m 'Latest ${majorTag}.x release'"
 } else {
-    git tag -f -a $majorTag -m "Latest $majorTag.x release"
+    git tag -f -a $majorTag -m "Latest ${majorTag}.x release"
     Write-Success "Updated tag $majorTag -> $version"
 }
 
