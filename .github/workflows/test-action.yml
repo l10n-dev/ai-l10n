@@ -37,11 +37,19 @@ jobs:
 
       - name: Create test config
         run: |
-          cat > ai-l10n.config.json << 'EOF'
+          cat > ai-l10n.config.json << 'EOF'      
           [
             {
               "sourceFile": "./test-data/en.json",
-              "targetLanguages": ["es"]
+              "targetLanguages": ["es"],
+              "translateOnlyNewStrings": false,
+              "verbose": true
+            },
+            {
+              "sourceFile": "./test-data/en/common.json",
+              "targetLanguages": ["de"],
+              "translateOnlyNewStrings": true,
+              "verbose": true
             }
           ]
           EOF
