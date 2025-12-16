@@ -7,6 +7,10 @@ on:
       - "test/**"
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   test-local-action:
     runs-on: ubuntu-latest

@@ -10,6 +10,9 @@ on:
       - 'locales/en/**'
       - 'ai-l10n.config.json'
 
+permissions:
+  contents: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
