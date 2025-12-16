@@ -173,4 +173,14 @@ program
     }
   });
 
-program.parse();
+// Catch any unhandled errors during parsing
+try {
+  program.parse();
+} catch (error) {
+  console.error(
+    "❌ CLI Error:",
+    error instanceof Error ? error.message : error
+  );
+  console.error("Stack:", error instanceof Error ? error.stack : "");
+  process.exit(2);
+}
