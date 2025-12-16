@@ -17,6 +17,9 @@ inputs:
   api-key:
     description: "L10n.dev Platform API Key (or set L10N_API_KEY env variable)"
     required: false
+  github-token:
+    description: "GitHub token for PR creation. Use default github.token if repo has 'Allow GitHub Actions to create PRs' enabled, or provide PAT with repo scope"
+    required: false
   config-file:
     description: "Path to the translation config file"
     default: "ai-l10n.config.json"
@@ -134,14 +137,30 @@ runs:
       id: git-check
       shell: bash
       run: |
-        git diff --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
+        git add -N .  # Add untracked files to index (intent to add)
+        if ! git diff --quiet; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "✓ Changes detected"
+        else
+          echo "No changes detected"
+        fi
 
     - name: Create Pull Request
       if: env.SKIP_TRANSLATION != 'true' && steps.git-check.outputs.has_changes == 'true' && inputs.pull-request == 'true'
       shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ inputs.github-token || github.token }}
       run: |
+        # Check if we have a valid token for PR creation
+        if [ -z "${{ inputs.github-token }}" ]; then
+          echo "ℹ️ Using default GITHUB_TOKEN for PR creation"
+          echo ""
+          echo "If this fails, you have two options:"
+          echo "  1. Enable: Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'"
+          echo "  2. Provide a PAT: Use 'github-token' input with a Personal Access Token (repo scope)"
+          echo ""
+        fi
+
         BRANCH_NAME="translations-${{ github.run_number }}"
         BASE_BRANCH="${{ github.ref_name }}"
 

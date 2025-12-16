@@ -203,6 +203,9 @@ on:
       - 'locales/en/**'
       - 'ai-l10n.config.json'
 
+permissions:
+  contents: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -214,7 +217,6 @@ jobs:
           api-key: ${{ secrets.L10N_API_KEY }}
           config-file: 'ai-l10n.config.json'
           pull-request: false
-          process-own-commits: false
 ```
 
 **Action Inputs:**
@@ -223,6 +225,7 @@ jobs:
 |-------|-------------|---------|----------|
 | `version` | L10n.dev CLI version | `latest` | No |
 | `api-key` | L10n.dev Platform API Key | - | No (can use `L10N_API_KEY` env var) |
+| `github-token` | GitHub token for PR creation (optional if repo setting enabled) | `github.token` | No |
 | `config-file` | Path to translation config file | `ai-l10n.config.json` | No |
 | `pull-request` | Create PR instead of direct commit | `false` | No |
 | `commit-message` | Commit message | `feat: update translations via L10n.dev` | No |
@@ -232,6 +235,10 @@ jobs:
 | `process-own-commits` | Process commits made by this action | `false` | No |
 | `working-directory` | Working directory (for monorepos) | `.` | No |
 | `skip-setup-node` | Skip Node.js setup if already installed | `false` | No |
+
+> **ℹ️ Note on Pull Requests:** To use `pull-request: true`, you have two options:
+> 1. **Enable repository setting** (recommended): Go to **Settings > Actions > General** and enable **"Allow GitHub Actions to create and approve pull requests"**
+> 2. **Use Personal Access Token**: Provide a [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `repo` scope via `github-token` input
 
 **📚 More Examples:**
 - [Pull Request workflow](examples/github-action/translate-pr.yml) - Creates PR for review (recommended for main/master)

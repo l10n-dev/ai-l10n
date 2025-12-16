@@ -20,6 +20,10 @@ on:
         required: false
         default: '.'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -32,6 +36,9 @@ jobs:
         uses: l10n-dev/ai-l10n@v1
         with:
           api-key: ${{ secrets.L10N_API_KEY }}
+          # For PR creation, either:
+          # 1. Enable: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests"
+          # 2. Or provide PAT: github-token: ${{ secrets.PAT_TOKEN }}
           config-file: ${{ github.event.inputs.config-file }}
           working-directory: ${{ github.event.inputs.working-directory }}
           pull-request: ${{ github.event.inputs.pull-request }}

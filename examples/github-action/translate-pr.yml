@@ -10,6 +10,10 @@ on:
       - 'locales/en/**'
       - 'ai-l10n.config.json'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -22,6 +26,9 @@ jobs:
         uses: l10n-dev/ai-l10n@v1
         with:
           api-key: ${{ secrets.L10N_API_KEY }}
+          # For PR creation, either:
+          # 1. Enable: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests"
+          # 2. Or provide PAT: github-token: ${{ secrets.PAT_TOKEN }}
           config-file: 'ai-l10n.config.json'
           pull-request: true  # Creates PR for review
           pull-request-title: 'chore: update translations'
