@@ -4,13 +4,13 @@ on:
   push:
     branches:
       - test-action
-      - 'test/**'
+      - "test/**"
   workflow_dispatch:
 
 jobs:
   test-local-action:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,7 +42,14 @@ jobs:
             {
               "sourceFile": "./test-data/en.json",
               "targetLanguages": ["es"],
-              "translateOnlyNewStrings": false
+              "translateOnlyNewStrings": false,
+              "verbose": true
+            },
+            {
+              "sourceFile": "./test-data/en/common.json",
+              "targetLanguages": ["de"],
+              "translateOnlyNewStrings": true,
+              "verbose": true
             }
           ]
           EOF
@@ -50,13 +57,13 @@ jobs:
           cat ai-l10n.config.json
 
       - name: Run local action
-        uses: ./  # Uses the action from current repo
+        uses: ./ # Uses the action from current repo
         with:
           api-key: ${{ secrets.L10N_API_KEY }}
-          config-file: 'ai-l10n.config.json'
+          config-file: "ai-l10n.config.json"
           pull-request: true
-          commit-message: 'test: translation test'
-          pull-request-title: 'test: translation test'
+          commit-message: "test: translation test"
+          pull-request-title: "test: translation test"
 
       - name: Check results
         if: success()
@@ -65,7 +72,7 @@ jobs:
           echo ""
           echo "Generated files:"
           ls -la test-data/
-          
+
       - name: Show error details
         if: failure()
         run: |
