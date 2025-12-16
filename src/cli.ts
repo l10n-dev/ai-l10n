@@ -5,6 +5,17 @@ import * as path from "path";
 import * as fs from "fs";
 import { AiTranslator, TranslationConfig } from "ai-l10n-sdk";
 
+// Read version using require for better reliability
+function getVersion(): string {
+  try {
+    // Try to require package.json from the module root
+    const packageJson = require("../package.json");
+    return packageJson.version;
+  } catch {
+    return "1.1.4"; // Fallback version
+  }
+}
+
 const program = new Command();
 
 program
@@ -12,7 +23,7 @@ program
   .description(
     "AI-powered auto-translation for JSON and ARB localization files"
   )
-  .version("1.0.0");
+  .version(getVersion());
 
 // Translate command
 program
