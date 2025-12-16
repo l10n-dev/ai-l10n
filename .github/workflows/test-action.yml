@@ -17,21 +17,23 @@ jobs:
 
       - name: Prepare test data
         run: |
-          # Ensure test-data directory exists and has a source file
-          mkdir -p test-data
-          
-          # Create a simple test file if en.json doesn't exist
-          if [ ! -f "test-data/en.json" ]; then
-            cat > test-data/en.json << 'EOF'
-          {
-            "greeting": "Hello",
-            "farewell": "Goodbye"
-          }
-          EOF
+          # Debug: Show current directory and files
+          echo "Current directory: $(pwd)"
+          echo ""
+          echo "Repository structure:"
+          ls -la
+          echo ""
+          echo "Test data directory:"
+          ls -la test-data/
+          echo ""
+          echo "Source file exists:"
+          if [ -f "test-data/en.json" ]; then
+            echo "✓ test-data/en.json found"
+            cat test-data/en.json
+          else
+            echo "❌ test-data/en.json NOT found!"
+            exit 1
           fi
-          
-          echo "✓ Test source file ready"
-          cat test-data/en.json
 
       - name: Create test config
         run: |
