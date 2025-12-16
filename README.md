@@ -203,6 +203,9 @@ on:
       - 'locales/en/**'
       - 'ai-l10n.config.json'
 
+permissions:
+  contents: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -214,7 +217,6 @@ jobs:
           api-key: ${{ secrets.L10N_API_KEY }}
           config-file: 'ai-l10n.config.json'
           pull-request: false
-          process-own-commits: false
 ```
 
 **Action Inputs:**
