@@ -105,27 +105,54 @@ runs:
 
     - name: Create Pull Request
       if: env.SKIP_TRANSLATION != 'true' && steps.git-check.outputs.has_changes == 'true' && inputs.pull-request == 'true'
-      uses: peter-evans/create-pull-request@v6
-      with:
-        token: ${{ github.token }}
-        commit-message: ${{ inputs.commit-message }}
-        title: ${{ inputs.pull-request-title }}
-        branch: translations-${{ github.run_number }}
-        delete-branch: true
-        author: ${{ inputs.commit-author-name }} <${{ inputs.commit-author-email }}>
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        BRANCH_NAME="translations-${{ github.run_number }}"
+        BASE_BRANCH="${{ github.ref_name }}"
+
+        # Configure git
+        git config user.name "${{ inputs.commit-author-name }}"
+        git config user.email "${{ inputs.commit-author-email }}"
+
+        # Create and switch to new branch
+        git checkout -b "$BRANCH_NAME"
+
+        # Commit changes
+        git add .
+        git commit -m "${{ inputs.commit-message }}"
+
+        # Push new branch
+        git push -u origin "$BRANCH_NAME"
+
+        # Create pull request using GitHub CLI
+        gh pr create \
+          --base "$BASE_BRANCH" \
+          --head "$BRANCH_NAME" \
+          --title "${{ inputs.pull-request-title }}" \
+          --body "Automated translations update via L10n.dev
+
+        **Changes:**
+        - Updated translation files
+        - Source: ${{ github.sha }}
+        - Triggered by: @${{ github.actor }}
+
+        This PR was automatically created by the ai-l10n action." \
+          || echo "⚠️ PR creation failed or PR already exists"
 
     - name: Commit and push changes directly
       if: env.SKIP_TRANSLATION != 'true' && steps.git-check.outputs.has_changes == 'true' && inputs.pull-request == 'false'
       shell: bash
       run: |
         CURRENT_BRANCH="${{ github.ref_name }}"
-        
+
         # Warn if attempting to push to protected branches
         if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
           echo "⚠️ Warning: Attempting to push directly to '$CURRENT_BRANCH' branch"
           echo "This may fail if the branch is protected. Consider using pull-request: true"
         fi
-        
+
         git config user.name "${{ inputs.commit-author-name }}"
         git config user.email "${{ inputs.commit-author-email }}"
         git add .
