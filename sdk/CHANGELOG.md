@@ -5,6 +5,15 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-12-15
+
+### Fixed
+- **Type Exports** - Added missing type exports for better TypeScript support:
+  - `I18nProjectManager` class and related types
+  - `TranslationRequest`, `TranslationResult`, `FileSchema`, `FinishReason` from translation service
+  - `URLS` constants
+  - All types now properly accessible when importing from the package
+
 ## [1.1.1] - 2025-12-15
 
 ### Added

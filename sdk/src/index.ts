@@ -448,8 +448,8 @@ export class AiTranslator {
 }
 
 // Export main class and types
-export { FileSchema, FinishReason };
 export * from "./i18nProjectManager";
-export { L10nTranslationService } from "./translationService";
+export * from "./translationService";
+export { URLS } from "./constants";
 export { ILogger } from "./logger";
 export { ConsoleLogger } from "./consoleLogger";
