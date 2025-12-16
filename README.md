@@ -189,7 +189,7 @@ ai-l10n provides a ready-to-use GitHub Action for automated translations. The ac
 ]
 ```
 
-2. Add the workflow file (see [.github/workflows/translate.yml](.github/workflows/translate.yml) for full example):
+2. Add the workflow file:
 
 ```yaml
 name: Auto-translate i18n files
