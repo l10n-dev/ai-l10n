@@ -94,7 +94,20 @@ runs:
           echo "Error: Config file '${{ inputs.config-file }}' not found"
           exit 1
         fi
-        npx ai-l10n batch ${{ inputs.config-file }}
+
+        echo "Running: npx ai-l10n batch ${{ inputs.config-file }}"
+        npx ai-l10n batch ${{ inputs.config-file }} || {
+          EXIT_CODE=$?
+          echo ""
+          echo "❌ Translation failed with exit code: $EXIT_CODE"
+          echo ""
+          echo "Common issues:"
+          echo "  - Invalid API key"
+          echo "  - Insufficient balance"
+          echo "  - Network connectivity issues"
+          echo "  - Invalid source file format"
+          exit $EXIT_CODE
+        }
 
     - name: Check for changes
       if: env.SKIP_TRANSLATION != 'true'

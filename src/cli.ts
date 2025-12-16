@@ -88,7 +88,30 @@ program
       }
 
       const configData = fs.readFileSync(configPath, "utf8");
-      const configs: TranslationConfig[] = JSON.parse(configData);
+
+      // Strip BOM if present (fixes PowerShell Out-File issues)
+      const cleanConfigData =
+        configData.charCodeAt(0) === 0xfeff ? configData.slice(1) : configData;
+
+      let configs: TranslationConfig[];
+      try {
+        configs = JSON.parse(cleanConfigData);
+      } catch (parseError) {
+        console.error(`❌ Failed to parse config file as JSON`);
+        console.error(`   File: ${configPath}`);
+        console.error(
+          `   Error: ${
+            parseError instanceof Error
+              ? parseError.message
+              : String(parseError)
+          }`
+        );
+        console.error(`\n   First 100 characters of file:`);
+        console.error(
+          `   ${cleanConfigData.substring(0, 100).replace(/\n/g, "\\n")}`
+        );
+        process.exit(1);
+      }
 
       if (!Array.isArray(configs)) {
         console.error(
