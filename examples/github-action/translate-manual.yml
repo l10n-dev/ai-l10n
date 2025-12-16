@@ -1,0 +1,39 @@
+name: Manual Translation Trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: 'Translation config file path'
+        required: false
+        default: 'ai-l10n.config.json'
+      pull-request:
+        description: 'Create pull request'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      working-directory:
+        description: 'Working directory (for monorepos)'
+        required: false
+        default: '.'
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run AI L10n Translation
+        uses: l10n-dev/ai-l10n@v1
+        with:
+          api-key: ${{ secrets.L10N_API_KEY }}
+          config-file: ${{ github.event.inputs.config-file }}
+          working-directory: ${{ github.event.inputs.working-directory }}
+          pull-request: ${{ github.event.inputs.pull-request }}
+          pull-request-title: 'chore: update translations (manual trigger)'
+          commit-message: 'chore: update translations (manual trigger)'

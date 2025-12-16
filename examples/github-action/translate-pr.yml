@@ -1,0 +1,29 @@
+name: Auto-translate with Pull Request
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'locales/en.json'
+      - 'locales/en/**'
+      - 'ai-l10n.config.json'
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run AI L10n Translation
+        uses: l10n-dev/ai-l10n@v1
+        with:
+          api-key: ${{ secrets.L10N_API_KEY }}
+          config-file: 'ai-l10n.config.json'
+          pull-request: true  # Creates PR for review
+          pull-request-title: 'chore: update translations'
+          commit-message: 'chore: update translations'
+          process-own-commits: false  # Prevents infinite loop

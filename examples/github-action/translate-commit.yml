@@ -1,0 +1,28 @@
+name: Auto-translate with Direct Commit
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+    paths:
+      - 'locales/en.json'
+      - 'locales/en/**'
+      - 'ai-l10n.config.json'
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run AI L10n Translation
+        uses: l10n-dev/ai-l10n@v1
+        with:
+          api-key: ${{ secrets.L10N_API_KEY }}
+          config-file: 'ai-l10n.config.json'
+          pull-request: false  # Commits directly to branch
+          commit-message: 'chore: update translations'
+          process-own-commits: false

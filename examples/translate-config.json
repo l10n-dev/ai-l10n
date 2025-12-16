@@ -2,11 +2,11 @@
   {
     "sourceFile": "./test-data/en.json",
     "targetLanguages": ["es", "fr", "de", "ja", "zh"],
-    "generatePluralForms": true,
+    "generatePluralForms": false,
     "useContractions": true,
     "useShortening": false,
     "saveFilteredStrings": true,
-    "translateOnlyNewStrings": false,
+    "translateOnlyNewStrings": true,
     "verbose": true
   }
 ]
