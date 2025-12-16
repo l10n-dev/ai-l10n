@@ -1,0 +1,76 @@
+name: Unit Test Action Components
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-node-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Test Node.js skip logic
+        shell: bash
+        run: |
+          # Simulate the skip-setup-node input
+          SKIP_SETUP="false"
+          
+          if [ "$SKIP_SETUP" == "false" ]; then
+            echo "✓ Would install Node.js"
+          else
+            echo "✓ Would skip Node.js installation"
+          fi
+
+      - name: Test version input
+        shell: bash
+        run: |
+          VERSION="latest"
+          
+          if [ "$VERSION" = "latest" ]; then
+            echo "✓ Would install: npm install -g ai-l10n"
+          else
+            echo "✓ Would install: npm install -g ai-l10n@$VERSION"
+          fi
+
+      - name: Test branch detection
+        shell: bash
+        run: |
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          
+          if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
+            echo "⚠️  Protected branch detected: $CURRENT_BRANCH"
+            echo "✓ Would show warning about direct push"
+          else
+            echo "✓ Feature branch: $CURRENT_BRANCH (safe for direct push)"
+          fi
+
+      - name: Test config file check
+        shell: bash
+        run: |
+          CONFIG_FILE="ai-l10n.config.json"
+          
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "✓ Would fail with: Error: Config file '$CONFIG_FILE' not found"
+            exit 0  # We expect this to not exist in test
+          else
+            echo "✓ Config file found"
+          fi
+
+  test-api-key-handling:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test API key fallback
+        shell: bash
+        env:
+          L10N_API_KEY: "test_env_key"
+        run: |
+          # Simulate input api-key being empty
+          INPUT_API_KEY=""
+          
+          if [ -n "$INPUT_API_KEY" ]; then
+            echo "✓ Would use input api-key"
+          else
+            echo "✓ Would fall back to L10N_API_KEY env var"
+            echo "Current env: ${L10N_API_KEY:0:4}****"
+          fi

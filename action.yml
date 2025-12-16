@@ -1,0 +1,173 @@
+name: "L10n.dev AI Localization Automation"
+description: "Automatically translate your i18n files using AI-powered localization service"
+author: "L10n.dev"
+branding:
+  icon: "globe"
+  color: "blue"
+
+inputs:
+  version:
+    description: "L10n.dev CLI version"
+    default: "latest"
+    required: false
+  skip-setup-node:
+    description: "Skip Node.js setup if already installed in workflow"
+    default: "false"
+    required: false
+  api-key:
+    description: "L10n.dev Platform API Key (or set L10N_API_KEY env variable)"
+    required: false
+  config-file:
+    description: "Path to the translation config file"
+    default: "ai-l10n.config.json"
+    required: false
+  working-directory:
+    description: "Working directory to run the translation (useful for monorepos)"
+    default: "."
+    required: false
+  pull-request:
+    description: "Create a pull request with the changes"
+    default: "false"
+    required: false
+  commit-message:
+    description: "Commit message"
+    default: "feat: update translations via L10n.dev"
+    required: false
+  pull-request-title:
+    description: "Pull request title"
+    default: "feat: update translations via L10n.dev"
+    required: false
+  commit-author-name:
+    description: "Git commit author name"
+    default: "L10n.dev"
+    required: false
+  commit-author-email:
+    description: "Git commit author email"
+    default: "support@l10n.dev"
+    required: false
+  process-own-commits:
+    description: "Process commits made by this action"
+    default: "false"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for own commits
+      if: inputs.process-own-commits == 'false'
+      shell: bash
+      run: |
+        if [[ "${{ github.event.head_commit.author.email }}" == "${{ inputs.commit-author-email }}" ]]; then
+          echo "Skipping: commit was made by this action"
+          echo "SKIP_TRANSLATION=true" >> $GITHUB_ENV
+        else
+          echo "SKIP_TRANSLATION=false" >> $GITHUB_ENV
+        fi
+
+    - name: Setup Node.js
+      if: env.SKIP_TRANSLATION != 'true' && inputs.skip-setup-node == 'false'
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+
+    - name: Install ai-l10n CLI
+      if: env.SKIP_TRANSLATION != 'true'
+      shell: bash
+      run: |
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          npm install -g ai-l10n
+        else
+          npm install -g ai-l10n@${{ inputs.version }}
+        fi
+
+    - name: Run batch translation
+      if: env.SKIP_TRANSLATION != 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Set API key only if provided as input
+        if [ -n "${{ inputs.api-key }}" ]; then
+          export L10N_API_KEY="${{ inputs.api-key }}"
+        fi
+
+        if [ ! -f "${{ inputs.config-file }}" ]; then
+          echo "Error: Config file '${{ inputs.config-file }}' not found"
+          exit 1
+        fi
+
+        echo "Running: npx ai-l10n batch ${{ inputs.config-file }}"
+        npx ai-l10n batch ${{ inputs.config-file }} || {
+          EXIT_CODE=$?
+          echo ""
+          echo "❌ Translation failed with exit code: $EXIT_CODE"
+          echo ""
+          echo "Common issues:"
+          echo "  - Invalid API key"
+          echo "  - Insufficient balance"
+          echo "  - Network connectivity issues"
+          echo "  - Invalid source file format"
+          exit $EXIT_CODE
+        }
+
+    - name: Check for changes
+      if: env.SKIP_TRANSLATION != 'true'
+      id: git-check
+      shell: bash
+      run: |
+        git diff --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+    - name: Create Pull Request
+      if: env.SKIP_TRANSLATION != 'true' && steps.git-check.outputs.has_changes == 'true' && inputs.pull-request == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        BRANCH_NAME="translations-${{ github.run_number }}"
+        BASE_BRANCH="${{ github.ref_name }}"
+
+        # Configure git
+        git config user.name "${{ inputs.commit-author-name }}"
+        git config user.email "${{ inputs.commit-author-email }}"
+
+        # Create and switch to new branch
+        git checkout -b "$BRANCH_NAME"
+
+        # Commit changes
+        git add .
+        git commit -m "${{ inputs.commit-message }}"
+
+        # Push new branch
+        git push -u origin "$BRANCH_NAME"
+
+        # Create pull request using GitHub CLI
+        gh pr create \
+          --base "$BASE_BRANCH" \
+          --head "$BRANCH_NAME" \
+          --title "${{ inputs.pull-request-title }}" \
+          --body "Automated translations update via L10n.dev
+
+        **Changes:**
+        - Updated translation files
+        - Source: ${{ github.sha }}
+        - Triggered by: @${{ github.actor }}
+
+        This PR was automatically created by the ai-l10n action." \
+          || echo "⚠️ PR creation failed or PR already exists"
+
+    - name: Commit and push changes directly
+      if: env.SKIP_TRANSLATION != 'true' && steps.git-check.outputs.has_changes == 'true' && inputs.pull-request == 'false'
+      shell: bash
+      run: |
+        CURRENT_BRANCH="${{ github.ref_name }}"
+
+        # Warn if attempting to push to protected branches
+        if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
+          echo "⚠️ Warning: Attempting to push directly to '$CURRENT_BRANCH' branch"
+          echo "This may fail if the branch is protected. Consider using pull-request: true"
+        fi
+
+        git config user.name "${{ inputs.commit-author-name }}"
+        git config user.email "${{ inputs.commit-author-email }}"
+        git add .
+        git commit -m "${{ inputs.commit-message }}"
+        git push

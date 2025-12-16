@@ -173,41 +173,70 @@ npm run translate:all
 
 #### GitHub Actions
 
+ai-l10n provides a ready-to-use GitHub Action for automated translations. The action uses the batch command with a config file for flexible, multi-file translation workflows.
+
+**Quick Setup:**
+
+1. Create a translation config file `ai-l10n.config.json` in your repository root:
+
+```json
+[
+  {
+    "sourceFile": "./locales/en/common.json",
+    "targetLanguages": ["es", "fr", "de"],
+    "translateOnlyNewStrings": true
+  }
+]
+```
+
+2. Add the workflow file (see [.github/workflows/translate.yml](.github/workflows/translate.yml) for full example):
+
 ```yaml
-name: Auto-translate
+name: Auto-translate i18n files
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'locales/en.json'
+      - 'locales/en/**'
+      - 'ai-l10n.config.json'
 
 jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: l10n-dev/ai-l10n@v1
         with:
-          node-version: '18'
-      
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Translate
-        env:
-          L10N_API_KEY: ${{ secrets.L10N_API_KEY }}
-        run: npx ai-l10n translate ./locales/en.json --update
-      
-      - name: Commit translations
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add locales/
-          git commit -m "Auto-translate localization files" || exit 0
-          git push
+          api-key: ${{ secrets.L10N_API_KEY }}
+          config-file: 'ai-l10n.config.json'
+          pull-request: false
+          process-own-commits: false
 ```
+
+**Action Inputs:**
+
+| Input | Description | Default | Required |
+|-------|-------------|---------|----------|
+| `version` | L10n.dev CLI version | `latest` | No |
+| `api-key` | L10n.dev Platform API Key | - | No (can use `L10N_API_KEY` env var) |
+| `config-file` | Path to translation config file | `ai-l10n.config.json` | No |
+| `pull-request` | Create PR instead of direct commit | `false` | No |
+| `commit-message` | Commit message | `feat: update translations via L10n.dev` | No |
+| `pull-request-title` | Pull request title | `feat: update translations via L10n.dev` | No |
+| `commit-author-name` | Git commit author name | `L10n.dev` | No |
+| `commit-author-email` | Git commit author email | `support@l10n.dev` | No |
+| `process-own-commits` | Process commits made by this action | `false` | No |
+| `working-directory` | Working directory (for monorepos) | `.` | No |
+| `skip-setup-node` | Skip Node.js setup if already installed | `false` | No |
+
+**📚 More Examples:**
+- [Pull Request workflow](examples/github-action/translate-pr.yml) - Creates PR for review (recommended for main/master)
+- [Direct Commit workflow](examples/github-action/translate-commit.yml) - Commits directly (for feature branches)
+- [Manual Trigger workflow](examples/github-action/translate-manual.yml) - Run manually with custom inputs
 
 #### GitLab CI
 
@@ -256,10 +285,10 @@ locales/
   en/
     common.json
     errors.json
-  es/              # Auto-detected
+  es/                  # Auto-detected
     common.json
     errors.json
-  zh-Hans-CN/      # Auto-detected
+  zh-Hans-CN/          # Auto-detected
     common.json
 ```
 
@@ -267,10 +296,10 @@ locales/
 
 ```
 locales/
-  en.json          # Source
-  es.json          # Auto-detected
-  fr-FR.json       # Auto-detected
-  zh-Hans-CN.json  # Auto-detected
+  en.json              # Source
+  es.json              # Auto-detected
+  fr-FR.json           # Auto-detected
+  zh-Hans-CN.json      # Auto-detected
 ```
 
 ### File-Based Structure (Flutter ARB)
@@ -318,12 +347,6 @@ l10n.dev supports 165+ languages with varying proficiency levels:
 - **Strong (12 languages)**: English, Spanish, French, German, Chinese, Russian, Portuguese, Italian, Japanese, Korean, Arabic, Hindi
 - **High (53 languages)**: Most European and Asian languages including Dutch, Swedish, Polish, Turkish, Vietnamese, Thai, and more
 - **Moderate (100+ languages)**: Wide range of world languages
-
-## Pricing
-
-- **Free Characters**: 30,000 characters free every month
-- **Pay-as-you-go**: Affordable character-based pricing with no subscription required
-- **Current Pricing**: Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date rates
 
 ## Language Codes
 
@@ -374,6 +397,12 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 - 📚 API Documentation: [l10n.dev/api/doc](https://l10n.dev/api/doc)
 - 🌐 Website: [l10n](https://l10n.dev).dev
 
+## Pricing
+
+- **Free Characters**: 30,000 characters free every month
+- **Pay-as-you-go**: Affordable character-based pricing with no subscription required
+- **Current Pricing**: Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date rates
+
 ## Privacy & Security
 
 - **Secure API Keys**: Stored securely in your home directory (~/.ai-l10n/config.json) or via environment variables
@@ -381,18 +410,15 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 - **Encrypted Communication**: All communication with l10n.dev API uses HTTPS encryption
 - **Privacy First**: Built by developers for developers with privacy, reliability, and quality as top priorities
 
-> **💡 Tip for Large-Scale Translation:**
->
-> For translating many files at once, use the [I18N File Translation UI](https://l10n.dev/ws/translate-i18n-files) on l10n.dev.
+> **💡 Tip for Large-Files Translation:**
 >
 > This npm package translates files in real-time via the [Translate JSON API](https://l10n.dev/api/doc/#tag/json-translation) and does not store your JSON or translations on our servers. For very large files, translation may take several minutes.
 >
-> On the l10n.dev platform, you can:
+> On the [I18N File Translation](https://l10n.dev/ws/translate-i18n-files) page, you can:
 > - Securely create translation jobs for batch processing
 > - Set custom terminology for consistent translations
 > - Monitor progress in real-time
 > - Download files when complete with full control (delete anytime)
-> - Use the API for automation and CI/CD workflows
 
 ## Important: Working with Arrays in JSON
 
@@ -417,7 +443,6 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 ```
 
 For object-based JSON structures (recommended for i18n), this is not a concern as translations are matched by key names.
-
 
 ## License
 

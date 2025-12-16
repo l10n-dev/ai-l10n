@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-12-16
+
+### Added
+- **GitHub Action** - Composite action for automated translation in CI/CD workflows
+  - Automatic translation on push/PR with customizable triggers
+  - Pull request or direct commit modes
+  - Configurable
+  - Optional Node.js setup for workflows that already have Node installed
+  - Built-in GitHub CLI for PR creation (no external dependencies)
+- Example workflows for GitHub Actions integration
+- Comprehensive release documentation (`RELEASE.md`)
+
+### Fixed
+- **CLI Batch Command** - Strip UTF-8 BOM from config files (fixes PowerShell `Out-File` issues)
+- **CLI Batch Command** - Improved JSON parsing error messages with file preview
+- **GitHub Action** - Fixed API key handling to support both input and environment variable
+
 ## [1.1.2] - 2025-12-15
 
 ### Changed
