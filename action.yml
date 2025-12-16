@@ -134,7 +134,13 @@ runs:
       id: git-check
       shell: bash
       run: |
-        git diff --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
+        git add -N .  # Add untracked files to index (intent to add)
+        if ! git diff --quiet; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "✓ Changes detected"
+        else
+          echo "No changes detected"
+        fi
 
     - name: Create Pull Request
       if: env.SKIP_TRANSLATION != 'true' && steps.git-check.outputs.has_changes == 'true' && inputs.pull-request == 'true'
