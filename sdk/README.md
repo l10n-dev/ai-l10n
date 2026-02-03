@@ -94,6 +94,38 @@ const result = await translator.translate({
 - **Automatic Metadata Updates**: The API automatically updates `@@locale` to the target language code and `@@last_modified` to the current UTC timestamp
 - **Custom Prefixes**: Supports custom file naming patterns (e.g., `app_en_US.arb`, `my_app_fr.arb`)
 
+### JSONC Files
+
+Full support for JSONC (JSON with Comments) files:
+
+```typescript
+const result = await translator.translate({
+  sourceFile: './locales/en.jsonc',
+  targetLanguages: ['es', 'fr', 'de']
+});
+```
+
+**JSONC Features:**
+- Works exactly like JSON files but with `.jsonc` extension
+- Auto-detects `.jsonc` files in project structure alongside `.json` files
+
+### Shopify Theme Localization
+
+Full support for Shopify theme localization file patterns:
+
+```typescript
+const result = await translator.translate({
+  sourceFile: './locales/en.default.schema.json',
+  targetLanguages: ['es-ES', 'fr', 'de']
+});
+// Creates: es-ES.schema.json, fr.schema.json, de.schema.json
+```
+
+**Shopify Theme Features:**
+- **Automatic Pattern Recognition**: Detects files with `.default.` in the name (e.g., `en.default.schema.json`)
+- **Smart Output Naming**: Removes `.default.` from target files while preserving the `.schema.` suffix
+- **Language Detection**: Auto-detects target languages from existing files (e.g., `es-ES.schema.json`, `fr.schema.json`)
+
 ### Multiple Files
 
 ```typescript

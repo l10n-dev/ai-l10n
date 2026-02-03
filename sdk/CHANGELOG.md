@@ -5,6 +5,21 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-04
+
+### Added
+- **JSONC Support** - Added support for `.jsonc` (JSON with Comments) file extension alongside `.json` files
+- **Shopify Theme Localization** - Added support for Shopify theme localization file patterns:
+  - Automatically detects and handles files with `.default.` in the name (e.g., `en.default.schema.json`)
+  - Removes `.default.` from target file names while preserving language code
+  - Preserves `.schema.` suffix in translated files when present in source file
+  - Example: `en.default.schema.json` → `es-ES.schema.json`, `fr.schema.json`
+
+### Changed
+- Enhanced `I18nProjectManager.detectLanguagesFromProject()` to scan for both `.json` and `.jsonc` files
+- Updated `I18nProjectManager.extractLanguageCodeFromFileName()` to handle Shopify theme naming patterns
+- Improved `I18nProjectManager.generateTargetFilePath()` to preserve `.schema` suffix in output files
+
 ## [1.1.4] - 2025-12-16
 
 ### Changed

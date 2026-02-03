@@ -108,7 +108,7 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(result.success, false);
       assert.strictEqual(result.results.length, 0);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/sourceFile is required/))
+        consoleErrorStub.calledWith(sinon.match(/sourceFile is required/)),
       );
     });
 
@@ -121,7 +121,7 @@ suite("AiTranslator Test Suite", () => {
 
       assert.strictEqual(result.success, false);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/Source file not found/))
+        consoleErrorStub.calledWith(sinon.match(/Source file not found/)),
       );
     });
 
@@ -139,9 +139,9 @@ suite("AiTranslator Test Suite", () => {
       assert.ok(
         consoleErrorStub.calledWith(
           sinon.match(
-            /Unsupported file type.*Only \.json and \.arb files are supported/
-          )
-        )
+            /Unsupported file type.*Only \.json, \.jsonc, and \.arb files are supported/,
+          ),
+        ),
       );
     });
 
@@ -161,7 +161,7 @@ suite("AiTranslator Test Suite", () => {
 
       assert.strictEqual(result.success, false);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/Invalid language code/))
+        consoleErrorStub.calledWith(sinon.match(/Invalid language code/)),
       );
     });
   });
@@ -176,7 +176,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -197,8 +197,8 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(result.success, true);
       assert.ok(
         consoleLogStub.calledWith(
-          sinon.match(/Auto-detected target languages.*es, fr/)
-        )
+          sinon.match(/Auto-detected target languages.*es, fr/),
+        ),
       );
     });
 
@@ -217,7 +217,7 @@ suite("AiTranslator Test Suite", () => {
 
       assert.strictEqual(result.success, false);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/No target languages found/))
+        consoleErrorStub.calledWith(sinon.match(/No target languages found/)),
       );
     });
 
@@ -229,7 +229,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -263,7 +263,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -299,7 +299,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -369,7 +369,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -402,7 +402,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.arb")
+        path.join(tempDir, "es.arb"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -438,7 +438,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "app_es.arb")
+        path.join(tempDir, "app_es.arb"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -465,7 +465,7 @@ suite("AiTranslator Test Suite", () => {
       const sourceFile = path.join(tempDir, "en.json");
       fs.writeFileSync(
         sourceFile,
-        JSON.stringify({ hello: "Hello", world: "World" })
+        JSON.stringify({ hello: "Hello", world: "World" }),
       );
 
       const targetFile = path.join(tempDir, "es.json");
@@ -543,7 +543,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -577,7 +577,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -600,7 +600,7 @@ suite("AiTranslator Test Suite", () => {
       await translator.translate(config);
 
       assert.ok(
-        consoleWarnStub.calledWith(sinon.match(/AI context limit was reached/))
+        consoleWarnStub.calledWith(sinon.match(/AI context limit was reached/)),
       );
     });
   });
@@ -614,7 +614,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -653,7 +653,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -679,7 +679,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -710,7 +710,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -738,7 +738,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -760,7 +760,7 @@ suite("AiTranslator Test Suite", () => {
       assert.ok(consoleLogStub.calledWith(sinon.match(/Translation Summary/)));
       assert.ok(consoleLogStub.calledWith(sinon.match(/Successful: 2\/2/)));
       assert.ok(
-        consoleLogStub.calledWith(sinon.match(/Total characters used: 30/))
+        consoleLogStub.calledWith(sinon.match(/Total characters used: 30/)),
       );
     });
 
@@ -772,7 +772,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -793,7 +793,7 @@ suite("AiTranslator Test Suite", () => {
       await translator.translate(config);
 
       assert.ok(
-        consoleLogStub.calledWith(sinon.match(/Remaining balance: 5,000/))
+        consoleLogStub.calledWith(sinon.match(/Remaining balance: 5,000/)),
       );
     });
 
@@ -805,7 +805,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
-        path.join(tempDir, `${lang}.json`)
+        path.join(tempDir, `${lang}.json`),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
@@ -842,7 +842,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.validateLanguageCode.returns(true);
       i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
-        path.join(tempDir, "es.json")
+        path.join(tempDir, "es.json"),
       );
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 

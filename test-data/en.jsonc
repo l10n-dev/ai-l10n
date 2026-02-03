@@ -1,0 +1,30 @@
+{
+  // Welcome messages
+  "welcome": "Welcome to our application",
+  "greeting": "Hello, {{name}}!",
+  "farewell": "Goodbye",
+  
+  // User messages
+  "messages": {
+    "success": "Operation completed successfully",
+    "error": "An error occurred",
+    "loading": "Loading..."
+  },
+  
+  // Button labels
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  
+  /* Validation messages
+   * These are used throughout the application
+   * for form validation
+   */
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "password": "Password must be at least 8 characters"
+  }
+}

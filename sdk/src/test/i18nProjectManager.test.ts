@@ -207,7 +207,7 @@ suite("I18nProjectManager Test Suite", () => {
       assert.strictEqual(detectedLanguages.length, 3);
       assert.deepStrictEqual(
         detectedLanguages.sort(),
-        ["fr", "de", "zh-Hans-CN"].sort()
+        ["fr", "de", "zh-Hans-CN"].sort(),
       );
     });
 
@@ -227,7 +227,7 @@ suite("I18nProjectManager Test Suite", () => {
       assert.strictEqual(detectedLanguages.length, 3);
       assert.deepStrictEqual(
         detectedLanguages.sort(),
-        ["fr", "de", "ja"].sort()
+        ["fr", "de", "ja"].sort(),
       );
     });
 
@@ -259,11 +259,11 @@ suite("I18nProjectManager Test Suite", () => {
       // Should preserve original case and exclude source language
       assert.deepStrictEqual(
         detectedLanguages.sort((a: string, b: string) =>
-          a.localeCompare(b, undefined, { sensitivity: "base" })
+          a.localeCompare(b, undefined, { sensitivity: "base" }),
         ),
         ["de", "Fr", "RU"].sort((a: string, b: string) =>
-          a.localeCompare(b, undefined, { sensitivity: "base" })
-        )
+          a.localeCompare(b, undefined, { sensitivity: "base" }),
+        ),
       );
     });
   });
@@ -352,7 +352,7 @@ suite("I18nProjectManager Test Suite", () => {
 
         const targetPath = detector.generateTargetFilePath(
           sourceFile,
-          "zh_Hans_CN"
+          "zh_Hans_CN",
         );
 
         const expectedPath = path.join(i18nDir, "app_zh_Hans_CN.arb");
@@ -463,7 +463,7 @@ suite("I18nProjectManager Test Suite", () => {
         assert.strictEqual(structure.type, "folder");
         assert.strictEqual(
           structure.basePath,
-          path.join(tempDir, "lib", "l10n")
+          path.join(tempDir, "lib", "l10n"),
         );
         assert.strictEqual(structure.sourceLanguage, "en_US");
       });
@@ -504,6 +504,299 @@ suite("I18nProjectManager Test Suite", () => {
         assert.strictEqual(detectedLanguages.length, 2);
         assert.ok(detectedLanguages.includes("es"));
         assert.ok(detectedLanguages.includes("fr_FR"));
+      });
+    });
+  });
+
+  suite("JSONC File Support", () => {
+    suite("JSONC Language Detection", () => {
+      test("detects JSONC languages in file-based structure", () => {
+        const i18nDir = path.join(tempDir, "i18n");
+        fs.mkdirSync(i18nDir, { recursive: true });
+
+        // Create JSONC files
+        const sourceFile = path.join(i18nDir, "en.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+        fs.writeFileSync(path.join(i18nDir, "es.jsonc"), "{}");
+        fs.writeFileSync(path.join(i18nDir, "fr.jsonc"), "{}");
+        fs.writeFileSync(path.join(i18nDir, "de.jsonc"), "{}");
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.strictEqual(detectedLanguages.length, 3);
+        assert.deepStrictEqual(detectedLanguages.sort(), ["de", "es", "fr"]);
+      });
+
+      test("detects both JSON and JSONC files together", () => {
+        const i18nDir = path.join(tempDir, "i18n");
+        fs.mkdirSync(i18nDir, { recursive: true });
+
+        // Create mixed JSON and JSONC files
+        const sourceFile = path.join(i18nDir, "en.json");
+        fs.writeFileSync(sourceFile, "{}");
+        fs.writeFileSync(path.join(i18nDir, "es.json"), "{}");
+        fs.writeFileSync(path.join(i18nDir, "fr.jsonc"), "{}");
+        fs.writeFileSync(path.join(i18nDir, "de.jsonc"), "{}");
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.strictEqual(detectedLanguages.length, 3);
+        assert.deepStrictEqual(detectedLanguages.sort(), ["de", "es", "fr"]);
+      });
+
+      test("excludes ARB files when detecting JSONC languages", () => {
+        const i18nDir = path.join(tempDir, "i18n");
+        fs.mkdirSync(i18nDir, { recursive: true });
+
+        // Create mixed files
+        const sourceFile = path.join(i18nDir, "en.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+        fs.writeFileSync(path.join(i18nDir, "es.jsonc"), "{}");
+        fs.writeFileSync(path.join(i18nDir, "app_fr.arb"), "{}"); // Should be ignored
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.strictEqual(detectedLanguages.length, 1);
+        assert.deepStrictEqual(detectedLanguages, ["es"]);
+      });
+    });
+
+    suite("JSONC Target File Path Generation", () => {
+      test("generates JSONC target path (en.jsonc -> fr.jsonc)", () => {
+        const i18nDir = path.join(tempDir, "i18n");
+        fs.mkdirSync(i18nDir, { recursive: true });
+        const sourceFile = path.join(i18nDir, "en.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "fr");
+
+        const expectedPath = path.join(i18nDir, "fr.jsonc");
+        assert.strictEqual(targetPath, expectedPath);
+      });
+
+      test("preserves JSONC extension with complex language codes", () => {
+        const i18nDir = path.join(tempDir, "i18n");
+        fs.mkdirSync(i18nDir, { recursive: true });
+        const sourceFile = path.join(i18nDir, "en-US.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(
+          sourceFile,
+          "zh-Hans-CN",
+        );
+
+        const expectedPath = path.join(i18nDir, "zh-Hans-CN.jsonc");
+        assert.strictEqual(targetPath, expectedPath);
+      });
+    });
+
+    suite("JSONC Project Structure Detection", () => {
+      test("detects file-based structure for JSONC files", () => {
+        const i18nDir = path.join(tempDir, "i18n");
+        fs.mkdirSync(i18nDir, { recursive: true });
+        const sourceFile = path.join(i18nDir, "en.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.basePath, i18nDir);
+        assert.strictEqual(structure.sourceLanguage, "en");
+      });
+    });
+  });
+
+  suite("Shopify Theme Localization Support", () => {
+    suite("Shopify Language Code Extraction", () => {
+      test("extracts language code from Shopify default file (en.default.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "en.default.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en");
+      });
+
+      test("extracts language code from Shopify schema file (es-ES.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "es-ES.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "es-ES");
+      });
+
+      test("extracts language code from Shopify file with only .schema (fr.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "fr.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "fr");
+      });
+
+      test("handles complex language code in Shopify file (zh-Hans-CN.default.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(
+          localesDir,
+          "zh-Hans-CN.default.schema.json",
+        );
+        fs.writeFileSync(sourceFile, "{}");
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "zh-Hans-CN");
+      });
+    });
+
+    suite("Shopify Target File Path Generation", () => {
+      test("removes .default and preserves .schema (en.default.schema.json -> es-ES.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "en.default.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "es-ES");
+
+        const expectedPath = path.join(localesDir, "es-ES.schema.json");
+        assert.strictEqual(targetPath, expectedPath);
+      });
+
+      test("preserves .schema suffix (fr.schema.json -> de.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "fr.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "de");
+
+        const expectedPath = path.join(localesDir, "de.schema.json");
+        assert.strictEqual(targetPath, expectedPath);
+      });
+
+      test("handles complex language codes (en.default.schema.json -> zh-Hans-CN.schema.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "en.default.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(
+          sourceFile,
+          "zh-Hans-CN",
+        );
+
+        const expectedPath = path.join(localesDir, "zh-Hans-CN.schema.json");
+        assert.strictEqual(targetPath, expectedPath);
+      });
+
+      test("works with regular JSON when no .schema suffix (en.default.json -> fr.json)", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "en.default.json");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "fr");
+
+        const expectedPath = path.join(localesDir, "fr.json");
+        assert.strictEqual(targetPath, expectedPath);
+      });
+    });
+
+    suite("Shopify Language Detection", () => {
+      test("detects Shopify theme languages excluding .default files", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+
+        // Create Shopify theme localization files
+        const sourceFile = path.join(localesDir, "en.default.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+        fs.writeFileSync(path.join(localesDir, "es-ES.schema.json"), "{}");
+        fs.writeFileSync(path.join(localesDir, "fr.schema.json"), "{}");
+        fs.writeFileSync(path.join(localesDir, "de.schema.json"), "{}");
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.strictEqual(detectedLanguages.length, 3);
+        assert.deepStrictEqual(detectedLanguages.sort(), ["de", "es-ES", "fr"]);
+      });
+
+      test("detects languages with both .default and non-.default files", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+
+        const sourceFile = path.join(localesDir, "en.default.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+        fs.writeFileSync(path.join(localesDir, "es.schema.json"), "{}");
+        fs.writeFileSync(path.join(localesDir, "fr.default.schema.json"), "{}");
+        fs.writeFileSync(path.join(localesDir, "de.schema.json"), "{}");
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        // Should detect es, fr, and de (fr has .default so detected as language, de doesn't)
+        assert.strictEqual(detectedLanguages.length, 3);
+        assert.ok(detectedLanguages.includes("es"));
+        assert.ok(detectedLanguages.includes("fr"));
+        assert.ok(detectedLanguages.includes("de"));
+      });
+
+      test("excludes non-schema JSON files when detecting Shopify languages", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+
+        const sourceFile = path.join(localesDir, "en.default.schema.json");
+        fs.writeFileSync(sourceFile, "{}");
+        fs.writeFileSync(path.join(localesDir, "es.schema.json"), "{}");
+        fs.writeFileSync(path.join(localesDir, "fr.json"), "{}"); // Should be detected
+        fs.writeFileSync(path.join(localesDir, "config.json"), "{}"); // Should not be detected (not a language code)
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.ok(detectedLanguages.includes("es"));
+        assert.ok(detectedLanguages.includes("fr"));
+        assert.strictEqual(detectedLanguages.includes("config"), false);
+      });
+    });
+
+    suite("Shopify JSONC Support", () => {
+      test("handles Shopify pattern with JSONC extension", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "en.default.schema.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en");
+      });
+
+      test("generates JSONC Shopify target path", () => {
+        const localesDir = path.join(tempDir, "locales");
+        fs.mkdirSync(localesDir, { recursive: true });
+        const sourceFile = path.join(localesDir, "en.default.schema.jsonc");
+        fs.writeFileSync(sourceFile, "{}");
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "es-ES");
+
+        const expectedPath = path.join(localesDir, "es-ES.schema.jsonc");
+        assert.strictEqual(targetPath, expectedPath);
       });
     });
   });

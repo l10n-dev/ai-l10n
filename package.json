@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "Easy-to-use AI-powered localization automation for i18n files (CLI and SDK)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,8 +21,10 @@
     "translation",
     "ai",
     "json",
+    "jsonc",
     "arb",
     "flutter",
+    "shopify",
     "auto-translate",
     "internationalization",
     "translate",
@@ -46,7 +48,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "ai-l10n-sdk": "^1.1.4",
+    "ai-l10n-sdk": "^1.2.0",
     "commander": "^11.1.0"
   },
   "devDependencies": {

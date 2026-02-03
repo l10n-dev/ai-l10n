@@ -53,25 +53,30 @@ export class I18nProjectManager {
       } catch (error) {
         this.logger.logWarning(
           "Error scanning for language directories:",
-          error
+          error,
         );
       }
     } else if (structureInfo.type === ProjectStructureType.FileBased) {
       // For file-based, scan the base path for language files
-      const fileExtension = isArbFile ? ".arb" : ".json";
+      const fileExtensions = isArbFile ? [".arb"] : [".json", ".jsonc"];
       try {
         const entries = fs.readdirSync(structureInfo.basePath, {
           withFileTypes: true,
         });
         for (const entry of entries) {
-          if (entry.isFile() && entry.name.endsWith(fileExtension)) {
-            const fileName = path.basename(entry.name, fileExtension);
-            const languageCode = this.extractLanguageCodeFromFileName(
-              fileName,
-              isArbFile
-            );
-            if (languageCode) {
-              languageCodes.add(languageCode);
+          if (entry.isFile()) {
+            for (const ext of fileExtensions) {
+              if (entry.name.endsWith(ext)) {
+                const fileName = path.basename(entry.name, ext);
+                const languageCode = this.extractLanguageCodeFromFileName(
+                  fileName,
+                  isArbFile,
+                );
+                if (languageCode) {
+                  languageCodes.add(languageCode);
+                }
+                break;
+              }
             }
           }
         }
@@ -87,13 +92,13 @@ export class I18nProjectManager {
 
     // Return sorted list of unique language codes
     return Array.from(languageCodes).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: "base" })
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
     );
   }
 
   generateTargetFilePath(
     sourceFilePath: string,
-    targetLanguage: string
+    targetLanguage: string,
   ): string {
     const structureInfo = this.detectProjectStructure(sourceFilePath);
     const fileExtension = path.extname(sourceFilePath);
@@ -114,7 +119,7 @@ export class I18nProjectManager {
         // Use the same file name as source
         const targetFilePath = path.join(
           targetDir,
-          `${sourceFileName}${fileExtension}`
+          `${sourceFileName}${fileExtension}`,
         );
         return targetFilePath;
       }
@@ -135,14 +140,19 @@ export class I18nProjectManager {
 
           const targetFilePath = path.join(
             structureInfo.basePath,
-            `${prefix}${languageCode}${fileExtension}`
+            `${prefix}${languageCode}${fileExtension}`,
           );
           return targetFilePath;
         } else {
+          // Handle Shopify theme pattern: en.default.schema.json -> es-ES.schema.json
+          // Extract suffix (e.g., ".schema") if present
+          const schemaMatch = sourceFileName.match(/\.(schema)$/);
+          const suffix = schemaMatch ? `.${schemaMatch[1]}` : "";
+
           // Save in the same directory with target language as filename
           const targetFilePath = path.join(
             structureInfo.basePath,
-            `${languageCode}${fileExtension}`
+            `${languageCode}${suffix}${fileExtension}`,
           );
           return targetFilePath;
         }
@@ -153,7 +163,7 @@ export class I18nProjectManager {
         const sourceDir = path.dirname(sourceFilePath);
         const targetFilePath = path.join(
           sourceDir,
-          `${sourceFileName}.${languageCode}${fileExtension}`
+          `${sourceFileName}.${languageCode}${fileExtension}`,
         );
         return targetFilePath;
       }
@@ -229,7 +239,7 @@ export class I18nProjectManager {
     // Check if the source file name is a language code (file-based structure)
     const languageCode = this.extractLanguageCodeFromFileName(
       sourceFileName,
-      isArbFile
+      isArbFile,
     );
     if (languageCode) {
       return {
@@ -250,10 +260,11 @@ export class I18nProjectManager {
    * Extracts language code from file name, handling custom prefixes for ARB files
    * ARB files: app_en_US.arb -> en_US, my_app_fr.arb -> fr
    * JSON files: en-US.json -> en-US
+   * Shopify theme: en.default.schema.json -> en, es-ES.schema.json -> es-ES
    */
   private extractLanguageCodeFromFileName(
     fileName: string,
-    isArbFile: boolean
+    isArbFile: boolean,
   ): string | null {
     if (isArbFile) {
       // For ARB files, try to extract language code after potential prefix
@@ -269,8 +280,16 @@ export class I18nProjectManager {
       }
       return null;
     } else {
+      // Handle Shopify theme pattern: en.default.schema, es-ES.schema
+      // Remove .schema first, then .default before extracting language code
+      let cleanedFileName = fileName
+        .replace(/\.schema$/, "")
+        .replace(/\.default$/, "");
+
       // For JSON files, the entire filename should be the language code
-      return this.languageCodeRegex.test(fileName) ? fileName : null;
+      return this.languageCodeRegex.test(cleanedFileName)
+        ? cleanedFileName
+        : null;
     }
   }
 }

@@ -18,7 +18,7 @@ import { ILogger } from "./logger";
  */
 export interface TranslationConfig {
   /**
-   * Path to the source file to translate (JSON or ARB)
+   * Path to the source file to translate (JSON, JSONC, or ARB)
    */
   sourceFile: string;
 
@@ -124,11 +124,12 @@ export class AiTranslator {
 
       const fileExtension = path.extname(sourceFilePath);
       const isArbFile = fileExtension === ".arb";
-      const isJsonFile = fileExtension === ".json";
+      const isJsonFile =
+        fileExtension === ".json" || fileExtension === ".jsonc";
 
       if (!isArbFile && !isJsonFile) {
         throw new Error(
-          `Unsupported file type: ${fileExtension}. Only .json and .arb files are supported.`
+          `Unsupported file type: ${fileExtension}. Only .json, .jsonc, and .arb files are supported.`,
         );
       }
 
@@ -149,14 +150,14 @@ export class AiTranslator {
 
         if (targetLanguages.length === 0) {
           throw new Error(
-            "No target languages found. Please specify targetLanguages in config or ensure your project has the proper structure (e.g., folders named with language codes or files named with language codes)."
+            "No target languages found. Please specify targetLanguages in config or ensure your project has the proper structure (e.g., folders named with language codes or files named with language codes).",
           );
         }
 
         console.log(
           `✨ Auto-detected target languages from project structure: ${targetLanguages.join(
-            ", "
-          )}`
+            ", ",
+          )}`,
         );
       }
 
@@ -194,14 +195,14 @@ export class AiTranslator {
         async (targetLanguage, i) => {
           const targetFilePath = this.i18nProjectManager.generateTargetFilePath(
             sourceFilePath,
-            targetLanguage
+            targetLanguage,
           );
 
           try {
             console.log(
               `\n🌐 Translating (${
                 i + 1
-              }/${totalLanguages}) to ${targetLanguage}...`
+              }/${totalLanguages}) to ${targetLanguage}...`,
             );
 
             const result = await this.performTranslation(
@@ -215,7 +216,7 @@ export class AiTranslator {
               generatePluralForms,
               saveFilteredStrings,
               isArbFile,
-              verbose
+              verbose,
             );
 
             return result;
@@ -223,7 +224,7 @@ export class AiTranslator {
             const errorMessage =
               error instanceof Error ? error.message : "Unknown error";
             console.error(
-              `❌ Translation to ${targetLanguage} failed: ${errorMessage}`
+              `❌ Translation to ${targetLanguage} failed: ${errorMessage}`,
             );
             return {
               success: false,
@@ -231,7 +232,7 @@ export class AiTranslator {
               error: errorMessage,
             };
           }
-        }
+        },
       );
 
       // Wait for all translations to complete
@@ -258,11 +259,11 @@ export class AiTranslator {
       console.log(`${"=".repeat(50)}`);
       console.log(`✅ Successful: ${successCount}/${targetLanguages.length}`);
       console.log(
-        `📝 Total characters used: ${totalCharsUsed.toLocaleString()}`
+        `📝 Total characters used: ${totalCharsUsed.toLocaleString()}`,
       );
       if (remainingBalance !== undefined) {
         console.log(
-          `💰 Remaining balance: ${remainingBalance.toLocaleString()} characters`
+          `💰 Remaining balance: ${remainingBalance.toLocaleString()} characters`,
         );
       }
 
@@ -302,7 +303,7 @@ export class AiTranslator {
     generatePluralForms: boolean,
     saveFilteredStrings: boolean,
     isArbFile: boolean,
-    verbose: boolean
+    verbose: boolean,
   ): Promise<TranslationOutput & { remainingBalance?: number }> {
     // Read source file
     const sourceContent = fs.readFileSync(sourceFilePath, "utf8");
@@ -386,7 +387,7 @@ export class AiTranslator {
   private handleFilteredStrings(
     result: TranslationResult,
     targetFilePath: string,
-    saveFilteredStrings: boolean
+    saveFilteredStrings: boolean,
   ): void {
     let reasonMessage: string;
     if (result.finishReason === FinishReason.contentFilter) {
@@ -399,7 +400,7 @@ export class AiTranslator {
 
     const filteredStringsJson = JSON.stringify(result.filteredStrings, null, 2);
     console.warn(
-      `  ⚠️  ${result.filteredStringsCount} string(s) were excluded due to ${reasonMessage}`
+      `  ⚠️  ${result.filteredStringsCount} string(s) were excluded due to ${reasonMessage}`,
     );
     if (result.finishReason === FinishReason.contentFilter) {
       console.warn(`  ℹ️ View content policy at: ${URLS.CONTENT_POLICY}`);
