@@ -2,7 +2,7 @@
   {
     "sourceFile": "./test-data/en.json",
     "targetLanguages": ["es"],
-    "translateOnlyNewStrings": false,
+    "translateOnlyNewStrings": true,
     "verbose": true
   },
   {
