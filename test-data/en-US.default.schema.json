@@ -1,0 +1,60 @@
+{
+  "general": {
+    "label": "General",
+    "404": {
+      "title": "Page not found",
+      "subtext": "The page you were looking for does not exist",
+      "link": "Continue shopping"
+    },
+    "accessibility": {
+      "skip_to_text": "Skip to content",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "meta": {
+      "tags": "Tagged \"{{ tags }}\"",
+      "page": "Page {{ page }}"
+    },
+    "social": {
+      "share_on_facebook": "Share on Facebook",
+      "share_on_twitter": "Share on Twitter",
+      "share_on_pinterest": "Share on Pinterest"
+    },
+    "search": {
+      "no_results": "No results found for \"{{ terms }}\". Check the spelling or use a different word or phrase.",
+      "results_with_count": {
+        "one": "{{ count }} result for \"{{ terms }}\"",
+        "other": "{{ count }} results for \"{{ terms }}\""
+      },
+      "title": "Search",
+      "placeholder": "Search"
+    }
+  },
+  "newsletter": {
+    "label": "Newsletter",
+    "success": "Thanks for subscribing",
+    "email_placeholder": "Email address"
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to cart",
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "quantity": "Quantity",
+      "view_full_details": "View full details"
+    }
+  },
+  "cart": {
+    "general": {
+      "title": "Shopping cart",
+      "remove": "Remove",
+      "note": "Order special instructions",
+      "subtotal": "Subtotal",
+      "taxes_and_shipping_at_checkout": "Taxes and shipping calculated at checkout",
+      "update": "Update cart",
+      "checkout": "Check out",
+      "empty": "Your cart is currently empty.",
+      "continue_shopping": "Continue shopping"
+    }
+  }
+}

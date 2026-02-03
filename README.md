@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/ai-l10n.svg)](https://www.npmjs.com/package/ai-l10n)
 [![License: AGPL-3.0](https://img.shields.io/badge/agpl-v3.svg)](https://opensource.org/license/agpl-v3)
 
-AI-powered translation for app localization. Automatically translate your i18n files to 165+ languages using AI. Supports JSON and Flutter ARB formats with intelligent project structure detection.
+AI-powered translation for app localization. Automatically translate your i18n files to 165+ languages using AI. Supports JSON, JSONC, and Flutter ARB formats with intelligent project structure detection.
 
 Powered by [l10n](https://l10n.dev).dev
 
@@ -16,7 +16,7 @@ Powered by [l10n](https://l10n.dev).dev
 - 📁 **Smart Detection** - Automatically detects target languages from your project structure
 - 🔄 **Incremental Updates** - Translate only new strings while preserving existing translations
 - 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null values are maintained
-- 🎯 **Multiple Formats** - Supports JSON and Flutter ARB files with full metadata handling
+- 🎯 **Multiple Formats** - Supports JSON, JSONC, Flutter ARB, and Shopify theme localization files with full metadata handling
 - ⚙️ **Flexible Configuration** - Use via CLI, programmatically, or in CI/CD pipelines
 - 🌐 **i18next Plural Forms Support** - Automatically generates all required plural form strings with correct suffixes. For languages with complex pluralization rules (like Russian, Arabic, or Polish), ensures every necessary form is created
 - 🛠️ **Developer-Friendly** - Preserves placeholders, HTML tags, and formatting while adapting dates and numbers to target locales. Intelligently avoids translating proper names, URLs, and technical terms. Learn more about [I18N Translation Using AI](https://l10n.dev/help/i18n-translation-using-ai)
@@ -319,11 +319,36 @@ lib/l10n/
   app_zh_Hans-CN.arb   # Auto-detected
 ```
 
+### File-Based Structure (JSONC)
+
+```
+locales/
+  en.jsonc             # Source (JSON with Comments)
+  es.jsonc             # Auto-detected
+  fr-FR.jsonc          # Auto-detected
+  zh-Hans-CN.jsonc     # Auto-detected
+```
+
+### File-Based Structure (Shopify Theme)
+
+```
+theme/locales/
+  en.default.schema.json  # Source
+  es-ES.schema.json       # Auto-detected
+  fr.schema.json          # Auto-detected
+  de.schema.json          # Auto-detected
+```
+
+**Shopify Theme Notes:**
+- Files with `.default.` in the name (e.g., `en.default.schema.json`) are recognized as source files
+- Target files automatically remove `.default.` while preserving `.schema.` suffix
+- Example: `en.default.schema.json` → `es-ES.schema.json`, `fr.schema.json`
+
 ## Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `sourceFile` | `string` | **required** | Path to source file (JSON or ARB) |
+| `sourceFile` | `string` | **required** | Path to source file (JSON, JSONC, or ARB) |
 | `targetLanguages` | `string[]` | auto-detect | Target language codes (e.g., `["es", "fr", "de"]`) |
 | `apiKey` | `string` | env/stored | API key for l10n.dev |
 | `generatePluralForms` | `boolean` | `false` | Generate plural forms with suffixes (e.g., for i18next). Don't use for strict source-to-target mapping |

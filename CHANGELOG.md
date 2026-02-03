@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-04
+
+### Added
+- **JSONC Support** - Added support for `.jsonc` (JSON with Comments) file extension for translation
+  - Works with both CLI and programmatic API
+  - Auto-detects `.jsonc` files in project structure alongside `.json` files
+- **Shopify Theme Localization** - Added support for Shopify theme localization file patterns:
+  - Automatically detects and handles files with `.default.` in the name (e.g., `en.default.schema.json`)
+  - Removes `.default.` from target file names while preserving language code
+  - Preserves `.schema.` suffix in translated files when present in source file
+  - Example: `locales/en.default.schema.json` → `locales/es-ES.schema.json`, `locales/fr.schema.json`
+
+### Changed
+- Enhanced project structure detection to recognize both `.json` and `.jsonc` files
+- Improved language code extraction to handle Shopify theme naming patterns
+
 ## [1.1.4] - 2025-12-16
 
 ### Fixed

@@ -30,11 +30,15 @@ npx ai-l10n --help
 
 # Test API (create test.js)
 node -e "const {AiTranslator} = require('ai-l10n'); console.log('✅ Works')"
+
+# Test transaltion, details in /test-data/ folder
+cd ../ai-l10n
+npx ai-l10n translate test-data/en-us.default.schema.json --languages es-es,fr --verbose
+
 ```
 
 ### Check Package Contents
 ```bash
-cd ../ai-l10n
 npm pack --dry-run
 ```
 ✅ Only dist/, README.md, LICENSE, package.json included
