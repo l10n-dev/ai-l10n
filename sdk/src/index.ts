@@ -246,6 +246,7 @@ export class AiTranslator {
         totalCharsUsed += result.charsUsed || 0;
         if (
           result.remainingBalance !== undefined &&
+          result.remainingBalance !== null &&
           result.remainingBalance < (remainingBalance ?? Infinity)
         ) {
           remainingBalance = result.remainingBalance;
