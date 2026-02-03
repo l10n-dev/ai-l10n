@@ -262,7 +262,7 @@ export class AiTranslator {
       console.log(
         `📝 Total characters used: ${totalCharsUsed.toLocaleString()}`,
       );
-      if (remainingBalance !== undefined) {
+      if (remainingBalance !== undefined && remainingBalance !== null) {
         console.log(
           `💰 Remaining balance: ${remainingBalance.toLocaleString()} characters`,
         );
