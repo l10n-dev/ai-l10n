@@ -41,6 +41,7 @@ program
   .option("--plural", "Generate plural forms", false)
   .option("--shorten", "Use shortening in translations", false)
   .option("--no-contractions", "Don't use contractions in translations")
+  .option("--translate-metadata", "Translate metadata (e.g., descriptions in ARB files)", false)
   .option("--no-save-filtered", "Don't save filtered strings to separate file")
   .option("--update", "Update existing files with only new translations", false)
   .option("-v, --verbose", "Enable verbose logging", false)
@@ -54,6 +55,7 @@ program
       generatePluralForms: options.plural,
       useShortening: options.shorten,
       useContractions: options.contractions,
+      translateMetadata: options.translateMetadata,
       saveFilteredStrings: options.saveFiltered,
       translateOnlyNewStrings: options.update,
       verbose: options.verbose,

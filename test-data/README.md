@@ -26,7 +26,7 @@ npx ai-l10n translate test-data/en.jsonc --languages es,fr --verbose
 npx ai-l10n translate test-data/en-us.default.schema.json --languages es-es,fr --verbose
 
 # Test Flutter ARB file
-npx ai-l10n translate test-data/app_en.arb --languages es,fr --verbose
+npx ai-l10n translate test-data/app_en.arb --languages es,fr --translate-metadata --verbose
 ```
 
 ### Code Test
@@ -60,6 +60,7 @@ const result3 = await translator.translate({
 const result4 = await translator.translate({
   sourceFile: './test-data/app_en.arb',
   targetLanguages: ['es', 'fr'],
+  translateMetadata: true,
   verbose: true,
 });
 ```

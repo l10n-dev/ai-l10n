@@ -268,6 +268,14 @@ interface TranslationConfig {
   useContractions?: boolean;
 
   /**
+   * Translate metadata along with UI strings (default: false)
+   * For example, in Flutter ARB files, metadata entries like `@key` contain descriptions
+   * that can also be translated. Disabling this option ensures that metadata remains
+   * unchanged in the target files.
+   */
+  translateMetadata?: boolean;
+
+  /**
    * Save filtered strings to separate file (default: true)
    * Filtered strings are in i18n JSON format and contain source strings that violated
    * content policies. Review the translation for successfully translated content.

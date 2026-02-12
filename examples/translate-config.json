@@ -5,6 +5,7 @@
     "generatePluralForms": false,
     "useContractions": true,
     "useShortening": false,
+    "translateMetadata": false,
     "saveFilteredStrings": true,
     "translateOnlyNewStrings": true,
     "verbose": true

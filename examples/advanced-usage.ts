@@ -15,6 +15,7 @@ async function main() {
     generatePluralForms: true, // Generate plural forms
     useShortening: false, // Don't use shortening
     useContractions: true, // Use contractions (default)
+    translateMetadata: false, // Don't translate metadata (default)
 
     // Output options
     saveFilteredStrings: true, // Save filtered strings to .filtered files

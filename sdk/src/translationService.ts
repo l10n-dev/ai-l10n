@@ -20,6 +20,7 @@ export interface TranslationRequest {
   useContractions?: boolean;
   useShortening?: boolean;
   generatePluralForms?: boolean;
+  translateMetadata?: boolean;
   returnTranslationsAsString: boolean;
   client: string;
   translateOnlyNewStrings?: boolean;
