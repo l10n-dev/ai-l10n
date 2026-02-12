@@ -1,0 +1,18 @@
+{
+  "description": "Dies demonstriert i18n, l10n, Pluralformen, verschachtelte Objekte und Namespaces.",
+  "item_count_one": "Du hast {{count}} Artikel.",
+  "item_count_other": "Du hast {{count}} Artikel.",
+  "order_summary": "Bestellübersicht {{amount}} {{currency}}",
+  "welcome": "Willkommen beim i18n-Beispiel!",
+  "key1_interval": "(1)[ein Artikel];(2-7)[einige Artikel];(7-inf)[viele Artikel];",
+  "number": 24,
+  "boolean": true,
+  "nested": {
+    "level1": {
+      "level2": {
+        "message": "Dies ist eine verschachtelte Nachricht."
+      }
+    }
+  },
+  "title": "Beispiel für den Common-Namespace"
+}
