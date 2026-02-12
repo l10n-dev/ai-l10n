@@ -62,6 +62,7 @@ const config: TranslationConfig = {
   generatePluralForms: true,
   useShortening: false,
   useContractions: true,
+  translateMetadata: false, // Keep metadata unchanged (default)
   saveFilteredStrings: true,
   translateOnlyNewStrings: false,
   verbose: true,
@@ -92,6 +93,7 @@ const result = await translator.translate({
 
 **ARB Features:**
 - **Automatic Metadata Updates**: The API automatically updates `@@locale` to the target language code and `@@last_modified` to the current UTC timestamp
+- **Metadata Translation Control**: Use `translateMetadata: true` to translate description metadata entries (e.g., `@key` descriptions). By default (`false`), metadata remains in the source language
 - **Custom Prefixes**: Supports custom file naming patterns (e.g., `app_en_US.arb`, `my_app_fr.arb`)
 
 ### JSONC Files
@@ -268,6 +270,14 @@ interface TranslationConfig {
   useContractions?: boolean;
 
   /**
+   * Translate metadata along with UI strings (default: false)
+   * For example, in Flutter ARB files, metadata entries like `@key` contain descriptions
+   * that can also be translated. Disabling this option ensures that metadata remains
+   * unchanged in the target files.
+   */
+  translateMetadata?: boolean;
+
+  /**
    * Save filtered strings to separate file (default: true)
    * Filtered strings are in i18n JSON format and contain source strings that violated
    * content policies. Review the translation for successfully translated content.
@@ -390,6 +400,9 @@ interface TranslationRequest {
   /** Generate plural forms for i18next */
   generatePluralForms?: boolean;
   
+  /** Translate metadata along with UI strings (e.g., ARB `@key` descriptions) */
+  translateMetadata?: boolean;
+  
   /** Return translations as JSON string */
   returnTranslationsAsString: boolean;
   
@@ -510,6 +523,224 @@ Returns `null` with error logged instead of throwing error:
 - **Missing API Key**: `"API Key not set. Please configure your API Key first."`
 - **Unauthorized (401)**: `"Unauthorized. Please check your API Key."`
 - **Insufficient Balance (402)**: `"Not enough characters remaining for this translation. You can try translating a smaller portion of your file or purchase more characters."`
+
+### I18nProjectManager
+
+Utility class for managing i18n project structure detection, language code validation, and file path generation.
+
+#### Constructor
+
+```typescript
+import { I18nProjectManager, ILogger, ConsoleLogger } from 'ai-l10n-sdk';
+
+// Default: uses ConsoleLogger
+const manager = new I18nProjectManager();
+
+// With a custom logger
+const customLogger: ILogger = new ConsoleLogger();
+const managerWithLogger = new I18nProjectManager(customLogger);
+```
+
+Creates an instance of I18nProjectManager.
+
+**Parameters:**
+- `logger?: ILogger` — Optional custom logger. Defaults to `ConsoleLogger` if not provided.
+
+#### Methods
+
+##### `detectLanguagesFromProject(sourceFilePath: string): string[]`
+
+Detects target language codes from the project structure by scanning directories and files.
+
+**Parameters:**
+- `sourceFilePath: string` - Absolute path to the source file
+
+**Returns:** `string[]` - Array of detected language codes, sorted alphabetically
+
+**Behavior:**
+- **Folder-based structure**: Scans parent directory for language-named folders (e.g., `locales/en/`, `locales/es/`)
+- **File-based structure**: Scans directory for language-named files (e.g., `en.json`, `es.json`, `app_en.arb`)
+- Automatically excludes the source language from results
+- Handles both `.json` and `.jsonc` files when source is JSON
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+const languages = manager.detectLanguagesFromProject('./locales/en.json');
+// Returns: ['es', 'fr', 'de']
+```
+
+##### `generateTargetFilePath(sourceFilePath: string, targetLanguage: string): string`
+
+Generates the target file path for a translated file based on the detected project structure.
+
+**Parameters:**
+- `sourceFilePath: string` - Absolute path to the source file
+- `targetLanguage: string` - Target language code (e.g., `"es"`, `"fr-FR"`, `"zh-Hans-CN"`)
+
+**Returns:** `string` - Absolute path where the translated file should be saved
+
+**Behavior:**
+- **Folder-based**: Creates `{basePath}/{language}/{filename}` (e.g., `locales/es/common.json`)
+- **File-based JSON**: Creates `{basePath}/{language}{suffix}.{ext}` (e.g., `locales/es.schema.json`)
+- **File-based ARB**: Creates `{basePath}/{prefix}{language}.arb` (e.g., `lib/l10n/app_es.arb`)
+- Automatically creates target directories if they don't exist
+- Handles Shopify theme patterns (`.default.schema.json` → `.schema.json`)
+- Converts hyphens to underscores for ARB files
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+// Folder-based
+manager.generateTargetFilePath('./locales/en/common.json', 'es');
+// Returns: './locales/es/common.json'
+
+// File-based JSON
+manager.generateTargetFilePath('./locales/en.json', 'es');
+// Returns: './locales/es.json'
+
+// File-based ARB
+manager.generateTargetFilePath('./lib/l10n/app_en_US.arb', 'es_ES');
+// Returns: './lib/l10n/app_es_ES.arb'
+
+// Shopify theme
+manager.generateTargetFilePath('./locales/en.default.schema.json', 'es-ES');
+// Returns: './locales/es-ES.schema.json'
+```
+
+##### `getUniqueFilePath(filePath: string): string`
+
+Generates a unique file path by appending a counter if the file already exists.
+
+**Parameters:**
+- `filePath: string` - Desired file path
+
+**Returns:** `string` - Unique file path (original or with counter suffix)
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+// If 'output.json' doesn't exist
+manager.getUniqueFilePath('./output.json');
+// Returns: './output.json'
+
+// If 'output.json' exists
+manager.getUniqueFilePath('./output.json');
+// Returns: './output (1).json'
+
+// If 'output.json' and 'output (1).json' exist
+manager.getUniqueFilePath('./output.json');
+// Returns: './output (2).json'
+```
+
+##### `normalizeLanguageCode(code: string): string`
+
+Normalizes language codes to a consistent BCP 47 format.
+
+**Parameters:**
+- `code: string` - Language code to normalize (accepts hyphens or underscores)
+
+**Returns:** `string` - Normalized language code in format: `language[-Script][-REGION]`
+
+**Normalization Rules:**
+- Language: lowercase (e.g., `"EN"` → `"en"`)
+- Script: Title case (e.g., `"hans"` → `"Hans"`)
+- Region: uppercase (e.g., `"us"` → `"US"`)
+- Separator: always hyphen `-` (underscores converted to hyphens)
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+manager.normalizeLanguageCode('en');          // Returns: 'en'
+manager.normalizeLanguageCode('en-us');       // Returns: 'en-US'
+manager.normalizeLanguageCode('en_US');       // Returns: 'en-US'
+manager.normalizeLanguageCode('zh_hans');     // Returns: 'zh-Hans'
+manager.normalizeLanguageCode('zh-Hans-CN');  // Returns: 'zh-Hans-CN'
+manager.normalizeLanguageCode('ZH_HANS_CN');  // Returns: 'zh-Hans-CN'
+```
+
+##### `validateLanguageCode(code: string): boolean`
+
+Validates whether a string is a valid BCP 47 language code.
+
+**Parameters:**
+- `code: string` - Language code to validate
+
+**Returns:** `boolean` - `true` if valid, `false` otherwise
+
+**Validation Rules:**
+- **Case-insensitive validation**: Accepts language codes in any case (e.g., `"EN"`, `"en"`, `"EN-US"`)
+- Language: 2-3 letters (e.g., `en`, `eng`, `EN`)
+- Script (optional): 4 letters (e.g., `Hans`, `Latn`, `hans`)
+- Region (optional): 2-3 letters or 3 digits (e.g., `US`, `us`, `419`)
+- Separators: hyphens `-` or underscores `_`
+
+**Important:** This method only validates the format. For proper BCP 47 compliance, use `normalizeLanguageCode()` to convert validated codes to the correct case format (language lowercase, Script title case, REGION uppercase).
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+// All valid (case-insensitive)
+manager.validateLanguageCode('en');           // Returns: true
+manager.validateLanguageCode('EN');           // Returns: true
+manager.validateLanguageCode('en-US');        // Returns: true
+manager.validateLanguageCode('EN-US');        // Returns: true
+manager.validateLanguageCode('en-us');        // Returns: true
+manager.validateLanguageCode('zh-Hans-CN');   // Returns: true
+manager.validateLanguageCode('ZH-HANS-CN');   // Returns: true
+
+// Invalid
+manager.validateLanguageCode('invalid');      // Returns: false
+manager.validateLanguageCode('');             // Returns: false
+
+// Normalize after validation for proper BCP 47 format
+const code = 'EN-US';
+if (manager.validateLanguageCode(code)) {
+  const normalized = manager.normalizeLanguageCode(code);
+  console.log(normalized); // 'en-US'
+}
+```
+
+##### `extractLanguageCode(fileName: string): string | null`
+
+Extracts language code from a file name, handling various file patterns.
+
+**Parameters:**
+- `fileName: string` - File name (with or without extension)
+
+**Returns:** `string | null` - Extracted language code, or `null` if none found
+
+**Supported Patterns:**
+- **JSON/JSONC**: `en.json`, `es-ES.json`, `en.jsonc`
+- **ARB**: `app_en.arb`, `app_en_US.arb`, `my_app_fr.arb`
+- **Shopify**: `en.default.schema.json`, `es-ES.schema.json`
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+// JSON files
+manager.extractLanguageCode('en.json');                    // Returns: 'en'
+manager.extractLanguageCode('es-ES.json');                 // Returns: 'es-ES'
+manager.extractLanguageCode('fr.jsonc');                   // Returns: 'fr'
+
+// ARB files
+manager.extractLanguageCode('app_en.arb');                 // Returns: 'en'
+manager.extractLanguageCode('app_en_US.arb');              // Returns: 'en_US'
+manager.extractLanguageCode('my_app_fr.arb');              // Returns: 'fr'
+
+// Shopify theme
+manager.extractLanguageCode('en.default.schema.json');     // Returns: 'en'
+manager.extractLanguageCode('es-ES.schema.json');          // Returns: 'es-ES'
+
+// Invalid files
+manager.extractLanguageCode('readme.md');                  // Returns: null
+manager.extractLanguageCode('invalid.json');               // Returns: null
+```
 
 ## License
 

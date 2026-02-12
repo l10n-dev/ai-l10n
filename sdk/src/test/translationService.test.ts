@@ -43,6 +43,7 @@ suite("L10nTranslationService Test Suite", () => {
     mockLogger = {
       logInfo: sinon.stub(),
       logWarning: sinon.stub(),
+      logError: sinon.stub(),
       showAndLogError: sinon.stub(),
     };
 
@@ -86,7 +87,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.predictLanguages("test"),
-        /Failed to predict languages: Bad Request/
+        /Failed to predict languages: Bad Request/,
       );
     });
   });
@@ -95,7 +96,7 @@ suite("L10nTranslationService Test Suite", () => {
     test("translate returns null when no API Key is set", async () => {
       const result = await service.translate(createRequest(), "");
       assert.strictEqual(result, null);
-      
+
       // Verify error was logged
       assert.ok((mockLogger.showAndLogError as sinon.SinonStub).called);
     });
@@ -145,18 +146,97 @@ suite("L10nTranslationService Test Suite", () => {
       assert.strictEqual(requestOptions.method, "POST");
       assert.strictEqual(
         requestOptions.headers["Content-Type"],
-        "application/json"
+        "application/json",
       );
       assert.strictEqual(requestOptions.headers["X-API-Key"], apiKey);
 
       const requestBody = JSON.parse(requestOptions.body);
-      assert.strictEqual(requestBody.sourceStrings, JSON.stringify(sourceStrings));
+      assert.strictEqual(
+        requestBody.sourceStrings,
+        JSON.stringify(sourceStrings),
+      );
       assert.strictEqual(requestBody.targetLanguageCode, targetLanguage);
       assert.strictEqual(requestBody.useContractions, false);
       assert.strictEqual(requestBody.useShortening, true);
       assert.strictEqual(requestBody.returnTranslationsAsString, true);
       assert.strictEqual(requestBody.client, "test");
       assert.strictEqual(requestBody.schema, null);
+    });
+
+    test("includes translateMetadata in API request when set to true", async () => {
+      const apiKey = "valid-api-key";
+
+      const request = {
+        sourceStrings: JSON.stringify({ hello: "Hello" }),
+        targetLanguageCode: "es",
+        useContractions: true,
+        useShortening: false,
+        translateMetadata: true,
+        returnTranslationsAsString: true,
+        client: "test",
+        schema: null,
+      };
+
+      const mockTranslationResult = {
+        targetLanguageCode: "es",
+        translations: JSON.stringify({ hello: "Hola" }),
+        usage: { charsUsed: 10 },
+        completedChunks: 1,
+        totalChunks: 1,
+      };
+
+      const mockFetchResponse = {
+        ok: true,
+        json: sinon.stub().resolves(mockTranslationResult),
+      };
+
+      mockFetch.resolves(mockFetchResponse);
+
+      await service.translate(request, apiKey);
+
+      const fetchCall = mockFetch.getCall(0);
+      const requestOptions = fetchCall.args[1];
+      const requestBody = JSON.parse(requestOptions.body);
+
+      assert.strictEqual(requestBody.translateMetadata, true);
+    });
+
+    test("includes translateMetadata in API request when set to false", async () => {
+      const apiKey = "valid-api-key";
+
+      const request = {
+        sourceStrings: JSON.stringify({ hello: "Hello" }),
+        targetLanguageCode: "es",
+        useContractions: true,
+        useShortening: false,
+        translateMetadata: false,
+        returnTranslationsAsString: true,
+        client: "test",
+        schema: null,
+      };
+
+      const mockTranslationResult = {
+        targetLanguageCode: "es",
+        translations: JSON.stringify({ hello: "Hola" }),
+        usage: { charsUsed: 10 },
+        completedChunks: 1,
+        totalChunks: 1,
+      };
+
+      const mockFetchResponse = {
+        ok: true,
+        json: sinon.stub().resolves(mockTranslationResult),
+      };
+
+      mockFetch.resolves(mockFetchResponse);
+
+      await service.translate(request, apiKey);
+
+      const fetchCall = mockFetch.getCall(0);
+      const requestOptions = fetchCall.args[1];
+      const requestBody = JSON.parse(requestOptions.body);
+
+      assert.strictEqual(requestBody.translateMetadata, false);
     });
 
     test("translate handles 400 Bad Request error", async () => {
@@ -174,7 +254,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /Invalid source strings format/
+        /Invalid source strings format/,
       );
     });
 
@@ -190,10 +270,10 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockErrorResponse);
 
       const result = await service.translate(createRequest(), apiKey);
-      
+
       // 401 errors now return null instead of throwing
       assert.strictEqual(result, null);
-      
+
       // Verify error was logged
       assert.ok((mockLogger.showAndLogError as sinon.SinonStub).called);
     });
@@ -233,7 +313,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /Request too large. Maximum request size is 5 MB./
+        /Request too large. Maximum request size is 5 MB./,
       );
     });
 
@@ -252,7 +332,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /An internal server error occurred \(Error code: INTERNAL_ERROR_123\)/
+        /An internal server error occurred \(Error code: INTERNAL_ERROR_123\)/,
       );
     });
   });
@@ -276,7 +356,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /is required is invalid must be BCP-47 format/
+        /is required is invalid must be BCP-47 format/,
       );
     });
 
@@ -295,7 +375,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /Field validation failed Invalid input format/
+        /Field validation failed Invalid input format/,
       );
     });
 
@@ -312,7 +392,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /An internal server error occurred \(Error code: unknown\)/
+        /An internal server error occurred \(Error code: unknown\)/,
       );
     });
   });
@@ -341,7 +421,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       // insufficientBalance finish reason now returns result with partial translations
       assert.deepStrictEqual(result, expectedResult);
-      
+
       // Verify error was logged
       assert.ok((mockLogger.showAndLogError as sinon.SinonStub).called);
     });
@@ -365,7 +445,7 @@ suite("L10nTranslationService Test Suite", () => {
 
       await assert.rejects(
         async () => await service.translate(createRequest(), apiKey),
-        /Translation failed due to an error\./
+        /Translation failed due to an error\./,
       );
     });
 

@@ -51,6 +51,14 @@ export interface TranslationConfig {
   useContractions?: boolean;
 
   /**
+   * Translate metadata along with UI strings (default: false)
+   * For example, in Flutter ARB files, metadata entries like `@key` contain descriptions
+   * that can also be translated. Disabling this option ensures that metadata remains
+   * unchanged in the target files.
+   */
+  translateMetadata?: boolean;
+
+  /**
    * Save filtered strings to separate file (default: true)
    * Filtered strings are in i18n JSON format and contain source strings that violated
    * content policies. Review the translation for successfully translated content.
@@ -176,6 +184,7 @@ export class AiTranslator {
       const useContractions = config.useContractions ?? true;
       const useShortening = config.useShortening ?? false;
       const generatePluralForms = config.generatePluralForms ?? false;
+      const translateMetadata = config.translateMetadata ?? false;
       const saveFilteredStrings = config.saveFilteredStrings ?? true;
       const translateOnlyNewStrings = config.translateOnlyNewStrings ?? false;
 
@@ -184,6 +193,7 @@ export class AiTranslator {
   - Use contractions: ${useContractions}
   - Use shortening: ${useShortening}
   - Generate plural forms: ${generatePluralForms}
+  - Translate metadata: ${translateMetadata}
   - Save filtered strings: ${saveFilteredStrings}
   - Translate only new strings: ${translateOnlyNewStrings}`);
       }
@@ -214,6 +224,7 @@ export class AiTranslator {
               useContractions,
               useShortening,
               generatePluralForms,
+              translateMetadata,
               saveFilteredStrings,
               isArbFile,
               verbose,
@@ -302,6 +313,7 @@ export class AiTranslator {
     useContractions: boolean,
     useShortening: boolean,
     generatePluralForms: boolean,
+    translateMetadata: boolean,
     saveFilteredStrings: boolean,
     isArbFile: boolean,
     verbose: boolean,
@@ -329,6 +341,7 @@ export class AiTranslator {
       useContractions,
       useShortening,
       generatePluralForms,
+      translateMetadata,
       client: CONFIG.CLIENT,
       returnTranslationsAsString: true,
       translateOnlyNewStrings,

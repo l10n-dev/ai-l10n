@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-12
+
+### Added
+- **Metadata Translation Control** - Added `translateMetadata` configuration option (default: `false`)
+  - Allows control over whether metadata is translated along with UI strings
+  - For example, in Flutter ARB files, metadata entries like `@key` contain descriptions that can optionally be translated
+  - When disabled (default), metadata remains unchanged in target files, ensuring consistency
+  - Available in CLI via `--translate-metadata` flag and programmatic API via `translateMetadata` config option
+
 ## [1.2.0] - 2026-02-04
 
 ### Added

@@ -354,6 +354,7 @@ theme/locales/
 | `generatePluralForms` | `boolean` | `false` | Generate plural forms with suffixes (e.g., for i18next). Don't use for strict source-to-target mapping |
 | `useShortening` | `boolean` | `false` | Use shortening in translations |
 | `useContractions` | `boolean` | `true` | Use contractions in translations (using contractions makes the translation less formal) |
+| `translateMetadata` | `boolean` | `false` | Translate metadata along with UI strings. For example, in Flutter ARB files, metadata entries like @key contain descriptions that can also be translated. Disabling this option ensures that metadata remains unchanged in the target files |
 | `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to separate .filtered file |
 | `translateOnlyNewStrings` | `boolean` | `false` | Update existing files with only new translations |
 | `verbose` | `boolean` | `false` | Enable detailed logging |

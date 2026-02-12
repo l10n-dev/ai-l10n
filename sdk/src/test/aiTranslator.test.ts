@@ -6,12 +6,7 @@ import * as os from "os";
 import { AiTranslator, TranslationConfig } from "../index";
 import { ApiKeyManager } from "../apiKeyManager";
 import { I18nProjectManager } from "../i18nProjectManager";
-import {
-  FinishReason,
-  L10nTranslationService,
-  TranslationResult,
-} from "../translationService";
-import { ConsoleLogger } from "../consoleLogger";
+import { FinishReason, L10nTranslationService } from "../translationService";
 
 suite("AiTranslator Test Suite", () => {
   let translator: AiTranslator;
@@ -865,7 +860,74 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(callArgs.useContractions, true); // default true
       assert.strictEqual(callArgs.useShortening, false); // default false
       assert.strictEqual(callArgs.generatePluralForms, false); // default false
+      assert.strictEqual(callArgs.translateMetadata, false); // default false
       assert.strictEqual(callArgs.translateOnlyNewStrings, false); // default false
+    });
+
+    test("passes translateMetadata option to translation service", async () => {
+      const sourceFile = path.join(tempDir, "en.json");
+      fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
+
+      apiKeyManagerStub.ensureApiKey.resolves("api-key");
+      i18nProjectManagerStub.validateLanguageCode.returns(true);
+      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
+      i18nProjectManagerStub.generateTargetFilePath.returns(
+        path.join(tempDir, "es.json"),
+      );
+      i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
+
+      translationServiceStub.translate.resolves({
+        targetLanguageCode: "es",
+        translations: JSON.stringify({ hello: "Hola" }),
+        usage: { charsUsed: 10 },
+        completedChunks: 1,
+        totalChunks: 1,
+      });
+
+      const config: TranslationConfig = {
+        sourceFile,
+        targetLanguages: ["es"],
+        translateMetadata: true,
+      };
+
+      await translator.translate(config);
+
+      const callArgs = translationServiceStub.translate.firstCall.args[0];
+      assert.strictEqual(callArgs.translateMetadata, true);
+    });
+
+    test("includes translateMetadata in verbose logging", async () => {
+      const sourceFile = path.join(tempDir, "en.json");
+      fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
+
+      apiKeyManagerStub.ensureApiKey.resolves("api-key");
+      i18nProjectManagerStub.validateLanguageCode.returns(true);
+      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
+      i18nProjectManagerStub.generateTargetFilePath.returns(
+        path.join(tempDir, "es.json"),
+      );
+      i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
+
+      translationServiceStub.translate.resolves({
+        targetLanguageCode: "es",
+        translations: JSON.stringify({ hello: "Hola" }),
+        usage: { charsUsed: 10 },
+        completedChunks: 1,
+        totalChunks: 1,
+      });
+
+      const config: TranslationConfig = {
+        sourceFile,
+        targetLanguages: ["es"],
+        translateMetadata: true,
+        verbose: true,
+      };
+
+      await translator.translate(config);
+
+      assert.ok(
+        consoleLogStub.calledWith(sinon.match(/Translate metadata: true/)),
+      );
     });
   });
 });
