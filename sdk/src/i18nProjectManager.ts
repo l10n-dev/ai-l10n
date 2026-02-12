@@ -19,15 +19,10 @@ export class I18nProjectManager {
   private readonly languageCodeRegex =
     /^(?<language>[a-z]{2,3})([-|_](?<script>[A-Z][a-z]{3}))?([-|_](?<region>[A-Z]{2,3}|[0-9]{3}))?$/i;
 
-  // ARB files use underscores instead of hyphens
-  private readonly arbLanguageCodeRegex =
-    /^(?<language>[a-z]{2,3})(_(?<script>[A-Z][a-z]{3}))?(_(?<region>[A-Z]{2,3}|[0-9]{3}))?$/;
-
   constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
   detectLanguagesFromProject(sourceFilePath: string): string[] {
     const languageCodes = new Set<string>();
-    const isArbFile = sourceFilePath.endsWith(".arb");
 
     // Detect the source language to exclude it
     const structureInfo = this.detectProjectStructure(sourceFilePath);
@@ -42,10 +37,7 @@ export class I18nProjectManager {
         });
         for (const entry of entries) {
           if (entry.isDirectory()) {
-            const regex = isArbFile
-              ? this.arbLanguageCodeRegex
-              : this.languageCodeRegex;
-            if (regex.test(entry.name)) {
+            if (this.languageCodeRegex.test(entry.name)) {
               languageCodes.add(entry.name);
             }
           }
@@ -58,7 +50,9 @@ export class I18nProjectManager {
       }
     } else if (structureInfo.type === ProjectStructureType.FileBased) {
       // For file-based, scan the base path for language files
-      const fileExtensions = isArbFile ? [".arb"] : [".json", ".jsonc"];
+      const fileExtension = path.extname(sourceFilePath);
+      const fileExtensions =
+        fileExtension === ".json" ? [".json", ".jsonc"] : [fileExtension];
       try {
         const entries = fs.readdirSync(structureInfo.basePath, {
           withFileTypes: true,
@@ -67,11 +61,7 @@ export class I18nProjectManager {
           if (entry.isFile()) {
             for (const ext of fileExtensions) {
               if (entry.name.endsWith(ext)) {
-                const fileName = path.basename(entry.name, ext);
-                const languageCode = this.extractLanguageCodeFromFileName(
-                  fileName,
-                  isArbFile,
-                );
+                const languageCode = this.extractLanguageCode(entry.name);
                 if (languageCode) {
                   languageCodes.add(languageCode);
                 }
@@ -190,6 +180,16 @@ export class I18nProjectManager {
     return uniquePath;
   }
 
+  /**
+   * Normalizes language codes to a consistent BCP 47 format with optional script and region subtags
+   * Examples:
+   * - "en" -> "en"
+   * - "en-us", "en_US" -> "en-US"
+   * - "zh_hans", "zh-Hans" -> "zh-Hans"
+   * - "zh_HANS_CN", "zh-Hans-CN" -> "zh-Hans-CN"
+   * @param code Language code to normalize
+   * @returns Normalized language code in the format: language[-Script][-REGION]
+   */
   normalizeLanguageCode(code: string): string {
     const match = code.match(this.languageCodeRegex);
     if (!match?.groups) {
@@ -217,18 +217,53 @@ export class I18nProjectManager {
     return !!code && this.languageCodeRegex.test(code);
   }
 
-  private detectProjectStructure(sourceFilePath: string): ProjectStructureInfo {
-    const sourceDir = path.dirname(sourceFilePath);
-    const sourceFileExt = path.extname(sourceFilePath);
-    const sourceFileName = path.basename(sourceFilePath, sourceFileExt);
-    const isArbFile = sourceFileExt === ".arb";
+  /**
+   * Extracts language code from file name, handling custom prefixes for ARB files
+   * ARB files: app_en_US.arb -> en_US, my_app_fr.arb -> fr
+   * JSON files: en-US.json -> en-US
+   * Shopify theme: en.default.schema.json -> en, es-ES.schema.json -> es-ES
+   */
+  extractLanguageCode(fileName: string): string | null {
+    const isArbFile = fileName.endsWith(".arb");
+    const nameWithoutExt = fileName.replace(/\.[^.]+$/, ""); // Remove extension
+    if (isArbFile) {
+      // ARB files use underscores instead of hyphens
+      const arbLanguageCodeRegex =
+        /^(?<language>[a-z]{2,3})(_(?<script>[A-Z][a-z]{3}))?(_(?<region>[A-Z]{2,3}|[0-9]{3}))?$/;
 
+      // For ARB files, try to extract language code after potential prefix
+      // Pattern: [prefix_]language[_script][_region]
+      const parts = nameWithoutExt.split("_");
+
+      // Try combinations from right to left to find valid language code
+      // For example, for "my_app_en_US.arb", parts = ["my", "app", "en", "US"]
+      // Check "en_US", then "app_en_US", then "my_app_en_US" until we find a match
+      for (let i = 0; i < parts.length; i++) {
+        const potentialCode = parts.slice(i).join("_");
+        if (arbLanguageCodeRegex.test(potentialCode)) {
+          return potentialCode;
+        }
+      }
+      return null;
+    }
+
+    // Handle Shopify theme pattern: en.default.schema, es-ES.schema
+    // Remove .schema first, then .default before extracting language code
+    let cleanedFileName = nameWithoutExt
+      .replace(/\.schema$/, "")
+      .replace(/\.default$/, "");
+
+    // For JSON files, the entire filename should be the language code
+    return this.languageCodeRegex.test(cleanedFileName)
+      ? cleanedFileName
+      : null;
+  }
+
+  private detectProjectStructure(sourceFilePath: string): ProjectStructureInfo {
     // Check if the parent directory name is a language code (folder-based structure)
+    const sourceDir = path.dirname(sourceFilePath);
     const parentDirName = path.basename(sourceDir);
-    const regex = isArbFile
-      ? this.arbLanguageCodeRegex
-      : this.languageCodeRegex;
-    if (regex.test(parentDirName)) {
+    if (this.languageCodeRegex.test(parentDirName)) {
       return {
         type: ProjectStructureType.FolderBased,
         basePath: path.dirname(sourceDir),
@@ -237,10 +272,8 @@ export class I18nProjectManager {
     }
 
     // Check if the source file name is a language code (file-based structure)
-    const languageCode = this.extractLanguageCodeFromFileName(
-      sourceFileName,
-      isArbFile,
-    );
+    const sourceFileName = path.basename(sourceFilePath);
+    const languageCode = this.extractLanguageCode(sourceFileName);
     if (languageCode) {
       return {
         type: ProjectStructureType.FileBased,
@@ -254,42 +287,5 @@ export class I18nProjectManager {
       type: ProjectStructureType.Unknown,
       basePath: sourceDir,
     };
-  }
-
-  /**
-   * Extracts language code from file name, handling custom prefixes for ARB files
-   * ARB files: app_en_US.arb -> en_US, my_app_fr.arb -> fr
-   * JSON files: en-US.json -> en-US
-   * Shopify theme: en.default.schema.json -> en, es-ES.schema.json -> es-ES
-   */
-  private extractLanguageCodeFromFileName(
-    fileName: string,
-    isArbFile: boolean,
-  ): string | null {
-    if (isArbFile) {
-      // For ARB files, try to extract language code after potential prefix
-      // Pattern: [prefix_]language[_script][_region]
-      const parts = fileName.split("_");
-
-      // Try combinations from right to left to find valid language code
-      for (let i = 0; i < parts.length; i++) {
-        const potentialCode = parts.slice(i).join("_");
-        if (this.arbLanguageCodeRegex.test(potentialCode)) {
-          return potentialCode;
-        }
-      }
-      return null;
-    } else {
-      // Handle Shopify theme pattern: en.default.schema, es-ES.schema
-      // Remove .schema first, then .default before extracting language code
-      let cleanedFileName = fileName
-        .replace(/\.schema$/, "")
-        .replace(/\.default$/, "");
-
-      // For JSON files, the entire filename should be the language code
-      return this.languageCodeRegex.test(cleanedFileName)
-        ? cleanedFileName
-        : null;
-    }
   }
 }
