@@ -316,7 +316,7 @@ lib/l10n/
   app_en.arb           # Source
   app_es.arb           # Auto-detected
   app_fr_FR.arb        # Auto-detected
-  app_zh_Hans-CN.arb   # Auto-detected
+  app_zh_Hans_CN.arb   # Auto-detected
 ```
 
 ### File-Based Structure (JSONC)
@@ -484,3 +484,4 @@ AGPL-3.0
 ## Credits
 
 Powered by [l10n.dev](https://l10n.dev) - AI-powered localization service
+
