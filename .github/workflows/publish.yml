@@ -242,7 +242,7 @@ jobs:
           exit 1
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build workspace dependencies
         run: |
