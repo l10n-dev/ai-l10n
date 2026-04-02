@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Easy-to-use AI-powered localization automation for i18n files (CLI and SDK)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -47,8 +47,12 @@
   "engines": {
     "node": ">=14.0.0"
   },
+  "workspaces": [
+    "core",
+    "sdk"
+  ],
   "dependencies": {
-    "ai-l10n-sdk": "^1.4.0",
+    "ai-l10n-sdk": "^1.4.1",
     "commander": "^11.1.0"
   },
   "devDependencies": {
@@ -58,6 +62,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE",
+    "CHANGELOG.md"
   ]
 }
