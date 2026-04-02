@@ -64,16 +64,12 @@ jobs:
           fi
 
       - name: Install dependencies
-        # Temporarily remove the root `prepare` script so npm ci doesn't try to build prematurely,
-        # but don't ignore other package scripts (so esbuild can install its native binaries correctly)
         run: |
-          npm pkg delete scripts.prepare
-          npm ci
-          git checkout package.json
+          npm ci --ignore-scripts
+          npm rebuild
 
       - name: Build
-        working-directory: core
-        run: npm run build
+        run: npm run build -w core
 
       - name: Test
         working-directory: core
@@ -158,16 +154,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm pkg delete scripts.prepare
-          npm ci
-          git checkout package.json
+          npm ci --ignore-scripts
+          npm rebuild
 
       - name: Build workspace dependencies
         run: npm run build -w core
 
       - name: Build
-        working-directory: sdk
-        run: npm run build
+        run: npm run build -w sdk
 
       - name: Test
         working-directory: sdk
@@ -252,9 +246,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm pkg delete scripts.prepare
-          npm ci
-          git checkout package.json
+          npm ci --ignore-scripts
+          npm rebuild
 
       - name: Build workspace dependencies
         run: |
@@ -275,6 +268,7 @@ jobs:
 
       - name: Publish
         id: publish
+        # prepublishOnly runs check-sdk-dependency.js automatically
         if: steps.check.outputs.skip != 'true' && inputs.dry_run != true
         run: |
           npm publish --provenance --access public
