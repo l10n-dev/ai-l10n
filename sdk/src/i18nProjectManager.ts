@@ -1,7 +1,11 @@
 import * as path from "path";
 import * as fs from "fs";
-import { ILogger } from "./logger";
-import { ConsoleLogger } from "./consoleLogger";
+import {
+  ILogger,
+  ConsoleLogger,
+  LANGUAGE_CODE_REGEX,
+  extractLanguageCode,
+} from "ai-l10n-core";
 
 enum ProjectStructureType {
   FolderBased = "folder",
@@ -16,9 +20,6 @@ interface ProjectStructureInfo {
 }
 
 export class I18nProjectManager {
-  private readonly languageCodeRegex =
-    /^(?<language>[a-z]{2,3})([-|_](?<script>[A-Z][a-z]{3}))?([-|_](?<region>[A-Z]{2,3}|[0-9]{3}))?$/i;
-
   constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
   detectLanguagesFromProject(sourceFilePath: string): string[] {
@@ -37,7 +38,7 @@ export class I18nProjectManager {
         });
         for (const entry of entries) {
           if (entry.isDirectory()) {
-            if (this.languageCodeRegex.test(entry.name)) {
+            if (LANGUAGE_CODE_REGEX.test(entry.name)) {
               languageCodes.add(entry.name);
             }
           }
@@ -52,7 +53,15 @@ export class I18nProjectManager {
       // For file-based, scan the base path for language files
       const fileExtension = path.extname(sourceFilePath);
       const fileExtensions =
-        fileExtension === ".json" ? [".json", ".jsonc"] : [fileExtension];
+        fileExtension === ".json" || fileExtension === ".jsonc"
+          ? [".json", ".jsonc"]
+          : fileExtension === ".yaml" || fileExtension === ".yml"
+            ? [".yaml", ".yml"]
+            : fileExtension === ".xliff" || fileExtension === ".xlf"
+              ? [".xliff", ".xlf"]
+              : fileExtension === ".po" || fileExtension === ".pot"
+                ? [".po", ".pot"]
+                : [fileExtension];
       try {
         const entries = fs.readdirSync(structureInfo.basePath, {
           withFileTypes: true,
@@ -61,7 +70,7 @@ export class I18nProjectManager {
           if (entry.isFile()) {
             for (const ext of fileExtensions) {
               if (entry.name.endsWith(ext)) {
-                const languageCode = this.extractLanguageCode(entry.name);
+                const languageCode = extractLanguageCode(entry.name);
                 if (languageCode) {
                   languageCodes.add(languageCode);
                 }
@@ -180,90 +189,11 @@ export class I18nProjectManager {
     return uniquePath;
   }
 
-  /**
-   * Normalizes language codes to a consistent BCP 47 format with optional script and region subtags
-   * Examples:
-   * - "en" -> "en"
-   * - "en-us", "en_US" -> "en-US"
-   * - "zh_hans", "zh-Hans" -> "zh-Hans"
-   * - "zh_HANS_CN", "zh-Hans-CN" -> "zh-Hans-CN"
-   * @param code Language code to normalize
-   * @returns Normalized language code in the format: language[-Script][-REGION]
-   */
-  normalizeLanguageCode(code: string): string {
-    const match = code.match(this.languageCodeRegex);
-    if (!match?.groups) {
-      return code; // Return as-is if it doesn't match the pattern
-    }
-
-    const { language, script, region } = match.groups;
-    let normalized = language.toLowerCase();
-
-    if (script) {
-      // Script codes: first letter uppercase, rest lowercase
-      normalized +=
-        "-" + script.charAt(0).toUpperCase() + script.slice(1).toLowerCase();
-    }
-
-    if (region) {
-      // Region codes: all uppercase
-      normalized += "-" + region.toUpperCase();
-    }
-
-    return normalized;
-  }
-
-  validateLanguageCode(code: string): boolean {
-    return !!code && this.languageCodeRegex.test(code);
-  }
-
-  /**
-   * Extracts language code from file name, handling custom prefixes for ARB files
-   * ARB files: app_en_US.arb -> en_US, my_app_fr.arb -> fr
-   * JSON files: en-US.json -> en-US
-   * Shopify theme: en.default.schema.json -> en, es-ES.schema.json -> es-ES
-   */
-  extractLanguageCode(fileName: string): string | null {
-    const isArbFile = fileName.endsWith(".arb");
-    const nameWithoutExt = fileName.replace(/\.[^.]+$/, ""); // Remove extension
-    if (isArbFile) {
-      // ARB files use underscores instead of hyphens
-      const arbLanguageCodeRegex =
-        /^(?<language>[a-z]{2,3})(_(?<script>[A-Z][a-z]{3}))?(_(?<region>[A-Z]{2,3}|[0-9]{3}))?$/;
-
-      // For ARB files, try to extract language code after potential prefix
-      // Pattern: [prefix_]language[_script][_region]
-      const parts = nameWithoutExt.split("_");
-
-      // Try combinations from right to left to find valid language code
-      // For example, for "my_app_en_US.arb", parts = ["my", "app", "en", "US"]
-      // Check "en_US", then "app_en_US", then "my_app_en_US" until we find a match
-      for (let i = 0; i < parts.length; i++) {
-        const potentialCode = parts.slice(i).join("_");
-        if (arbLanguageCodeRegex.test(potentialCode)) {
-          return potentialCode;
-        }
-      }
-      return null;
-    }
-
-    // Handle Shopify theme pattern: en.default.schema, es-ES.schema
-    // Remove .schema first, then .default before extracting language code
-    let cleanedFileName = nameWithoutExt
-      .replace(/\.schema$/, "")
-      .replace(/\.default$/, "");
-
-    // For JSON files, the entire filename should be the language code
-    return this.languageCodeRegex.test(cleanedFileName)
-      ? cleanedFileName
-      : null;
-  }
-
   private detectProjectStructure(sourceFilePath: string): ProjectStructureInfo {
     // Check if the parent directory name is a language code (folder-based structure)
     const sourceDir = path.dirname(sourceFilePath);
     const parentDirName = path.basename(sourceDir);
-    if (this.languageCodeRegex.test(parentDirName)) {
+    if (LANGUAGE_CODE_REGEX.test(parentDirName)) {
       return {
         type: ProjectStructureType.FolderBased,
         basePath: path.dirname(sourceDir),
@@ -273,7 +203,7 @@ export class I18nProjectManager {
 
     // Check if the source file name is a language code (file-based structure)
     const sourceFileName = path.basename(sourceFilePath);
-    const languageCode = this.extractLanguageCode(sourceFileName);
+    const languageCode = extractLanguageCode(sourceFileName);
     if (languageCode) {
       return {
         type: ProjectStructureType.FileBased,

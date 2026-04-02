@@ -1,9 +1,11 @@
 # ai-l10n-sdk
 
 [![npm version](https://img.shields.io/npm/v/ai-l10n-sdk.svg)](https://www.npmjs.com/package/ai-l10n-sdk)
-[![License: AGPL-3.0](https://img.shields.io/badge/agpl-v3.svg)](https://opensource.org/license/agpl-v3)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 This is the core SDK package for ai-l10n, providing programmatic access to AI translation capabilities. Use this package when you want to integrate localization functionality into your applications without the CLI tool.
+
+Supports JSON, JSONC, Flutter ARB, Shopify theme files, YAML, PO (gettext), XLIFF, and all other text-based localization formats. The file format is derived from the extension and passed to the API. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats).
 
 Powered by [l10n](https://l10n.dev).dev
 
@@ -15,7 +17,8 @@ npm install ai-l10n-sdk
 
 ## Related Packages
 
-- [ai-l10n](https://www.npmjs.com/package/ai-l10n) - CLI tool built on this SDK
+- [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core) — Core translation API client, logger interface, and shared types
+- [ai-l10n](https://www.npmjs.com/package/ai-l10n) — CLI tool built on this SDK
 
 ## Usage Examples
 
@@ -128,6 +131,32 @@ const result = await translator.translate({
 - **Smart Output Naming**: Removes `.default.` from target files while preserving the `.schema.` suffix
 - **Language Detection**: Auto-detects target languages from existing files (e.g., `es-ES.schema.json`, `fr.schema.json`)
 
+### Other Text-Based Formats (YAML, PO, XLIFF, and more)
+
+All text-based localization formats are supported. The format is derived from the file extension and sent to the API automatically:
+
+```typescript
+// YAML
+const result = await translator.translate({
+  sourceFile: './locales/en.yaml',
+  targetLanguages: ['es', 'fr', 'de']
+});
+
+// PO (gettext)
+const result = await translator.translate({
+  sourceFile: './locales/en.po',
+  targetLanguages: ['es', 'fr']
+});
+
+// XLIFF
+const result = await translator.translate({
+  sourceFile: './locales/en.xliff',
+  targetLanguages: ['es', 'de']
+});
+```
+
+For the full list of supported formats see the [API documentation](https://l10n.dev/ws/translate-i18n-files#supported-formats).
+
 ### Multiple Files
 
 ```typescript
@@ -141,50 +170,9 @@ for (const file of files) {
 }
 ```
 
-## Custom Logger Integration
+## Core API
 
-By default, `AiTranslator` uses the built-in `ConsoleLogger` which outputs to the console. For integration in other environments (extensions, web applications, custom UIs), you can implement a custom logger.
-
-### Logger Interface
-
-Implement the `ILogger` interface to create your own logger:
-
-```typescript
-interface ILogger {
-  logInfo(message: string): void;
-  logWarning(message: string, error?: unknown): void;
-  logError(message: string, error?: unknown): void;
-  showAndLogError(
-    message: string,
-    error?: unknown,
-    context?: string,
-    linkBtnText?: string,
-    url?: string
-  ): void;
-}
-```
-
-### Default ConsoleLogger
-
-The default `ConsoleLogger` implementation:
-
-```typescript
-import { ConsoleLogger } from 'ai-l10n-sdk';
-
-const logger = new ConsoleLogger();
-
-// Outputs with emojis and formatting
-logger.logInfo('Translation started');           // Plain console.log
-logger.logWarning('File not found', error);      // ⚠️ with error details
-logger.logError('Translation failed', error);    // ❌ with error details
-logger.showAndLogError(
-  'API request failed',
-  error,
-  'Authentication',
-  'Get API Key',
-  'https://l10n.dev/ws/keys'
-);
-```
+`ILogger`, `ConsoleLogger`, `L10nTranslationService`, and all related types are part of the core library. See [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core) for full documentation. These are also re-exported from `ai-l10n-sdk` for convenience.
 
 ## API Reference
 
@@ -237,7 +225,9 @@ Configuration options for translation.
 ```typescript
 interface TranslationConfig {
   /**
-   * Path to the source file to translate (JSON or ARB)
+   * Path to the source file to translate.
+   * Supports JSON, JSONC, ARB, YAML, PO, XLIFF, and all other text-based localization formats.
+   * The format is derived from the file extension. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats).
    */
   sourceFile: string;
 
@@ -340,189 +330,64 @@ interface TranslationOutput {
 }
 ```
 
-### L10nTranslationService
+### L10nApiClient
 
-Low-level service for interacting with the l10n.dev API. Can be used directly.
+Extends `L10nTranslationService` with the `getLanguages()` endpoint. Inherits `translate()` and `predictLanguages()` from the parent class.
 
 #### Constructor
 
 ```typescript
-// With console logging by default
-const service = new L10nTranslationService();
+import { L10nApiClient, ConsoleLogger } from 'ai-l10n-sdk';
 
-// With custom logger
-const customLogger: ILogger = new ConsoleLogger();
-const service = new L10nTranslationService(customLogger);
+// Default: uses ConsoleLogger
+const client = new L10nApiClient();
+
+// With a custom logger
+const client = new L10nApiClient(new ConsoleLogger());
 ```
+
+**Parameters:**
+- `logger?: ILogger` — Optional custom logger. Defaults to `ConsoleLogger`
 
 #### Methods
 
-##### `translate(request: TranslationRequest, apiKey: string): Promise<TranslationResult | null>`
+##### `getLanguages(options?): Promise<SupportedLanguagesResponse>`
 
-Translates JSON content using the l10n.dev API.
+Retrieves a list of supported languages, optionally filtered by codes or proficiency levels.
 
-**Parameters:**
-- `request: TranslationRequest` - Translation request configuration
-- `apiKey: string` - API key for authentication
+```typescript
+// Get all supported languages
+const { languages } = await client.getLanguages();
 
-**Returns:** `Promise<TranslationResult | null>` - Translation result or null if 401, 402
+// Filter by proficiency level
+const { languages } = await client.getLanguages({
+  proficiencyLevels: ['strong', 'high'],
+});
 
-**Throws:** Error for various failure conditions (invalid request, server error, etc.)
+// Filter by specific codes
+const { languages } = await client.getLanguages({
+  codes: ['en', 'es', 'fr'],
+});
+```
 
-##### `predictLanguages(input: string, limit?: number): Promise<Language[]>`
-
-Predicts possible source languages from input text (name in English or native language name, region, or script)
-
-**Parameters:**
-- `input: string` - Text to analyze
-- `limit?: number` - Maximum number of predictions (default: 10)
-
-**Returns:** `Promise<Language[]>` - Array of predicted languages with codes and names
+Inherited from `L10nTranslationService`:
+- `translate(request, apiKey)` — Translate content
+- `predictLanguages(input, limit?)` — Predict language codes
 
 #### Types
 
-##### TranslationRequest
+##### SupportedLanguage
 
 ```typescript
-interface TranslationRequest {
-  /** Source strings as JSON string */
-  sourceStrings: string;
-  
-  /** Target language code (e.g., "es", "fr-FR") */
-  targetLanguageCode: string;
-  
-  /** Use contractions (e.g., "don't" vs "do not") */
-  useContractions?: boolean;
-  
-  /** Use shortened forms when translation is longer than source text */
-  useShortening?: boolean;
-  
-  /** Generate plural forms for i18next */
-  generatePluralForms?: boolean;
-  
-  /** Translate metadata along with UI strings (e.g., ARB `@key` descriptions) */
-  translateMetadata?: boolean;
-  
-  /** Return translations as JSON string */
-  returnTranslationsAsString: boolean;
-  
-  /** Client identifier */
-  client: string;
-  
-  /** Only translate new strings */
-  translateOnlyNewStrings?: boolean;
-  
-  /** Existing target strings (for incremental updates) */
-  targetStrings?: string;
-  
-  /** File schema format */
-  schema: FileSchema | null;
+interface SupportedLanguage {
+  code: string | null;
+  name: string | null;
+  nativeName: string | null;
+  level?: "strong" | "high" | "moderate" | "limited";
+  regions?: Region[] | null;
+  scripts?: Script[] | null;
 }
 ```
-
-##### TranslationResult
-
-```typescript
-interface TranslationResult {
-  /** Target language code */
-  targetLanguageCode: string;
-  
-  /** Translated content as JSON string */
-  translations?: string;
-  
-  /** Usage statistics */
-  usage: TranslationUsage;
-  
-  /** Reason translation finished */
-  finishReason?: FinishReason;
-  
-  /** Number of chunks completed */
-  completedChunks: number;
-  
-  /** Total number of chunks */
-  totalChunks: number;
-  
-  /** Remaining character balance */
-  remainingBalance?: number;
-  
-  /** Strings filtered due to content policy or length */
-  filteredStrings?: Record<string, unknown>;
-  
-  /** Count of filtered strings */
-  filteredStringsCount?: number;
-}
-```
-
-##### FileSchema
-
-Supported file schema formats for translation requests.
-
-```typescript
-enum FileSchema {
-  /** OpenAPI specification format */
-  OpenAPI = "openApi",
-  
-  /** Flutter ARB (Application Resource Bundle) format */
-  ARBFlutter = "arbFlutter"
-}
-```
-
-##### FinishReason
-
-Reasons why a translation finished.
-
-```typescript
-enum FinishReason {
-  /** Translation completed successfully */
-  stop = "stop",
-  
-  /** Translation stopped due to length/context limits */
-  length = "length",
-  
-  /** Some content was filtered due to content policy */
-  contentFilter = "contentFilter",
-  
-  /** Insufficient character balance */
-  insufficientBalance = "insufficientBalance",
-  
-  /** Translation failed with error */
-  error = "error"
-}
-```
-
-##### TranslationUsage
-
-```typescript
-interface TranslationUsage {
-  /** Number of characters used */
-  charsUsed?: number;
-}
-```
-
-##### Language
-
-```typescript
-interface Language {
-  /** Language code (e.g., "es", "fr-FR") */
-  code: string;
-  
-  /** Human-readable language name */
-  name: string;
-}
-```
-
-#### Error Handling
-
-The API throws errors for various conditions:
-
-- **Invalid Request (400)**: Validation error with details
-- **Request Too Large (413)**: `"Request too large. Maximum request size is 5 MB."`
-- **Server Error (500)**: `"An internal server error occurred..."`
-
-Returns `null` with error logged instead of throwing error:
-- **Missing API Key**: `"API Key not set. Please configure your API Key first."`
-- **Unauthorized (401)**: `"Unauthorized. Please check your API Key."`
-- **Insufficient Balance (402)**: `"Not enough characters remaining for this translation. You can try translating a smaller portion of your file or purchase more characters."`
 
 ### I18nProjectManager
 
@@ -744,7 +609,7 @@ manager.extractLanguageCode('invalid.json');               // Returns: null
 
 ## License
 
-AGPL-3.0
+MIT
 
 ## Credits
 

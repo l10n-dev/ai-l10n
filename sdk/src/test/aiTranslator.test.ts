@@ -1,4 +1,4 @@
-import * as assert from "assert";
+﻿import * as assert from "assert";
 import * as sinon from "sinon";
 import * as fs from "fs";
 import * as path from "path";
@@ -6,7 +6,7 @@ import * as os from "os";
 import { AiTranslator, TranslationConfig } from "../index";
 import { ApiKeyManager } from "../apiKeyManager";
 import { I18nProjectManager } from "../i18nProjectManager";
-import { FinishReason, L10nTranslationService } from "../translationService";
+import { FinishReason, L10nTranslationService } from "ai-l10n-core";
 
 suite("AiTranslator Test Suite", () => {
   let translator: AiTranslator;
@@ -120,24 +120,33 @@ suite("AiTranslator Test Suite", () => {
       );
     });
 
-    test("throws error for unsupported file type", async () => {
-      const txtFile = path.join(tempDir, "test.txt");
-      fs.writeFileSync(txtFile, "test");
+    test("allows any text-based file type", async () => {
+      const poFile = path.join(tempDir, "en.po");
+      fs.writeFileSync(poFile, 'msgid "hello"\nmsgstr "Hello"');
+
+      apiKeyManagerStub.ensureApiKey.resolves("api-key");
+      i18nProjectManagerStub.detectLanguagesFromProject.returns(["es"]);
+      i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
+        path.join(tempDir, `${lang}.po`),
+      );
+      i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
+
+      translationServiceStub.translate.resolves({
+        targetLanguageCode: "es",
+        translations: 'msgid "hello"\nmsgstr "Hola"',
+        usage: { charsUsed: 10 },
+        completedChunks: 1,
+        totalChunks: 1,
+      });
 
       const config: TranslationConfig = {
-        sourceFile: txtFile,
+        sourceFile: poFile,
+        targetLanguages: ["es"],
       };
 
       const result = await translator.translate(config);
 
-      assert.strictEqual(result.success, false);
-      assert.ok(
-        consoleErrorStub.calledWith(
-          sinon.match(
-            /Unsupported file type.*Only \.json, \.jsonc, and \.arb files are supported/,
-          ),
-        ),
-      );
+      assert.strictEqual(result.success, true);
     });
 
     test("throws error for invalid language code", async () => {
@@ -145,7 +154,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(false);
 
       const config: TranslationConfig = {
         sourceFile,
@@ -168,8 +176,6 @@ suite("AiTranslator Test Suite", () => {
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
       i18nProjectManagerStub.detectLanguagesFromProject.returns(["es", "fr"]);
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -221,8 +227,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -255,8 +259,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -291,8 +293,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -329,8 +329,6 @@ suite("AiTranslator Test Suite", () => {
       const outputFile = path.join(tempDir, "es.json");
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(outputFile);
       i18nProjectManagerStub.getUniqueFilePath.returns(outputFile);
 
@@ -361,8 +359,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -394,8 +390,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.arb"),
       );
@@ -425,13 +419,11 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(callArgs.generatePluralForms, true);
     });
 
-    test("detects ARB file and sets correct schema", async () => {
+    test("detects ARB file and sets correct format and schema", async () => {
       const sourceFile = path.join(tempDir, "app_en.arb");
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "app_es.arb"),
       );
@@ -453,7 +445,9 @@ suite("AiTranslator Test Suite", () => {
       await translator.translate(config);
 
       const callArgs = translationServiceStub.translate.firstCall.args[0];
+      assert.strictEqual(callArgs.format, "arb");
       assert.strictEqual(callArgs.schema, "arbFlutter");
+
     });
 
     test("handles translateOnlyNewStrings mode", async () => {
@@ -467,8 +461,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(targetFile, JSON.stringify({ hello: "Hola" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(targetFile);
 
       translationServiceStub.translate.resolves({
@@ -502,8 +494,6 @@ suite("AiTranslator Test Suite", () => {
       const filteredFile = path.join(tempDir, "es.filtered.json");
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(outputFile);
       i18nProjectManagerStub.getUniqueFilePath.returns(outputFile);
 
@@ -512,8 +502,7 @@ suite("AiTranslator Test Suite", () => {
         translations: JSON.stringify({ hello: "Hola" }),
         usage: { charsUsed: 10 },
         finishReason: FinishReason.contentFilter,
-        filteredStrings: { badWord: "inappropriate" },
-        filteredStringsCount: 1,
+        filteredStrings: '{"badWord":"inappropriate"}',
         completedChunks: 1,
         totalChunks: 1,
       });
@@ -527,7 +516,7 @@ suite("AiTranslator Test Suite", () => {
       await translator.translate(config);
 
       assert.ok(fs.existsSync(filteredFile));
-      assert.ok(consoleWarnStub.calledWith(sinon.match(/1 string.*excluded/)));
+      assert.ok(consoleWarnStub.calledWith(sinon.match(/excluded/)));
     });
 
     test("logs filtered strings when saveFilteredStrings is false", async () => {
@@ -535,8 +524,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -547,8 +534,7 @@ suite("AiTranslator Test Suite", () => {
         translations: JSON.stringify({ hello: "Hola" }),
         usage: { charsUsed: 10 },
         finishReason: FinishReason.contentFilter,
-        filteredStrings: { badWord: "inappropriate" },
-        filteredStringsCount: 1,
+        filteredStrings: '{"badWord":"inappropriate"}',
         completedChunks: 1,
         totalChunks: 1,
       });
@@ -569,8 +555,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -581,8 +565,7 @@ suite("AiTranslator Test Suite", () => {
         translations: JSON.stringify({ hello: "Hola" }),
         usage: { charsUsed: 10 },
         finishReason: FinishReason.length,
-        filteredStrings: { longText: "very long content..." },
-        filteredStringsCount: 1,
+        filteredStrings: '{"longText":"very long content..."}',
         completedChunks: 1,
         totalChunks: 1,
       });
@@ -606,8 +589,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -645,8 +626,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -671,8 +650,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -702,8 +679,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -730,8 +705,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -764,8 +737,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -797,8 +768,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.callsFake((source, lang) =>
         path.join(tempDir, `${lang}.json`),
       );
@@ -834,8 +803,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -869,8 +836,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );
@@ -901,8 +866,6 @@ suite("AiTranslator Test Suite", () => {
       fs.writeFileSync(sourceFile, JSON.stringify({ hello: "Hello" }));
 
       apiKeyManagerStub.ensureApiKey.resolves("api-key");
-      i18nProjectManagerStub.validateLanguageCode.returns(true);
-      i18nProjectManagerStub.normalizeLanguageCode.callsFake((code) => code);
       i18nProjectManagerStub.generateTargetFilePath.returns(
         path.join(tempDir, "es.json"),
       );

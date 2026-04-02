@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Easy-to-use AI-powered localization automation for i18n files (CLI and SDK)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
     "build": "tsc",
     "prepare": "npm run build",
     "verify": "node scripts/verify.js",
-    "test": "cd sdk && npm test",
+    "test": "cd core && npm test && cd ../sdk && npm test",
     "prepublishOnly": "node scripts/check-sdk-dependency.js"
   },
   "keywords": [
@@ -35,7 +35,7 @@
     "typescript"
   ],
   "author": "l10n.dev",
-  "license": "AGPL-3.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/l10n-dev/ai-l10n.git"
@@ -48,7 +48,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "ai-l10n-sdk": "^1.3.0",
+    "ai-l10n-sdk": "^1.4.0",
     "commander": "^11.1.0"
   },
   "devDependencies": {

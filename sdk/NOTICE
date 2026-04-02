@@ -1,0 +1,26 @@
+ai-l10n-sdk
+Copyright (C) 2025 Antonov Anton Yurevich, Individual Entrepreneur. <https://l10n.dev/>
+
+This package is part of the ai-l10n project and provides a lightweight SDK for
+AI-powered localization automation with a programmatic API.
+
+License:
+--------
+This software is licensed under the MIT License.
+See the LICENSE file for the complete license text.
+
+Usage of l10n.dev service:
+--------------------------
+This package communicates with the l10n.dev platform, which provides AI-powered
+translation for internationalization (i18n) files. The l10n.dev backend service is
+proprietary and not covered by the MIT License. A valid l10n.dev account and API key
+are required to use the translation features of this package.
+
+You may freely use, modify, and distribute this package under the terms of the MIT License.
+However, this does not grant any rights to the l10n.dev backend services, which remain
+the exclusive property of Antonov Anton Yurevich, Individual Entrepreneur.
+
+Trademark Notice:
+-----------------
+"l10n.dev" and associated branding are trademarks of Antonov Anton Yurevich,
+Individual Entrepreneur. Use of these names and branding is subject to applicable law.

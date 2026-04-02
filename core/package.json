@@ -1,13 +1,13 @@
 {
-  "name": "ai-l10n-sdk",
+  "name": "ai-l10n-core",
   "version": "1.4.0",
-  "description": "Lightweight SDK for AI-powered localization automation - programmatic API (no CLI)",
+  "description": "Platform-independent core for AI-powered localization — translation API client, language utilities, and shared types",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "mocha",
     "prepare": "npm run build",
+    "test": "mocha",
     "verify": "node scripts/verify.js"
   },
   "keywords": [
@@ -16,20 +16,17 @@
     "i18n",
     "translation",
     "ai",
-    "internationalization",
-    "json",
-    "arb",
-    "flutter",
     "sdk",
     "api",
-    "typescript"
+    "typescript",
+    "core"
   ],
   "author": "l10n.dev",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/l10n-dev/ai-l10n.git",
-    "directory": "sdk"
+    "directory": "core"
   },
   "homepage": "https://github.com/l10n-dev/ai-l10n#readme",
   "bugs": {
@@ -42,12 +39,6 @@
     "NOTICE",
     "CHANGELOG.md"
   ],
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "dependencies": {
-    "ai-l10n-core": "^1.4.0"
-  },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.17.10",
