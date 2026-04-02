@@ -64,8 +64,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        working-directory: core
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build
         working-directory: core
@@ -153,8 +152,10 @@ jobs:
           exit 1
 
       - name: Install dependencies
-        working-directory: sdk
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Build workspace dependencies
+        run: npm run build -w core
 
       - name: Build
         working-directory: sdk
