@@ -22,11 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 // Before
 manager.validateLanguageCode(code);
 manager.normalizeLanguageCode(code);
+manager.extractLanguageCode(fileName);
 
 // After
-import { validateLanguageCode, normalizeLanguageCode } from 'ai-l10n-core';
+import { validateLanguageCode, normalizeLanguageCode, extractLanguageCode } from 'ai-l10n-core';
 validateLanguageCode(code);
 normalizeLanguageCode(code);
+extractLanguageCode(fileName);
 ```
 
 ## [1.3.0] - 2026-02-12

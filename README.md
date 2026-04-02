@@ -14,13 +14,13 @@ Powered by [l10n](https://l10n.dev).dev
 - 🤖 **AI-Powered Translations** - Context-aware translation to 165+ languages using advanced AI
 - 📁 **Smart Detection** - Automatically detects target languages from your project structure
 - 🔄 **Incremental Updates** - Translate only new strings while preserving existing translations
-- 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null values are maintained
+- 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null stays null
 - 🎯 **Multiple Formats** - Supports JSON, JSONC, Flutter ARB, Shopify theme files, YAML, PO (gettext), XLIFF, and any other text-based localization format. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats)
 - ⚙️ **Flexible Configuration** - Use via CLI, programmatically, or in CI/CD pipelines
-- 🌐 **i18next Plural Forms Support** - Automatically generates all required plural form strings with correct suffixes. For languages with complex pluralization rules (like Russian, Arabic, or Polish), ensures every necessary form is created
+- 🌐 **i18next Plural Forms Support** - Automatically generates all required plural form strings with correct suffixes. For languages with complex pluralization rules (like Russian, Arabic, or Polish), it ensures every necessary form is created
 - 🛠️ **Developer-Friendly** - Preserves placeholders, HTML tags, and formatting while adapting dates and numbers to target locales. Intelligently avoids translating proper names, URLs, and technical terms. Learn more about [I18N Translation Using AI](https://l10n.dev/help/i18n-translation-using-ai)
 - 🕵️ **Smart Error Detection & Chunking** - Automatically detects and retries if placeholders or formatting are lost. For large files, splits content into manageable chunks while maintaining context. Prevents issues common with direct AI uploads (Claude/GPT) where exceeding ~16,000 characters causes content loss
-- 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings saved separately in i18n JSON format for review
+- 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings are saved separately in i18n JSON format for review
 - 📊 **Usage Tracking** - Monitor character usage and remaining balance
 - 💰 **Free Tier** - Get 30,000 characters free every month
 
@@ -318,16 +318,6 @@ lib/l10n/
   app_zh_Hans_CN.arb   # Auto-detected
 ```
 
-### File-Based Structure (JSONC)
-
-```
-locales/
-  en.jsonc             # Source (JSON with Comments)
-  es.jsonc             # Auto-detected
-  fr-FR.jsonc          # Auto-detected
-  zh-Hans-CN.jsonc     # Auto-detected
-```
-
 ### File-Based Structure (Shopify Theme)
 
 ```
@@ -354,7 +344,7 @@ theme/locales/
 | `useShortening` | `boolean` | `false` | Use shortening in translations |
 | `useContractions` | `boolean` | `true` | Use contractions in translations (using contractions makes the translation less formal) |
 | `translateMetadata` | `boolean` | `false` | Translate metadata along with UI strings. For example, in Flutter ARB files, metadata entries like @key contain descriptions that can also be translated. Disabling this option ensures that metadata remains unchanged in the target files |
-| `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to separate .filtered file |
+| `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to a separate `.filtered` file |
 | `translateOnlyNewStrings` | `boolean` | `false` | Update existing files with only new translations |
 | `verbose` | `boolean` | `false` | Enable detailed logging |
 

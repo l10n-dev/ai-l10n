@@ -133,7 +133,7 @@ const result = await translator.translate({
 
 ### Other Text-Based Formats (YAML, PO, XLIFF, and more)
 
-All text-based localization formats are supported. The format is derived from the file extension and sent to the API automatically:
+The format is derived from the file extension and sent to the API automatically:
 
 ```typescript
 // YAML
@@ -330,65 +330,6 @@ interface TranslationOutput {
 }
 ```
 
-### L10nApiClient
-
-Extends `L10nTranslationService` with the `getLanguages()` endpoint. Inherits `translate()` and `predictLanguages()` from the parent class.
-
-#### Constructor
-
-```typescript
-import { L10nApiClient, ConsoleLogger } from 'ai-l10n-sdk';
-
-// Default: uses ConsoleLogger
-const client = new L10nApiClient();
-
-// With a custom logger
-const client = new L10nApiClient(new ConsoleLogger());
-```
-
-**Parameters:**
-- `logger?: ILogger` — Optional custom logger. Defaults to `ConsoleLogger`
-
-#### Methods
-
-##### `getLanguages(options?): Promise<SupportedLanguagesResponse>`
-
-Retrieves a list of supported languages, optionally filtered by codes or proficiency levels.
-
-```typescript
-// Get all supported languages
-const { languages } = await client.getLanguages();
-
-// Filter by proficiency level
-const { languages } = await client.getLanguages({
-  proficiencyLevels: ['strong', 'high'],
-});
-
-// Filter by specific codes
-const { languages } = await client.getLanguages({
-  codes: ['en', 'es', 'fr'],
-});
-```
-
-Inherited from `L10nTranslationService`:
-- `translate(request, apiKey)` — Translate content
-- `predictLanguages(input, limit?)` — Predict language codes
-
-#### Types
-
-##### SupportedLanguage
-
-```typescript
-interface SupportedLanguage {
-  code: string | null;
-  name: string | null;
-  nativeName: string | null;
-  level?: "strong" | "high" | "moderate" | "limited";
-  regions?: Region[] | null;
-  scripts?: Script[] | null;
-}
-```
-
 ### I18nProjectManager
 
 Utility class for managing i18n project structure detection, language code validation, and file path generation.
@@ -498,113 +439,6 @@ manager.getUniqueFilePath('./output.json');
 // If 'output.json' and 'output (1).json' exist
 manager.getUniqueFilePath('./output.json');
 // Returns: './output (2).json'
-```
-
-##### `normalizeLanguageCode(code: string): string`
-
-Normalizes language codes to a consistent BCP 47 format.
-
-**Parameters:**
-- `code: string` - Language code to normalize (accepts hyphens or underscores)
-
-**Returns:** `string` - Normalized language code in format: `language[-Script][-REGION]`
-
-**Normalization Rules:**
-- Language: lowercase (e.g., `"EN"` → `"en"`)
-- Script: Title case (e.g., `"hans"` → `"Hans"`)
-- Region: uppercase (e.g., `"us"` → `"US"`)
-- Separator: always hyphen `-` (underscores converted to hyphens)
-
-**Example:**
-```typescript
-const manager = new I18nProjectManager();
-
-manager.normalizeLanguageCode('en');          // Returns: 'en'
-manager.normalizeLanguageCode('en-us');       // Returns: 'en-US'
-manager.normalizeLanguageCode('en_US');       // Returns: 'en-US'
-manager.normalizeLanguageCode('zh_hans');     // Returns: 'zh-Hans'
-manager.normalizeLanguageCode('zh-Hans-CN');  // Returns: 'zh-Hans-CN'
-manager.normalizeLanguageCode('ZH_HANS_CN');  // Returns: 'zh-Hans-CN'
-```
-
-##### `validateLanguageCode(code: string): boolean`
-
-Validates whether a string is a valid BCP 47 language code.
-
-**Parameters:**
-- `code: string` - Language code to validate
-
-**Returns:** `boolean` - `true` if valid, `false` otherwise
-
-**Validation Rules:**
-- **Case-insensitive validation**: Accepts language codes in any case (e.g., `"EN"`, `"en"`, `"EN-US"`)
-- Language: 2-3 letters (e.g., `en`, `eng`, `EN`)
-- Script (optional): 4 letters (e.g., `Hans`, `Latn`, `hans`)
-- Region (optional): 2-3 letters or 3 digits (e.g., `US`, `us`, `419`)
-- Separators: hyphens `-` or underscores `_`
-
-**Important:** This method only validates the format. For proper BCP 47 compliance, use `normalizeLanguageCode()` to convert validated codes to the correct case format (language lowercase, Script title case, REGION uppercase).
-
-**Example:**
-```typescript
-const manager = new I18nProjectManager();
-
-// All valid (case-insensitive)
-manager.validateLanguageCode('en');           // Returns: true
-manager.validateLanguageCode('EN');           // Returns: true
-manager.validateLanguageCode('en-US');        // Returns: true
-manager.validateLanguageCode('EN-US');        // Returns: true
-manager.validateLanguageCode('en-us');        // Returns: true
-manager.validateLanguageCode('zh-Hans-CN');   // Returns: true
-manager.validateLanguageCode('ZH-HANS-CN');   // Returns: true
-
-// Invalid
-manager.validateLanguageCode('invalid');      // Returns: false
-manager.validateLanguageCode('');             // Returns: false
-
-// Normalize after validation for proper BCP 47 format
-const code = 'EN-US';
-if (manager.validateLanguageCode(code)) {
-  const normalized = manager.normalizeLanguageCode(code);
-  console.log(normalized); // 'en-US'
-}
-```
-
-##### `extractLanguageCode(fileName: string): string | null`
-
-Extracts language code from a file name, handling various file patterns.
-
-**Parameters:**
-- `fileName: string` - File name (with or without extension)
-
-**Returns:** `string | null` - Extracted language code, or `null` if none found
-
-**Supported Patterns:**
-- **JSON/JSONC**: `en.json`, `es-ES.json`, `en.jsonc`
-- **ARB**: `app_en.arb`, `app_en_US.arb`, `my_app_fr.arb`
-- **Shopify**: `en.default.schema.json`, `es-ES.schema.json`
-
-**Example:**
-```typescript
-const manager = new I18nProjectManager();
-
-// JSON files
-manager.extractLanguageCode('en.json');                    // Returns: 'en'
-manager.extractLanguageCode('es-ES.json');                 // Returns: 'es-ES'
-manager.extractLanguageCode('fr.jsonc');                   // Returns: 'fr'
-
-// ARB files
-manager.extractLanguageCode('app_en.arb');                 // Returns: 'en'
-manager.extractLanguageCode('app_en_US.arb');              // Returns: 'en_US'
-manager.extractLanguageCode('my_app_fr.arb');              // Returns: 'fr'
-
-// Shopify theme
-manager.extractLanguageCode('en.default.schema.json');     // Returns: 'en'
-manager.extractLanguageCode('es-ES.schema.json');          // Returns: 'es-ES'
-
-// Invalid files
-manager.extractLanguageCode('readme.md');                  // Returns: null
-manager.extractLanguageCode('invalid.json');               // Returns: null
 ```
 
 ## License

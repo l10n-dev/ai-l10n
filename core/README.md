@@ -119,7 +119,7 @@ const service = new L10nTranslationService(customLogger);
 
 ##### `translate(request: TranslationRequest, apiKey: string): Promise<TranslationResult | null>`
 
-Translates JSON content using the l10n.dev API.
+Translates localization content using the l10n.dev API.
 
 **Parameters:**
 - `request: TranslationRequest` — Translation request configuration
@@ -138,6 +138,35 @@ Predicts possible language codes from a text input (language name in English or 
 - `limit?: number` — Maximum number of predictions (default: 10)
 
 **Returns:** `Promise<Language[]>` — Array of predicted languages with codes and names
+
+##### `getLanguages(options?: { codes?: string[]; proficiencyLevels?: LanguageProficiencyLevel[] }): Promise<SupportedLanguagesResponse>`
+
+Retrieves a list of supported languages, optionally filtered by language codes or proficiency levels.
+
+**Parameters:**
+- `options?` — Optional filter object
+  - `codes?: string[]` — Filter by specific language codes (e.g., `["en", "es", "fr"]`)
+  - `proficiencyLevels?: LanguageProficiencyLevel[]` — Filter by proficiency level: `"strong"`, `"high"`, `"moderate"`, or `"limited"`
+
+**Returns:** `Promise<SupportedLanguagesResponse>` — Object containing a `languages` array of `SupportedLanguage` entries
+
+**Throws:** Error if the API request fails (non-2xx response)
+
+**Example:**
+```typescript
+// Get all supported languages
+const { languages } = await service.getLanguages();
+
+// Filter by proficiency level
+const { languages } = await service.getLanguages({
+  proficiencyLevels: ['strong', 'high'],
+});
+
+// Filter by specific codes
+const { languages } = await service.getLanguages({
+  codes: ['en', 'es', 'fr'],
+});
+```
 
 #### Types
 
@@ -273,6 +302,19 @@ interface Language {
   /** Human-readable language name */
   name: string;
 }
+
+```
+##### SupportedLanguage
+
+```typescript
+interface SupportedLanguage {
+  code: string | null;
+  name: string | null;
+  nativeName: string | null;
+  level?: "strong" | "high" | "moderate" | "limited";
+  regions?: Region[] | null;
+  scripts?: Script[] | null;
+}
 ```
 
 #### Error Handling
@@ -320,6 +362,120 @@ URLS.API_BASE    // Base URL for l10n.dev API
 
 // Configuration keys
 CONFIG.API_KEY   // Key name for stored API key
+```
+
+---
+
+### Language Utilities
+
+Pure utility functions for working with BCP 47 language codes.
+
+```typescript
+import { validateLanguageCode, normalizeLanguageCode, extractLanguageCode } from 'ai-l10n-core';
+```
+
+##### `validateLanguageCode(code: string): boolean`
+
+Validates whether a string is a valid BCP 47 language code.
+
+**Parameters:**
+- `code: string` — Language code to validate
+
+**Returns:** `boolean` — `true` if valid, `false` otherwise
+
+**Validation Rules:**
+- **Case-insensitive validation**: Accepts language codes in any case (e.g., `"EN"`, `"en"`, `"EN-US"`)
+- Language: 2-3 letters (e.g., `en`, `eng`, `EN`)
+- Script (optional): 4 letters (e.g., `Hans`, `Latn`, `hans`)
+- Region (optional): 2-3 letters or 3 digits (e.g., `US`, `us`, `419`)
+- Separators: hyphens `-` or underscores `_`
+
+**Important:** This function only validates the format. For proper BCP 47 compliance, use `normalizeLanguageCode()` to convert validated codes to the correct case format (language lowercase, Script title case, REGION uppercase).
+
+**Example:**
+```typescript
+// All valid (case-insensitive)
+validateLanguageCode('en');           // true
+validateLanguageCode('EN');           // true
+validateLanguageCode('en-US');        // true
+validateLanguageCode('en-us');        // true
+validateLanguageCode('zh-Hans-CN');   // true
+validateLanguageCode('ZH-HANS-CN');   // true
+
+// Invalid
+validateLanguageCode('invalid');      // false
+validateLanguageCode('');             // false
+
+// Normalize after validation for proper BCP 47 format
+const code = 'EN-US';
+if (validateLanguageCode(code)) {
+  const normalized = normalizeLanguageCode(code);
+  console.log(normalized); // 'en-US'
+}
+```
+
+---
+
+##### `normalizeLanguageCode(code: string): string`
+
+Normalizes language codes to a consistent BCP 47 format.
+
+**Parameters:**
+- `code: string` — Language code to normalize (accepts hyphens or underscores)
+
+**Returns:** `string` — Normalized language code in format: `language[-Script][-REGION]`
+
+**Normalization Rules:**
+- Language: lowercase (e.g., `"EN"` → `"en"`)
+- Script: Title case (e.g., `"hans"` → `"Hans"`)
+- Region: uppercase (e.g., `"us"` → `"US"`)
+- Separator: always hyphen `-` (underscores converted to hyphens)
+
+**Example:**
+```typescript
+normalizeLanguageCode('en');          // 'en'
+normalizeLanguageCode('en-us');       // 'en-US'
+normalizeLanguageCode('en_US');       // 'en-US'
+normalizeLanguageCode('zh_hans');     // 'zh-Hans'
+normalizeLanguageCode('zh-Hans-CN');  // 'zh-Hans-CN'
+normalizeLanguageCode('ZH_HANS_CN'); // 'zh-Hans-CN'
+```
+
+---
+
+##### `extractLanguageCode(fileName: string): string | null`
+
+Extracts a language code from a file name, handling various localization file patterns.
+
+**Parameters:**
+- `fileName: string` — File name (with or without extension)
+
+**Returns:** `string | null` — Extracted language code, or `null` if none found
+
+**Supported Patterns:**
+- **JSON/JSONC**: `en.json`, `es-ES.json`, `en.jsonc`
+- **ARB**: `app_en.arb`, `app_en_US.arb`, `my_app_fr.arb`
+- **Shopify**: `en.default.schema.json`, `es-ES.schema.json`
+
+**Example:**
+```typescript
+// JSON files
+extractLanguageCode('en.json');                    // 'en'
+extractLanguageCode('es-ES.json');                 // 'es-ES'
+extractLanguageCode('fr.jsonc');                   // 'fr'
+
+// ARB files
+extractLanguageCode('app_en.arb');                 // 'en'
+extractLanguageCode('app_en_US.arb');              // 'en_US'
+extractLanguageCode('my_app_fr.arb');              // 'fr'
+
+// Shopify theme
+extractLanguageCode('en.default.schema.json');     // 'en'
+extractLanguageCode('es-ES.schema.json');          // 'es-ES'
+
+// Invalid files
+extractLanguageCode('readme.md');                  // null
+extractLanguageCode('invalid.json');               // null
 ```
 
 ## License
