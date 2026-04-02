@@ -1,0 +1,321 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (build/test/verify without publishing or tagging)"
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - core/package.json
+      - sdk/package.json
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────
+  # Job 1: ai-l10n-core
+  # ─────────────────────────────────────────────────────────────────
+  publish-core:
+    name: Publish ai-l10n-core
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      published: ${{ steps.publish.outputs.published }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./core/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 ai-l10n-core version: $VERSION"
+
+      - name: Check if already published
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view "ai-l10n-core@$VERSION" version &>/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  ai-l10n-core@$VERSION is already published — skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "✅ ai-l10n-core@$VERSION is not yet published — will publish"
+          fi
+
+      - name: Install dependencies
+        working-directory: core
+        run: npm ci
+
+      - name: Build
+        working-directory: core
+        run: npm run build
+
+      - name: Test
+        working-directory: core
+        run: npm test
+
+      - name: Verify
+        working-directory: core
+        run: npm run verify
+
+      - name: Dry pack
+        working-directory: core
+        run: npm pack --dry-run
+
+      - name: Publish
+        id: publish
+        if: steps.check.outputs.skip != 'true' && inputs.dry_run != true
+        working-directory: core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm publish --access public
+          echo "published=true" >> "$GITHUB_OUTPUT"
+          echo "✅ ai-l10n-core@${{ steps.version.outputs.version }} published"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Job 2: ai-l10n-sdk
+  # ─────────────────────────────────────────────────────────────────
+  publish-sdk:
+    name: Publish ai-l10n-sdk
+    runs-on: ubuntu-latest
+    needs: publish-core
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      published: ${{ steps.publish.outputs.published }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./sdk/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 ai-l10n-sdk version: $VERSION"
+
+      - name: Check if already published
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view "ai-l10n-sdk@$VERSION" version &>/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  ai-l10n-sdk@$VERSION is already published — skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "✅ ai-l10n-sdk@$VERSION is not yet published — will publish"
+          fi
+
+      - name: Wait for ai-l10n-core registry propagation
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          CORE_VERSION=${{ needs.publish-core.outputs.version }}
+          echo "⏳ Waiting for ai-l10n-core@$CORE_VERSION to be available on the registry..."
+          for i in $(seq 1 20); do
+            if npm view "ai-l10n-core@$CORE_VERSION" version &>/dev/null 2>&1; then
+              echo "✅ ai-l10n-core@$CORE_VERSION is available (attempt $i)"
+              exit 0
+            fi
+            echo "  Attempt $i/20 — not available yet, retrying in 15s..."
+            sleep 15
+          done
+          echo "❌ Timed out waiting for ai-l10n-core@$CORE_VERSION after 5 minutes"
+          exit 1
+
+      - name: Install dependencies
+        working-directory: sdk
+        run: npm ci
+
+      - name: Build
+        working-directory: sdk
+        run: npm run build
+
+      - name: Test
+        working-directory: sdk
+        run: npm test
+
+      - name: Verify
+        working-directory: sdk
+        run: npm run verify
+
+      - name: Dry pack
+        working-directory: sdk
+        run: npm pack --dry-run
+
+      - name: Publish
+        id: publish
+        if: steps.check.outputs.skip != 'true' && inputs.dry_run != true
+        working-directory: sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm publish --access public
+          echo "published=true" >> "$GITHUB_OUTPUT"
+          echo "✅ ai-l10n-sdk@${{ steps.version.outputs.version }} published"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Job 3: ai-l10n (root/CLI)
+  # ─────────────────────────────────────────────────────────────────
+  publish-root:
+    name: Publish ai-l10n
+    runs-on: ubuntu-latest
+    needs: publish-sdk
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      published: ${{ steps.publish.outputs.published }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 ai-l10n version: $VERSION"
+
+      - name: Check if already published
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view "ai-l10n@$VERSION" version &>/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  ai-l10n@$VERSION is already published — skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "✅ ai-l10n@$VERSION is not yet published — will publish"
+          fi
+
+      - name: Wait for ai-l10n-sdk registry propagation
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          SDK_VERSION=${{ needs.publish-sdk.outputs.version }}
+          echo "⏳ Waiting for ai-l10n-sdk@$SDK_VERSION to be available on the registry..."
+          for i in $(seq 1 20); do
+            if npm view "ai-l10n-sdk@$SDK_VERSION" version &>/dev/null 2>&1; then
+              echo "✅ ai-l10n-sdk@$SDK_VERSION is available (attempt $i)"
+              exit 0
+            fi
+            echo "  Attempt $i/20 — not available yet, retrying in 15s..."
+            sleep 15
+          done
+          echo "❌ Timed out waiting for ai-l10n-sdk@$SDK_VERSION after 5 minutes"
+          exit 1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Verify
+        run: npm run verify
+
+      - name: Dry pack
+        run: npm pack --dry-run
+
+      - name: Publish
+        id: publish
+        # prepublishOnly runs check-sdk-dependency.js automatically
+        if: steps.check.outputs.skip != 'true' && inputs.dry_run != true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm publish --access public
+          echo "published=true" >> "$GITHUB_OUTPUT"
+          echo "✅ ai-l10n@${{ steps.version.outputs.version }} published"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Job 4: Tag & GitHub Release
+  # ─────────────────────────────────────────────────────────────────
+  tag-release:
+    name: Tag & GitHub Release
+    runs-on: ubuntu-latest
+    needs: publish-root
+    if: ${{ inputs.dry_run != true }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history so we can push tags
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "version_tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "major_tag=v$MAJOR" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create version tag
+        run: |
+          VERSION_TAG=${{ steps.version.outputs.version_tag }}
+          if git rev-parse "$VERSION_TAG" &>/dev/null; then
+            echo "ℹ️  Tag $VERSION_TAG already exists — skipping"
+          else
+            git tag -a "$VERSION_TAG" -m "Release ${{ steps.version.outputs.version }}"
+            git push origin "$VERSION_TAG"
+            echo "✅ Created and pushed tag $VERSION_TAG"
+          fi
+
+      - name: Update major version tag
+        run: |
+          MAJOR_TAG=${{ steps.version.outputs.major_tag }}
+          git tag -f -a "$MAJOR_TAG" -m "Latest $MAJOR_TAG.x release (${{ steps.version.outputs.version }})"
+          git push origin "$MAJOR_TAG" --force
+          echo "✅ Updated major tag $MAJOR_TAG → ${{ steps.version.outputs.version }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION_TAG=${{ steps.version.outputs.version_tag }}
+          if gh release view "$VERSION_TAG" &>/dev/null; then
+            echo "ℹ️  Release $VERSION_TAG already exists — skipping"
+          else
+            gh release create "$VERSION_TAG" \
+              --title "Release ${{ steps.version.outputs.version }}" \
+              --generate-notes
+            echo "✅ GitHub Release $VERSION_TAG created"
+          fi
