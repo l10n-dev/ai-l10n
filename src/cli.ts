@@ -20,28 +20,33 @@ const program = new Command();
 
 program
   .name("ai-l10n")
-  .description(
-    "AI-powered auto-translation for JSON and ARB localization files"
-  )
+  .description("AI-powered auto-translation for i18n localization files")
   .version(getVersion());
 
 // Translate command
 program
   .command("translate")
   .description("Translate a localization file")
-  .argument("<file>", "Source file to translate (JSON or ARB)")
+  .argument(
+    "<file>",
+    "Source file to translate (JSON, JSONC, PO, YAML, XML, XLIFF, ARB, etc.)",
+  )
   .option(
     "-l, --languages <languages>",
-    "Target language codes (comma-separated, e.g., es,fr,de)"
+    "Target language codes (comma-separated, e.g., es,fr,de)",
   )
   .option(
     "-k, --api-key <key>",
-    "API key for l10n.dev (or set L10N_API_KEY env variable)"
+    "API key for l10n.dev (or set L10N_API_KEY env variable)",
   )
   .option("--plural", "Generate plural forms", false)
   .option("--shorten", "Use shortening in translations", false)
   .option("--no-contractions", "Don't use contractions in translations")
-  .option("--translate-metadata", "Translate metadata (e.g., descriptions in ARB files)", false)
+  .option(
+    "--translate-metadata",
+    "Translate metadata (e.g., descriptions in ARB files)",
+    false,
+  )
   .option("--no-save-filtered", "Don't save filtered strings to separate file")
   .option("--update", "Update existing files with only new translations", false)
   .option("-v, --verbose", "Enable verbose logging", false)
@@ -117,18 +122,18 @@ program
             parseError instanceof Error
               ? parseError.message
               : String(parseError)
-          }`
+          }`,
         );
         console.error(`\n   First 100 characters of file:`);
         console.error(
-          `   ${cleanConfigData.substring(0, 100).replace(/\n/g, "\\n")}`
+          `   ${cleanConfigData.substring(0, 100).replace(/\n/g, "\\n")}`,
         );
         process.exit(1);
       }
 
       if (!Array.isArray(configs)) {
         console.error(
-          "❌ Config file must contain an array of translation configurations"
+          "❌ Config file must contain an array of translation configurations",
         );
         process.exit(1);
       }
@@ -143,7 +148,7 @@ program
         const config = configs[i];
         console.log(`\n${"=".repeat(60)}`);
         console.log(
-          `📁 Translation ${i + 1}/${configs.length}: ${config.sourceFile}`
+          `📁 Translation ${i + 1}/${configs.length}: ${config.sourceFile}`,
         );
         console.log(`${"=".repeat(60)}`);
 
@@ -169,7 +174,7 @@ program
       console.error(
         `❌ Failed to process config file: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
       process.exit(1);
     }
@@ -181,7 +186,7 @@ try {
 } catch (error) {
   console.error(
     "❌ CLI Error:",
-    error instanceof Error ? error.message : error
+    error instanceof Error ? error.message : error,
   );
   console.error("Stack:", error instanceof Error ? error.stack : "");
   process.exit(2);

@@ -42,6 +42,7 @@ node -e "const {AiTranslator} = require('ai-l10n'); console.log('✅ Works')"
 # Test transaltion, details in /test-data/ folder
 cd ../ai-l10n
 npx ai-l10n translate test-data/en-us.default.schema.json --languages es-es,fr --verbose
+npx ai-l10n translate test-data/en/messages.po --languages es-es --translate-metadata --verbose
 
 ```
 
