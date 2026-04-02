@@ -45,9 +45,6 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "workspaces": [
-    "core"
-  ],
   "dependencies": {
     "ai-l10n-core": "^1.4.1"
   },
