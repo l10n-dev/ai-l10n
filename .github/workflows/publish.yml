@@ -66,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --ignore-scripts
-          npm rebuild
+          npm rebuild esbuild
 
       - name: Build
         run: npm run build -w core
@@ -155,7 +155,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --ignore-scripts
-          npm rebuild
+          npm rebuild esbuild
 
       - name: Build workspace dependencies
         run: npm run build -w core
@@ -247,7 +247,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --ignore-scripts
-          npm rebuild
+          npm rebuild esbuild
 
       - name: Build workspace dependencies
         run: |
