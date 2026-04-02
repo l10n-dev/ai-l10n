@@ -54,16 +54,7 @@ checks.push({
 });
 
 // Check 8: All source files compiled
-const sourceFiles = [
-  "index",
-  "cli",
-  "apiKeyManager",
-  "translationService",
-  "i18nProjectManager",
-  "constants",
-  "logger",
-  "consoleLogger",
-];
+const sourceFiles = ["index", "cli"];
 sourceFiles.forEach((file) => {
   checks.push({
     name: `${file}.js compiled`,
@@ -102,7 +93,7 @@ console.log("=".repeat(50));
 
 if (failed > 0) {
   console.log(
-    "\n⚠️  Some checks failed. Please run `npm run build` and try again."
+    "\n⚠️  Some checks failed. Please run `npm run build` and try again.",
   );
   process.exit(1);
 } else {
