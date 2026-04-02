@@ -15,6 +15,9 @@ on:
       - core/package.json
       - sdk/package.json
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # ─────────────────────────────────────────────────────────────────
   # Job 1: ai-l10n-core
