@@ -1,9 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { URLS } from "./constants";
-import { ILogger } from "./logger";
-import { ConsoleLogger } from "./consoleLogger";
+import { URLS, ILogger, ConsoleLogger } from "ai-l10n-core";
 
 export class ApiKeyManager {
   private readonly configDir: string;

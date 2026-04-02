@@ -21,32 +21,30 @@ The release script automates both.
 
 ### 1. Update Version
 
-Update the version in `package.json`:
+Update the version in all three `package.json` files:
 
 ```json
-{
-  "version": "1.2.0"
-}
+{ "version": "1.2.0" }
 ```
 
-Also update `sdk/package.json` if SDK changed:
-
-```json
-{
-  "version": "1.2.0"
-}
-```
+Files to update:
+- `core/package.json` (if core changed)
+- `sdk/package.json` (if SDK changed)
+- `package.json` (always — CLI / main package)
 
 ### 2. Update Changelog
 
-Add release notes to `CHANGELOG.md`:
+Add release notes to the relevant changelogs:
+
+- `core/CHANGELOG.md` — if core library changed
+- `sdk/CHANGELOG.md` — if SDK changed
+- `CHANGELOG.md` — always (root package / CLI)
 
 ```markdown
 ## [1.2.0] - 2025-12-16
 
 ### Added
 - New feature X
-- GitHub Action support
 
 ### Fixed
 - Bug Y
@@ -55,7 +53,7 @@ Add release notes to `CHANGELOG.md`:
 ### 3. Commit Changes
 
 ```powershell
-git add package.json sdk/package.json CHANGELOG.md
+git add core/package.json sdk/package.json package.json core/CHANGELOG.md sdk/CHANGELOG.md CHANGELOG.md
 git commit -m "chore: bump version to 1.2.0"
 git push
 ```
@@ -63,15 +61,17 @@ git push
 ### 4. Run Release Script
 
 ```powershell
-# Full release (tags + npm publish)
+# Full release (tags + npm publish for root package)
 .\scripts\release.ps1
 
 # Dry run (see what would happen)
 .\scripts\release.ps1 -DryRun
 
-# Skip npm publish (if already published)
+# Skip npm publish (if already published separately)
 .\scripts\release.ps1 -SkipNpm
 ```
+
+> **Note:** The release script handles the root package and GitHub Action tags. Publish `ai-l10n-core` and `ai-l10n-sdk` to npm manually beforehand (see `PUBLISHING.md`).
 
 ### 5. Create GitHub Release
 

@@ -8,10 +8,18 @@ Quick guide to test and publish ai-l10n to NPM.
 
 ### Build and Test
 ```bash
-npm run build
-npm test
+# Core library
+cd core && npm run build && npm test && npm run verify
+cd ..
+
+# SDK
+cd sdk && npm run build && npm test && npm run verify
+cd ..
+
+# CLI / main package
+npm run build && npm test
 ```
-✅ All tests pass (139+), build succeeds
+✅ All tests pass (49 core + 107 sdk + CLI), build succeeds
 
 ### Local Installation Test
 ```bash
@@ -34,6 +42,7 @@ node -e "const {AiTranslator} = require('ai-l10n'); console.log('✅ Works')"
 # Test transaltion, details in /test-data/ folder
 cd ../ai-l10n
 npx ai-l10n translate test-data/en-us.default.schema.json --languages es-es,fr --verbose
+npx ai-l10n translate test-data/en/messages.po --languages es-es --translate-metadata --verbose
 
 ```
 
@@ -70,18 +79,28 @@ npm login
 # Enter username, password, email, 2FA code
 ```
 
-### Publish
+### Publish all three packages (in order)
 ```bash
-# Dry run first
-npm publish --dry-run
+# 1. Core library first (no local dependencies)
+cd core
+npm publish --access public
+cd ..
 
-# Publish for real
-npm publish
+# 2. SDK (depends on ai-l10n-core)
+cd sdk
+npm publish --access public
+cd ..
+
+# 3. CLI / main package (depends on ai-l10n-sdk)
+npm publish --access public
 ```
 
 ### Verify
 ```bash
-# Visit https://www.npmjs.com/package/ai-l10n
+# Visit package pages:
+# https://www.npmjs.com/package/ai-l10n-core
+# https://www.npmjs.com/package/ai-l10n-sdk
+# https://www.npmjs.com/package/ai-l10n
 
 # Test install from NPM
 npm install -g ai-l10n

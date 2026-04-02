@@ -5,6 +5,32 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-02
+
+### Added
+- **Multi-Format Support** - Translation now works with all text-based localization formats (YAML, PO/gettext, XLIFF, and any format accepted by the API). The `format` field is derived from the source file extension and sent in the request body. See [supported formats](https://l10n.dev/ws/translate-i18n-files#supported-formats)
+  - `I18nProjectManager.detectLanguagesFromProject()` now scans paired extensions: `.yaml`/`.yml` and `.xliff`/`.xlf` (same as `.json`/`.jsonc`)
+  - `TranslationRequest` has a new optional `format?: string` field
+
+### Changed
+- `validateLanguageCode()` and `normalizeLanguageCode()` removed from `I18nProjectManager` — use these functions directly from `ai-l10n-core` instead
+- Moved `ConsoleLogger` and `L10nTranslationService` tests to `ai-l10n-core` package
+- Removed core-library API sections from README (`ILogger`, `ConsoleLogger`, `L10nTranslationService` and related types); now documented in [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core)
+
+### Migration
+```typescript
+// Before
+manager.validateLanguageCode(code);
+manager.normalizeLanguageCode(code);
+manager.extractLanguageCode(fileName);
+
+// After
+import { validateLanguageCode, normalizeLanguageCode, extractLanguageCode } from 'ai-l10n-core';
+validateLanguageCode(code);
+normalizeLanguageCode(code);
+extractLanguageCode(fileName);
+```
+
 ## [1.3.0] - 2026-02-12
 
 ### Added

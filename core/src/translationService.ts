@@ -26,6 +26,12 @@ export interface TranslationRequest {
   translateOnlyNewStrings?: boolean;
   targetStrings?: string;
   schema: FileSchema | null;
+  /**
+   * Localization file format (e.g., "json", "arb", "po", "yaml", "xml").
+   * If not specified, auto-detected from sourceStrings content.
+   * See https://l10n.dev/ws/translate-i18n-files#supported-formats for supported formats.
+   */
+  format?: string;
 }
 
 export interface TranslationResult {
@@ -39,10 +45,9 @@ export interface TranslationResult {
   /**
    * Source strings that were filtered out due to content policy violations or length limits.
    * Populated when the finish reason is 'contentFilter' or 'length'.
-   * The structure matches the source strings format.
+   * Raw text in the same format as the input (JSON, YAML, PO, etc.).
    */
-  filteredStrings?: Record<string, unknown>;
-  filteredStringsCount?: number;
+  filteredStrings?: string;
 }
 
 export interface TranslationUsage {
@@ -66,29 +71,91 @@ export interface LanguagePredictionResponse {
   languages: Language[];
 }
 
+// ── Supported Languages (v2/languages) ──────────────────────────────────────
+
+export type LanguageProficiencyLevel =
+  | "strong"
+  | "high"
+  | "moderate"
+  | "limited";
+
+export interface Region {
+  code: string | null;
+  name: string | null;
+  nativeName: string | null;
+}
+
+export interface Script {
+  code: string | null;
+  name: string | null;
+  nativeName: string | null;
+}
+
+export interface SupportedLanguage {
+  code: string | null;
+  name: string | null;
+  nativeName: string | null;
+  level?: LanguageProficiencyLevel;
+  regions?: Region[] | null;
+  scripts?: Script[] | null;
+}
+
+export interface SupportedLanguagesResponse {
+  languages: SupportedLanguage[];
+}
+
+// ── Translation Service ─────────────────────────────────────────────────────
+
 export class L10nTranslationService {
   constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
+  async getLanguages(options?: {
+    codes?: string[];
+    proficiencyLevels?: LanguageProficiencyLevel[];
+  }): Promise<SupportedLanguagesResponse> {
+    const url = new URL(`${URLS.API_BASE}/v2/languages`);
+    if (options?.codes) {
+      for (const c of options.codes) {
+        url.searchParams.append("c", c);
+      }
+    }
+    if (options?.proficiencyLevels) {
+      for (const p of options.proficiencyLevels) {
+        url.searchParams.append("p", p);
+      }
+    }
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to get languages: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    return (await response.json()) as SupportedLanguagesResponse;
+  }
+
   async predictLanguages(
     input: string,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<Language[]> {
-    const url = new URL(`${URLS.API_BASE}/languages/predict`);
+    const url = new URL(`${URLS.API_BASE}/v2/languages/predict`);
     url.searchParams.append("input", input);
     url.searchParams.append("limit", limit.toString());
 
     this.logger.logInfo(
-      `Predicting languages for input (${input.length} characters)`
+      `Predicting languages for input (${input.length} characters)`,
     );
 
     const response = await fetch(url.toString());
 
     if (!response.ok) {
       this.logger.logWarning(
-        `Language prediction failed - ${response.status} ${response.statusText}`
+        `Language prediction failed - ${response.status} ${response.statusText}`,
       );
       const error = new Error(
-        `Failed to predict languages: ${response.statusText}`
+        `Failed to predict languages: ${response.statusText}`,
       );
       throw error;
     }
@@ -97,14 +164,14 @@ export class L10nTranslationService {
       (await response.json()) as LanguagePredictionResponse;
 
     this.logger.logInfo(
-      `Successfully predicted ${result.languages.length} languages`
+      `Successfully predicted ${result.languages.length} languages`,
     );
     return result.languages;
   }
 
   async translate(
     request: TranslationRequest,
-    apiKey: string
+    apiKey: string,
   ): Promise<TranslationResult | null> {
     if (!apiKey) {
       this.logger.showAndLogError(
@@ -112,16 +179,16 @@ export class L10nTranslationService {
         null,
         "",
         "Get API Key",
-        URLS.API_KEYS
+        URLS.API_KEYS,
       );
       return null;
     }
 
     this.logger.logInfo(
-      `Starting translation to ${request.targetLanguageCode}`
+      `Starting translation to ${request.targetLanguageCode}`,
     );
 
-    const response = await fetch(`${URLS.API_BASE}/translate`, {
+    const response = await fetch(`${URLS.API_BASE}/v2/translate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -142,11 +209,11 @@ export class L10nTranslationService {
       }
 
       this.logger.logWarning(
-        `Translation API error - ${response.status} ${response.statusText}`
+        `Translation API error - ${response.status} ${response.statusText}`,
       );
       if (errorData) {
         this.logger.logWarning(
-          `API error details - ${JSON.stringify(errorData)}`
+          `API error details - ${JSON.stringify(errorData)}`,
         );
       }
 
@@ -175,7 +242,7 @@ export class L10nTranslationService {
             errorData,
             "",
             "Get API Key",
-            URLS.API_KEYS
+            URLS.API_KEYS,
           );
           return null;
         case 402: {
@@ -195,7 +262,7 @@ export class L10nTranslationService {
             errorData,
             "",
             "Visit l10n.dev",
-            URLS.PRICING
+            URLS.PRICING,
           );
           return null;
         }
@@ -221,7 +288,7 @@ export class L10nTranslationService {
     if (result.finishReason) {
       if (result.finishReason !== FinishReason.stop) {
         this.logger.logWarning(
-          `Translation finished with reason: ${result.finishReason}`
+          `Translation finished with reason: ${result.finishReason}`,
         );
       }
 
@@ -233,7 +300,7 @@ export class L10nTranslationService {
             undefined,
             "",
             "Visit l10n.dev",
-            URLS.PRICING
+            URLS.PRICING,
           );
           return result;
         case FinishReason.error:
@@ -242,29 +309,6 @@ export class L10nTranslationService {
       }
     }
 
-    if (result.filteredStrings) {
-      const filteredCount = this.countAllKeys(result.filteredStrings);
-      result.filteredStringsCount = filteredCount;
-    }
-
     return result;
-  }
-
-  private countAllKeys(obj: any): number {
-    let count = 0;
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const value = obj[key];
-
-        if (typeof value === "string") {
-          // Count only string values
-          count += 1;
-        } else if (typeof value === "object" && value !== null) {
-          // Recurse into both objects AND arrays
-          count += this.countAllKeys(value);
-        }
-      }
-    }
-    return count;
   }
 }

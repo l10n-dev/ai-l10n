@@ -1,0 +1,26 @@
+ai-l10n
+Copyright (C) 2025 Antonov Anton Yurevich, Individual Entrepreneur. <https://l10n.dev/>
+
+This repository contains the source code of the associated npm packages
+ai-l10n, ai-l10n-sdk, and ai-l10n-core.
+
+License:
+--------
+This software is licensed under the MIT License.
+See the LICENSE file for the complete license text.
+
+Usage of l10n.dev service:
+--------------------------
+This software connects to the l10n.dev platform, which provides AI-powered translation
+for internationalization (i18n) files. The l10n.dev backend service is proprietary
+and not covered by the MIT License. A valid l10n.dev account and API key are required
+to use the translation features of this software.
+
+You may freely use, modify, and distribute this software under the terms of the MIT License.
+However, this does not grant any rights to the l10n.dev backend services, which remain
+the exclusive property of Antonov Anton Yurevich, Individual Entrepreneur.
+
+Trademark Notice:
+-----------------
+"l10n.dev" and associated branding are trademarks of Antonov Anton Yurevich,
+Individual Entrepreneur. Use of these names and branding is subject to applicable law.

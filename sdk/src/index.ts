@@ -8,17 +8,20 @@ import {
   TranslationResult,
   FileSchema,
   FinishReason,
-} from "./translationService";
-import { CONFIG, URLS } from "./constants";
-import { ConsoleLogger } from "./consoleLogger";
-import { ILogger } from "./logger";
+  CONFIG,
+  URLS,
+  ConsoleLogger,
+  ILogger,
+  validateLanguageCode,
+  normalizeLanguageCode,
+} from "ai-l10n-core";
 
 /**
  * Configuration options for translation
  */
 export interface TranslationConfig {
   /**
-   * Path to the source file to translate (JSON, JSONC, or ARB)
+   * Path to the source file to translate (JSON, JSONC, PO, YAML, XML, XLIFF, ARB, etc.)
    */
   sourceFile: string;
 
@@ -131,15 +134,7 @@ export class AiTranslator {
       }
 
       const fileExtension = path.extname(sourceFilePath);
-      const isArbFile = fileExtension === ".arb";
-      const isJsonFile =
-        fileExtension === ".json" || fileExtension === ".jsonc";
-
-      if (!isArbFile && !isJsonFile) {
-        throw new Error(
-          `Unsupported file type: ${fileExtension}. Only .json, .jsonc, and .arb files are supported.`,
-        );
-      }
+      const format = fileExtension.slice(1);
 
       if (verbose) {
         console.log(`📂 Source file: ${sourceFilePath}`);
@@ -171,7 +166,7 @@ export class AiTranslator {
 
       // Validate language codes
       for (const lang of targetLanguages) {
-        if (!this.i18nProjectManager.validateLanguageCode(lang)) {
+        if (!validateLanguageCode(lang)) {
           throw new Error(`Invalid language code: ${lang}`);
         }
       }
@@ -226,7 +221,7 @@ export class AiTranslator {
               generatePluralForms,
               translateMetadata,
               saveFilteredStrings,
-              isArbFile,
+              format,
               verbose,
             );
 
@@ -315,7 +310,7 @@ export class AiTranslator {
     generatePluralForms: boolean,
     translateMetadata: boolean,
     saveFilteredStrings: boolean,
-    isArbFile: boolean,
+    format: string,
     verbose: boolean,
   ): Promise<TranslationOutput & { remainingBalance?: number }> {
     // Read source file
@@ -331,8 +326,7 @@ export class AiTranslator {
     }
 
     // Normalize language code for API
-    const normalizedLanguage =
-      this.i18nProjectManager.normalizeLanguageCode(targetLanguage);
+    const normalizedLanguage = normalizeLanguageCode(targetLanguage);
 
     // Prepare translation request
     const request: TranslationRequest = {
@@ -346,7 +340,8 @@ export class AiTranslator {
       returnTranslationsAsString: true,
       translateOnlyNewStrings,
       targetStrings,
-      schema: isArbFile ? FileSchema.ARBFlutter : null,
+      schema: format === "arb" ? FileSchema.ARBFlutter : null,
+      format,
     };
 
     // Call translation service
@@ -378,10 +373,7 @@ export class AiTranslator {
     fs.writeFileSync(outputPath, result.translations, "utf8");
 
     // Handle filtered strings
-    if (
-      result.filteredStrings &&
-      Object.keys(result.filteredStrings).length > 0
-    ) {
+    if (result.filteredStrings) {
       this.handleFilteredStrings(result, outputPath, saveFilteredStrings);
     }
 
@@ -412,10 +404,8 @@ export class AiTranslator {
       return;
     }
 
-    const filteredStringsJson = JSON.stringify(result.filteredStrings, null, 2);
-    console.warn(
-      `  ⚠️  ${result.filteredStringsCount} string(s) were excluded due to ${reasonMessage}`,
-    );
+    const filteredStringsContent = result.filteredStrings ?? "";
+    console.warn(`  ⚠️  Some string(s) were excluded due to ${reasonMessage}`);
     if (result.finishReason === FinishReason.contentFilter) {
       console.warn(`  ℹ️ View content policy at: ${URLS.CONTENT_POLICY}`);
     }
@@ -426,10 +416,10 @@ export class AiTranslator {
       const dir = path.dirname(targetFilePath);
       const filteredPath = path.join(dir, `${base}.filtered${ext}`);
 
-      fs.writeFileSync(filteredPath, filteredStringsJson, "utf8");
+      fs.writeFileSync(filteredPath, filteredStringsContent, "utf8");
       console.log(`  📝 Filtered strings saved to: ${filteredPath}`);
     } else {
-      console.log(`  📝 Filtered strings:\n${filteredStringsJson}`);
+      console.log(`  📝 Filtered strings:\n${filteredStringsContent}`);
     }
   }
 
@@ -464,7 +454,4 @@ export class AiTranslator {
 
 // Export main class and types
 export * from "./i18nProjectManager";
-export * from "./translationService";
-export { URLS } from "./constants";
-export { ILogger } from "./logger";
-export { ConsoleLogger } from "./consoleLogger";
+export * from "ai-l10n-core";

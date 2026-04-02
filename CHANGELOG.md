@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-02
+
+### Added
+- **Multi-Format Support** - All text-based localization formats are now supported (YAML, PO/gettext, XLIFF, and any other format accepted by the API). The format is derived from the file extension and sent automatically. See [supported formats](https://l10n.dev/ws/translate-i18n-files#supported-formats)
+  - `I18nProjectManager.detectLanguagesFromProject()` now auto-scans paired extensions: `.yaml`/`.yml` and `.xliff`/`.xlf` (same behavior as `.json`/`.jsonc`)
+
+### Changed
+- `ai-l10n-core` is now a fully documented, independently testable package
+  - Added `README.md` with full API reference for `L10nTranslationService`, `ConsoleLogger`, `ILogger`, and all types
+  - Added test suite (`ConsoleLogger` + `L10nTranslationService`, 49 tests) moved from `ai-l10n-sdk`
+  - Added `scripts/verify.js` and `test`/`verify` npm scripts
+  - Added `CHANGELOG.md`
+- `ai-l10n-sdk` README: core-library API sections moved to `ai-l10n-core` package docs
+- `validateLanguageCode()` and `normalizeLanguageCode()` moved from `I18nProjectManager` to `ai-l10n-core` (`languageUtils`). Import from `ai-l10n-core` directly instead of using the manager
+
 ## [1.3.0] - 2026-02-12
 
 ### Added

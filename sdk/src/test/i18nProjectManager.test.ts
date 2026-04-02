@@ -153,42 +153,6 @@ suite("I18nProjectManager Test Suite", () => {
     });
   });
 
-  suite("Language Code Normalization", () => {
-    test("normalizes simple language codes", () => {
-      const normalized = detector.normalizeLanguageCode("EN");
-      assert.strictEqual(normalized, "en");
-    });
-
-    test("normalizes complex language codes", () => {
-      const normalized = detector.normalizeLanguageCode("ZH-hans-CN");
-      assert.strictEqual(normalized, "zh-Hans-CN");
-    });
-
-    test("preserves case for script codes", () => {
-      const normalized = detector.normalizeLanguageCode("zh-HANS-cn");
-      assert.strictEqual(normalized, "zh-Hans-CN");
-    });
-
-    test("handles unknown formats gracefully", () => {
-      const normalized = detector.normalizeLanguageCode("invalid-code");
-      assert.strictEqual(normalized, "invalid-code");
-    });
-  });
-
-  suite("Language Code Validation", () => {
-    test("validates correct language codes", () => {
-      assert.strictEqual(detector.validateLanguageCode("en"), true);
-      assert.strictEqual(detector.validateLanguageCode("zh-Hans-CN"), true);
-      assert.strictEqual(detector.validateLanguageCode("fr-FR"), true);
-    });
-
-    test("rejects invalid language codes", () => {
-      assert.strictEqual(detector.validateLanguageCode(""), false);
-      assert.strictEqual(detector.validateLanguageCode("invalid"), false);
-      assert.strictEqual(detector.validateLanguageCode("x"), false);
-    });
-  });
-
   suite("Language Detection from Project", () => {
     test("detects available languages in folder-based structure", () => {
       // Create multiple language folders
@@ -427,27 +391,6 @@ suite("I18nProjectManager Test Suite", () => {
 
         assert.strictEqual(detectedLanguages.length, 1);
         assert.deepStrictEqual(detectedLanguages, ["es"]);
-      });
-    });
-
-    suite("ARB Language Code Normalization", () => {
-      test("preserves case for ARB script codes", () => {
-        const normalized = detector.normalizeLanguageCode("zh_Hans_CN");
-        assert.strictEqual(normalized, "zh-Hans-CN");
-      });
-    });
-
-    suite("ARB Language Code Validation", () => {
-      test("validates correct ARB language codes", () => {
-        assert.strictEqual(detector.validateLanguageCode("en_US"), true);
-        assert.strictEqual(detector.validateLanguageCode("fr"), true);
-        assert.strictEqual(detector.validateLanguageCode("zh_Hans_CN"), true);
-      });
-
-      test("rejects invalid language codes", () => {
-        assert.strictEqual(detector.validateLanguageCode("invalid"), false);
-        assert.strictEqual(detector.validateLanguageCode("123"), false);
-        assert.strictEqual(detector.validateLanguageCode(""), false);
       });
     });
 

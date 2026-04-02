@@ -1,9 +1,9 @@
 # ai-l10n
 
 [![npm version](https://img.shields.io/npm/v/ai-l10n.svg)](https://www.npmjs.com/package/ai-l10n)
-[![License: AGPL-3.0](https://img.shields.io/badge/agpl-v3.svg)](https://opensource.org/license/agpl-v3)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-AI-powered translation for app localization. Automatically translate your i18n files to 165+ languages using AI. Supports JSON, JSONC, and Flutter ARB formats with intelligent project structure detection.
+AI-powered translation for app localization. Automatically translate your i18n files to 165+ languages using AI. Supports JSON, JSONC, Flutter ARB, YAML, PO, XLIFF, and all other text-based localization formats with intelligent project structure detection.
 
 Powered by [l10n](https://l10n.dev).dev
 
@@ -11,17 +11,16 @@ Powered by [l10n](https://l10n.dev).dev
 
 ## Features
 
-- 🤖 **AI-Powered Translations** - Context-aware translations using advanced AI
-- 🌍 **165 Languages** - Translate to any of 165 supported languages with varying proficiency levels
+- 🤖 **AI-Powered Translations** - Context-aware translation to 165+ languages using advanced AI
 - 📁 **Smart Detection** - Automatically detects target languages from your project structure
 - 🔄 **Incremental Updates** - Translate only new strings while preserving existing translations
-- 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null values are maintained
-- 🎯 **Multiple Formats** - Supports JSON, JSONC, Flutter ARB, and Shopify theme localization files with full metadata handling
+- 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null stays null
+- 🎯 **Multiple Formats** - Supports JSON, JSONC, Flutter ARB, Shopify theme files, YAML, PO (gettext), XLIFF, and any other text-based localization format. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats)
 - ⚙️ **Flexible Configuration** - Use via CLI, programmatically, or in CI/CD pipelines
-- 🌐 **i18next Plural Forms Support** - Automatically generates all required plural form strings with correct suffixes. For languages with complex pluralization rules (like Russian, Arabic, or Polish), ensures every necessary form is created
+- 🌐 **i18next Plural Forms Support** - Automatically generates all required plural form strings with correct suffixes. For languages with complex pluralization rules (like Russian, Arabic, or Polish), it ensures every necessary form is created
 - 🛠️ **Developer-Friendly** - Preserves placeholders, HTML tags, and formatting while adapting dates and numbers to target locales. Intelligently avoids translating proper names, URLs, and technical terms. Learn more about [I18N Translation Using AI](https://l10n.dev/help/i18n-translation-using-ai)
 - 🕵️ **Smart Error Detection & Chunking** - Automatically detects and retries if placeholders or formatting are lost. For large files, splits content into manageable chunks while maintaining context. Prevents issues common with direct AI uploads (Claude/GPT) where exceeding ~16,000 characters causes content loss
-- 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings saved separately in i18n JSON format for review
+- 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings are saved separately in i18n JSON format for review
 - 📊 **Usage Tracking** - Monitor character usage and remaining balance
 - 💰 **Free Tier** - Get 30,000 characters free every month
 
@@ -319,16 +318,6 @@ lib/l10n/
   app_zh_Hans_CN.arb   # Auto-detected
 ```
 
-### File-Based Structure (JSONC)
-
-```
-locales/
-  en.jsonc             # Source (JSON with Comments)
-  es.jsonc             # Auto-detected
-  fr-FR.jsonc          # Auto-detected
-  zh-Hans-CN.jsonc     # Auto-detected
-```
-
 ### File-Based Structure (Shopify Theme)
 
 ```
@@ -348,14 +337,14 @@ theme/locales/
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `sourceFile` | `string` | **required** | Path to source file (JSON, JSONC, or ARB) |
+| `sourceFile` | `string` | **required** | Path to source file. Supports JSON, JSONC, ARB, YAML, PO, XLIFF, and all other text-based formats. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats) |
 | `targetLanguages` | `string[]` | auto-detect | Target language codes (e.g., `["es", "fr", "de"]`) |
 | `apiKey` | `string` | env/stored | API key for l10n.dev |
 | `generatePluralForms` | `boolean` | `false` | Generate plural forms with suffixes (e.g., for i18next). Don't use for strict source-to-target mapping |
 | `useShortening` | `boolean` | `false` | Use shortening in translations |
 | `useContractions` | `boolean` | `true` | Use contractions in translations (using contractions makes the translation less formal) |
 | `translateMetadata` | `boolean` | `false` | Translate metadata along with UI strings. For example, in Flutter ARB files, metadata entries like @key contain descriptions that can also be translated. Disabling this option ensures that metadata remains unchanged in the target files |
-| `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to separate .filtered file |
+| `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to a separate `.filtered` file |
 | `translateOnlyNewStrings` | `boolean` | `false` | Update existing files with only new translations |
 | `verbose` | `boolean` | `false` | Enable detailed logging |
 
@@ -427,7 +416,7 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 
 - 📧 Email: support@l10n.dev
 - 🐛 Issues: [GitHub Issues](https://github.com/l10n-dev/ai-l10n/issues)
-- 📚 API Documentation: [l10n.dev/api/doc](https://l10n.dev/api/doc)
+- 📚 API Documentation: [api.l10n.dev/doc](https://api.l10n.dev/doc)
 - 🌐 Website: [l10n](https://l10n.dev).dev
 
 ## Pricing
@@ -445,7 +434,7 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 
 > **💡 Tip for Large-Files Translation:**
 >
-> This npm package translates files in real-time via the [Translate JSON API](https://l10n.dev/api/doc/#tag/json-translation) and does not store your JSON or translations on our servers. For very large files, translation may take several minutes.
+> This npm package translates files in real-time via the [Translate API](https://api.l10n.dev/doc/#tag/ai-translation) and does not store your translations on our servers. For very large files, translation may take several minutes.
 >
 > On the [I18N File Translation](https://l10n.dev/ws/translate-i18n-files) page, you can:
 > - Securely create translation jobs for batch processing
@@ -479,7 +468,7 @@ For object-based JSON structures (recommended for i18n), this is not a concern a
 
 ## License
 
-AGPL-3.0
+MIT
 
 ## Credits
 
