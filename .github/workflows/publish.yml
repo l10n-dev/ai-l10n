@@ -91,6 +91,8 @@ jobs:
           npm publish --provenance --access public
           echo "published=true" >> "$GITHUB_OUTPUT"
           echo "✅ ai-l10n-core@${{ steps.version.outputs.version }} published"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────────
   # Job 2: ai-l10n-sdk
@@ -183,6 +185,8 @@ jobs:
           npm publish --provenance --access public
           echo "published=true" >> "$GITHUB_OUTPUT"
           echo "✅ ai-l10n-sdk@${{ steps.version.outputs.version }} published"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────────
   # Job 3: ai-l10n (root/CLI)
@@ -274,6 +278,8 @@ jobs:
           npm publish --provenance --access public
           echo "published=true" >> "$GITHUB_OUTPUT"
           echo "✅ ai-l10n@${{ steps.version.outputs.version }} published"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────────
   # Job 4: Tag & GitHub Release
