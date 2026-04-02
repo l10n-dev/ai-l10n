@@ -7,7 +7,7 @@ Platform-independent core for AI-powered localization — translation API client
 
 This is the foundational library for the [ai-l10n](https://www.npmjs.com/package/ai-l10n) ecosystem. It provides the low-level translation API client, logger interface, and language utilities used by the SDK and CLI.
 
-Powered by [l10n.dev](https://l10n.dev).
+Powered by [l10n](https://l10n.dev).dev
 
 ## Installation
 
@@ -484,4 +484,4 @@ MIT
 
 ## Credits
 
-Powered by [l10n.dev](https://l10n.dev) — AI-powered localization service
+Powered by [l10n](https://l10n.dev).dev — AI-powered localization service
