@@ -137,7 +137,7 @@ export class AiTranslator {
       const format = fileExtension.slice(1);
 
       if (verbose) {
-        console.log(`📂 Source file: ${sourceFilePath}`);
+        this.logger.logInfo(`📂 Source file: ${sourceFilePath}`);
       }
 
       // Ensure API key is available
@@ -157,7 +157,7 @@ export class AiTranslator {
           );
         }
 
-        console.log(
+        this.logger.logInfo(
           `✨ Auto-detected target languages from project structure: ${targetLanguages.join(
             ", ",
           )}`,
@@ -172,7 +172,9 @@ export class AiTranslator {
       }
 
       if (verbose) {
-        console.log(`🎯 Target languages: ${targetLanguages.join(", ")}`);
+        this.logger.logInfo(
+          `🎯 Target languages: ${targetLanguages.join(", ")}`,
+        );
       }
 
       // Prepare configuration
@@ -184,7 +186,7 @@ export class AiTranslator {
       const translateOnlyNewStrings = config.translateOnlyNewStrings ?? false;
 
       if (verbose) {
-        console.log(`Configuration:
+        this.logger.logInfo(`Configuration:
   - Use contractions: ${useContractions}
   - Use shortening: ${useShortening}
   - Generate plural forms: ${generatePluralForms}
@@ -204,7 +206,7 @@ export class AiTranslator {
           );
 
           try {
-            console.log(
+            this.logger.logInfo(
               `\n🌐 Translating (${
                 i + 1
               }/${totalLanguages}) to ${targetLanguage}...`,
@@ -229,8 +231,8 @@ export class AiTranslator {
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : "Unknown error";
-            console.error(
-              `❌ Translation to ${targetLanguage} failed: ${errorMessage}`,
+            this.logger.showAndLogError(
+              `Translation to ${targetLanguage} failed: ${errorMessage}`,
             );
             return {
               success: false,
@@ -261,15 +263,17 @@ export class AiTranslator {
 
       // Summary
       const successCount = results.filter((r) => r.success).length;
-      console.log(`\n${"=".repeat(50)}`);
-      console.log(`📊 Translation Summary`);
-      console.log(`${"=".repeat(50)}`);
-      console.log(`✅ Successful: ${successCount}/${targetLanguages.length}`);
-      console.log(
+      this.logger.logInfo(`\n${"=".repeat(50)}`);
+      this.logger.logInfo(`📊 Translation Summary`);
+      this.logger.logInfo(`${"=".repeat(50)}`);
+      this.logger.logInfo(
+        `✅ Successful: ${successCount}/${targetLanguages.length}`,
+      );
+      this.logger.logInfo(
         `📝 Total characters used: ${totalCharsUsed.toLocaleString()}`,
       );
       if (remainingBalance !== undefined && remainingBalance !== null) {
-        console.log(
+        this.logger.logInfo(
           `💰 Remaining balance: ${remainingBalance.toLocaleString()} characters`,
         );
       }
@@ -278,7 +282,7 @@ export class AiTranslator {
         const failedLanguages = results
           .filter((r) => !r.success)
           .map((r) => r.language);
-        console.log(`❌ Failed: ${failedLanguages.join(", ")}`);
+        this.logger.logWarning(`Failed: ${failedLanguages.join(", ")}`);
       }
 
       return {
@@ -290,7 +294,7 @@ export class AiTranslator {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.error(`❌ Translation failed: ${errorMessage}`);
+      this.logger.showAndLogError(`❌ Translation failed: ${errorMessage}`);
       return {
         success: false,
         results: [],
@@ -321,7 +325,7 @@ export class AiTranslator {
     if (translateOnlyNewStrings && fs.existsSync(targetFilePath)) {
       targetStrings = fs.readFileSync(targetFilePath, "utf8");
       if (verbose) {
-        console.log(`  📄 Updating existing file: ${targetFilePath}`);
+        this.logger.logInfo(`  📄 Updating existing file: ${targetFilePath}`);
       }
     }
 
@@ -337,7 +341,6 @@ export class AiTranslator {
       generatePluralForms,
       translateMetadata,
       client: CONFIG.CLIENT,
-      returnTranslationsAsString: true,
       translateOnlyNewStrings,
       targetStrings,
       schema: format === "arb" ? FileSchema.ARBFlutter : null,
@@ -345,15 +348,17 @@ export class AiTranslator {
     };
 
     // Call translation service
-    const result = await this.translationService.translate(request, apiKey);
+    const response = await this.translationService.translate(request, apiKey);
 
-    if (!result) {
+    if (response.status === "error") {
       return {
         success: false,
         language: targetLanguage,
-        error: "Translation service returned no result",
+        error: response.message ?? "Translation service returned no result",
       };
     }
+
+    const result = response.result!;
 
     if (!result.translations) {
       return {
@@ -378,15 +383,15 @@ export class AiTranslator {
     }
 
     const charsUsed = result.usage.charsUsed || 0;
-    console.log(`  ✅ Saved to: ${outputPath}`);
-    console.log(`  📊 Characters used: ${charsUsed.toLocaleString()}`);
+    this.logger.logInfo(`  ✅ Saved to: ${outputPath}`);
+    this.logger.logInfo(`  📊 Characters used: ${charsUsed.toLocaleString()}`);
 
     return {
       success: true,
       language: targetLanguage,
       outputPath,
       charsUsed,
-      remainingBalance: result.remainingBalance,
+      remainingBalance: response.currentBalance,
     };
   }
 
@@ -405,9 +410,13 @@ export class AiTranslator {
     }
 
     const filteredStringsContent = result.filteredStrings ?? "";
-    console.warn(`  ⚠️  Some string(s) were excluded due to ${reasonMessage}`);
+    this.logger.logWarning(
+      `Some strings were excluded due to ${reasonMessage}`,
+    );
     if (result.finishReason === FinishReason.contentFilter) {
-      console.warn(`  ℹ️ View content policy at: ${URLS.CONTENT_POLICY}`);
+      this.logger.logInfo(
+        `  ℹ️ View content policy at: ${URLS.CONTENT_POLICY}`,
+      );
     }
 
     if (saveFilteredStrings) {
@@ -417,9 +426,9 @@ export class AiTranslator {
       const filteredPath = path.join(dir, `${base}.filtered${ext}`);
 
       fs.writeFileSync(filteredPath, filteredStringsContent, "utf8");
-      console.log(`  📝 Filtered strings saved to: ${filteredPath}`);
+      this.logger.logInfo(`  📝 Filtered strings saved to: ${filteredPath}`);
     } else {
-      console.log(`  📝 Filtered strings:\n${filteredStringsContent}`);
+      this.logger.logInfo(`  📝 Filtered strings:\n${filteredStringsContent}`);
     }
   }
 

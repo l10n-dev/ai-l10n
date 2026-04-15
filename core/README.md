@@ -117,7 +117,7 @@ const service = new L10nTranslationService(customLogger);
 
 #### Methods
 
-##### `translate(request: TranslationRequest, apiKey: string): Promise<TranslationResult | null>`
+##### `translate(request: TranslationRequest, apiKey: string): Promise<TranslationResponse>`
 
 Translates localization content using the l10n.dev API.
 
@@ -125,9 +125,39 @@ Translates localization content using the l10n.dev API.
 - `request: TranslationRequest` — Translation request configuration
 - `apiKey: string` — API key for authentication
 
-**Returns:** `Promise<TranslationResult | null>` — Translation result, or `null` for 401/402 responses
+**Returns:** `Promise<TranslationResponse>` — Always resolves (never throws). Check `status` field to determine success or failure.
 
-**Throws:** Error for 400, 413, 500, and other failure conditions
+**Example:**
+```typescript
+const response = await service.translate(request, apiKey);
+if (response.status === 'error') {
+  console.error(response.message, 'reason:', response.reason);
+  if (response.reason === 'paymentRequired') {
+    console.log('Current balance:', response.currentBalance);
+  }
+} else {
+  const result = response.result!;
+  console.log('Translated:', result.translations);
+  console.log('Balance remaining:', response.currentBalance);
+}
+```
+
+##### `getBalance(apiKey: string): Promise<BalanceResponse>`
+
+Retrieves the current character balance available for translation.
+
+**Parameters:**
+- `apiKey: string` — API key for authentication
+
+**Returns:** `Promise<BalanceResponse>` — Object containing `currentBalance` (number of characters available)
+
+**Throws:** Error if the API request fails (non-2xx response)
+
+**Example:**
+```typescript
+const { currentBalance } = await service.getBalance(apiKey);
+console.log(`Available: ${currentBalance.toLocaleString()} characters`);
+```
 
 ##### `predictLanguages(input: string, limit?: number): Promise<Language[]>`
 
@@ -170,6 +200,35 @@ const { languages } = await service.getLanguages({
 
 #### Types
 
+##### TranslationResponse
+
+```typescript
+interface TranslationResponse {
+  status: "success" | "error";
+  /** Machine-readable reason code. */
+  reason?: "noApiKey" | "unauthorized" | "paymentRequired" | "badRequest" | "requestTooLarge" | "serverError" | "networkError" | "translationError";
+  /** Human-readable message (populated on error status). */
+  message?: string;
+  /** The translation result (populated on success status). */
+  result?: TranslationResult;
+  /**
+   * Remaining character balance.
+   * On success: equals result.remainingBalance.
+   * On paymentRequired error: the current (insufficient) balance.
+   */
+  currentBalance?: number;
+}
+```
+
+##### BalanceResponse
+
+```typescript
+interface BalanceResponse {
+  /** Current balance of characters available for translation. */
+  currentBalance: number;
+}
+```
+
 ##### TranslationRequest
 
 ```typescript
@@ -191,9 +250,6 @@ interface TranslationRequest {
 
   /** Translate metadata along with UI strings (e.g., ARB `@key` descriptions) */
   translateMetadata?: boolean;
-
-  /** Return translations as JSON string */
-  returnTranslationsAsString: boolean;
 
   /** Client identifier */
   client: string;
@@ -284,9 +340,6 @@ enum FinishReason {
   /** Some content was filtered due to content policy */
   contentFilter = "contentFilter",
 
-  /** Insufficient character balance */
-  insufficientBalance = "insufficientBalance",
-
   /** Translation failed with error */
   error = "error"
 }
@@ -319,17 +372,21 @@ interface SupportedLanguage {
 
 #### Error Handling
 
-The service throws errors for:
+`translate()` always resolves — it never throws. Check `response.status`:
 
-- **400 Bad Request** — Validation error with details
-- **413 Request Too Large** — `"Request too large. Maximum request size is 5 MB."`
-- **500 Server Error** — `"An internal server error occurred (Error code: ...)"`
+| `status` | `reason` | Description |
+|----------|----------|-------------|
+| `"error"` | `"noApiKey"` | API key was not provided |
+| `"error"` | `"unauthorized"` | API key is invalid (401) |
+| `"error"` | `"paymentRequired"` | Insufficient balance (402); `currentBalance` is set |
+| `"error"` | `"badRequest"` | Validation error (400); `message` contains details |
+| `"error"` | `"requestTooLarge"` | Request exceeds 5 MB (413) |
+| `"error"` | `"serverError"` | Internal server error (500) |
+| `"error"` | `"networkError"` | Connection or other failure |
+| `"error"` | `"translationError"` | API returned `finishReason: "error"` |
+| `"success"` | — | Translation completed; `result` and `currentBalance` are set |
 
-Returns `null` with error logged for:
-
-- **Missing API Key** — `"API Key not set. Please configure your API Key first."`
-- **401 Unauthorized** — `"Unauthorized. Please check your API Key."`
-- **402 Payment Required** — `"Not enough characters remaining for this translation..."`
+`getBalance()` throws on non-2xx responses.
 
 ---
 
