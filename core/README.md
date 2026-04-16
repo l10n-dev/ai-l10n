@@ -125,41 +125,44 @@ Translates localization content using the l10n.dev API.
 - `request: TranslationRequest` — Translation request configuration
 - `apiKey: string` — API key for authentication
 
-**Returns:** `Promise<TranslationResponse>` — Always resolves (never throws). Check `status` field to determine success or failure.
+**Returns:** `Promise<TranslationResponse>` — Always resolves (never throws). Check `success` field to determine success or failure.
 
 **Example:**
 ```typescript
 const response = await service.translate(request, apiKey);
-if (response.status === 'error') {
+if (!response.success) {
   console.error(response.message, 'reason:', response.reason);
   if (response.reason === 'paymentRequired') {
     console.log('Current balance:', response.currentBalance);
   }
 } else {
-  const result = response.result!;
-  console.log('Translated:', result.translations);
+  console.log('Translated:', response.data.translations);
   console.log('Balance remaining:', response.currentBalance);
 }
 ```
 
-##### `getBalance(apiKey: string): Promise<BalanceResponse>`
+##### `getBalance(apiKey: string): Promise<ApiResponse<BalanceResponse>>`
 
 Retrieves the current character balance available for translation.
 
 **Parameters:**
 - `apiKey: string` — API key for authentication
 
-**Returns:** `Promise<BalanceResponse>` — Object containing `currentBalance` (number of characters available)
+**Returns:** `Promise<ApiResponse<BalanceResponse>>` — Always resolves (never throws). Check `success` to determine success or failure. On success, `data.currentBalance` holds the number of characters available.
 
-**Throws:** Error if the API request fails (non-2xx response)
+**Error reasons:** `noApiKey`, `unauthorized`, `networkError`
 
 **Example:**
 ```typescript
-const { currentBalance } = await service.getBalance(apiKey);
-console.log(`Available: ${currentBalance.toLocaleString()} characters`);
+const response = await service.getBalance(apiKey);
+if (!response.success) {
+  console.error(response.message, 'reason:', response.reason);
+} else {
+  console.log(`Available: ${response.data.currentBalance.toLocaleString()} characters`);
+}
 ```
 
-##### `predictLanguages(input: string, limit?: number): Promise<Language[]>`
+##### `predictLanguages(input: string, limit?: number): Promise<ApiResponse<Language[]>>`
 
 Predicts possible language codes from a text input (language name in English or native language, region, or script).
 
@@ -167,58 +170,66 @@ Predicts possible language codes from a text input (language name in English or 
 - `input: string` — Text to analyze
 - `limit?: number` — Maximum number of predictions (default: 10)
 
-**Returns:** `Promise<Language[]>` — Array of predicted languages with codes and names
+**Returns:** `Promise<ApiResponse<Language[]>>` — Always resolves (never throws). On success, `data` is an array of predicted languages with codes and names.
 
-##### `getLanguages(options?: { codes?: string[]; proficiencyLevels?: LanguageProficiencyLevel[] }): Promise<SupportedLanguagesResponse>`
+**Error reasons:** `networkError`
+
+##### `getLanguages(apiKey: string, options?: { codes?: string[]; proficiencyLevels?: LanguageProficiencyLevel[] }): Promise<ApiResponse<SupportedLanguagesResponse>>`
 
 Retrieves a list of supported languages, optionally filtered by language codes or proficiency levels.
 
 **Parameters:**
+- `apiKey: string` — API key for authentication
 - `options?` — Optional filter object
   - `codes?: string[]` — Filter by specific language codes (e.g., `["en", "es", "fr"]`)
   - `proficiencyLevels?: LanguageProficiencyLevel[]` — Filter by proficiency level: `"strong"`, `"high"`, `"moderate"`, or `"limited"`
 
-**Returns:** `Promise<SupportedLanguagesResponse>` — Object containing a `languages` array of `SupportedLanguage` entries
+**Returns:** `Promise<ApiResponse<SupportedLanguagesResponse>>` — Always resolves (never throws). On success, `data.languages` is an array of `SupportedLanguage` entries.
 
-**Throws:** Error if the API request fails (non-2xx response)
+**Error reasons:** `noApiKey`, `unauthorized`, `badRequest`, `networkError`
 
 **Example:**
 ```typescript
 // Get all supported languages
-const { languages } = await service.getLanguages();
+const response = await service.getLanguages(apiKey);
+if (!response.success) {
+  console.error(response.message, 'reason:', response.reason);
+} else {
+  const { languages } = response.data;
+}
 
 // Filter by proficiency level
-const { languages } = await service.getLanguages({
+const response = await service.getLanguages(apiKey, {
   proficiencyLevels: ['strong', 'high'],
 });
 
 // Filter by specific codes
-const { languages } = await service.getLanguages({
+const response = await service.getLanguages(apiKey, {
   codes: ['en', 'es', 'fr'],
 });
 ```
 
 #### Types
 
+##### ApiResponse\<T\>
+
+```typescript
+type ApiResponse<T> =
+  | { success: true; data: T }
+  | { success: false; reason: string; message: string };
+```
+
+All methods that contact the API return an `ApiResponse<T>`. Check `success` before accessing `data`.
+
 ##### TranslationResponse
 
 ```typescript
-interface TranslationResponse {
-  status: "success" | "error";
-  /** Machine-readable reason code. */
-  reason?: "noApiKey" | "unauthorized" | "paymentRequired" | "badRequest" | "requestTooLarge" | "serverError" | "networkError" | "translationError";
-  /** Human-readable message (populated on error status). */
-  message?: string;
-  /** The translation result (populated on success status). */
-  result?: TranslationResult;
-  /**
-   * Remaining character balance.
-   * On success: equals result.remainingBalance.
-   * On paymentRequired error: the current (insufficient) balance.
-   */
-  currentBalance?: number;
-}
+type TranslationResponse = ApiResponse<TranslationResult> & { currentBalance?: number };
 ```
+
+The union distributes over the intersection, so `currentBalance?` is available on both branches:
+- On `success: true`: `data` holds the `TranslationResult`, `currentBalance` is the remaining balance.
+- On `success: false`: `reason` and `message` describe the error, `currentBalance` is set when `reason` is `"paymentRequired"`.
 
 ##### BalanceResponse
 
@@ -372,21 +383,43 @@ interface SupportedLanguage {
 
 #### Error Handling
 
-`translate()` always resolves — it never throws. Check `response.status`:
+All methods always resolve — they never throw. Check `response.success`:
 
-| `status` | `reason` | Description |
-|----------|----------|-------------|
-| `"error"` | `"noApiKey"` | API key was not provided |
-| `"error"` | `"unauthorized"` | API key is invalid (401) |
-| `"error"` | `"paymentRequired"` | Insufficient balance (402); `currentBalance` is set |
-| `"error"` | `"badRequest"` | Validation error (400); `message` contains details |
-| `"error"` | `"requestTooLarge"` | Request exceeds 5 MB (413) |
-| `"error"` | `"serverError"` | Internal server error (500) |
-| `"error"` | `"networkError"` | Connection or other failure |
-| `"error"` | `"translationError"` | API returned `finishReason: "error"` |
-| `"success"` | — | Translation completed; `result` and `currentBalance` are set |
+##### `translate()` error reasons
 
-`getBalance()` throws on non-2xx responses.
+| `reason` | Description |
+|----------|-------------|
+| `"noApiKey"` | API key was not provided |
+| `"unauthorized"` | API key is invalid (401) |
+| `"paymentRequired"` | Insufficient balance (402); `currentBalance` is set |
+| `"badRequest"` | Validation error (400); `message` contains details |
+| `"requestTooLarge"` | Request exceeds 5 MB (413) |
+| `"serverError"` | Internal server error (500) |
+| `"networkError"` | Connection or other failure |
+| `"translationError"` | API returned `finishReason: "error"` |
+
+##### `getBalance()` error reasons
+
+| `reason` | Description |
+|----------|-------------|
+| `"noApiKey"` | API key was not provided |
+| `"unauthorized"` | API key is invalid (401) |
+| `"networkError"` | Connection or other failure |
+
+##### `getLanguages()` error reasons
+
+| `reason` | Description |
+|----------|-------------|
+| `"noApiKey"` | API key was not provided |
+| `"unauthorized"` | API key is invalid (401) |
+| `"badRequest"` | Validation error (400); `message` contains details |
+| `"networkError"` | Connection or other failure |
+
+##### `predictLanguages()` error reasons
+
+| `reason` | Description |
+|----------|-------------|
+| `"networkError"` | Connection or other failure |
 
 ---
 

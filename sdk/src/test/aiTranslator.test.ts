@@ -103,7 +103,11 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(result.success, false);
       assert.strictEqual(result.results.length, 0);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/sourceFile is required/)),
+        consoleErrorStub.calledWith(
+          sinon.match(/Translation failed/),
+          sinon.match.any,
+          sinon.match({ message: sinon.match(/sourceFile is required/) }),
+        ),
       );
     });
 
@@ -116,7 +120,11 @@ suite("AiTranslator Test Suite", () => {
 
       assert.strictEqual(result.success, false);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/Source file not found/)),
+        consoleErrorStub.calledWith(
+          sinon.match(/Translation failed/),
+          sinon.match.any,
+          sinon.match({ message: sinon.match(/Source file not found/) }),
+        ),
       );
     });
 
@@ -132,8 +140,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: 'msgid "hello"\nmsgstr "Hola"',
           usage: { charsUsed: 10 },
@@ -167,7 +175,11 @@ suite("AiTranslator Test Suite", () => {
 
       assert.strictEqual(result.success, false);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/Invalid language code/)),
+        consoleErrorStub.calledWith(
+          sinon.match(/Translation failed/),
+          sinon.match.any,
+          sinon.match({ message: sinon.match(/Invalid language code/) }),
+        ),
       );
     });
   });
@@ -185,8 +197,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -224,7 +236,11 @@ suite("AiTranslator Test Suite", () => {
 
       assert.strictEqual(result.success, false);
       assert.ok(
-        consoleErrorStub.calledWith(sinon.match(/No target languages found/)),
+        consoleErrorStub.calledWith(
+          sinon.match(/Translation failed/),
+          sinon.match.any,
+          sinon.match({ message: sinon.match(/No target languages found/) }),
+        ),
       );
     });
 
@@ -239,8 +255,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -274,8 +290,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -311,8 +327,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.callsFake(async (req) => ({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: req.targetLanguageCode,
           translations: JSON.stringify({
             hello: `Hello-${req.targetLanguageCode}`,
@@ -348,8 +364,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.returns(outputFile);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -383,8 +399,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -417,8 +433,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -454,8 +470,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -490,8 +506,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.generateTargetFilePath.returns(targetFile);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola", world: "Mundo" }),
           usage: { charsUsed: 10 },
@@ -527,8 +543,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.returns(outputFile);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -562,8 +578,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -596,8 +612,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -635,8 +651,8 @@ suite("AiTranslator Test Suite", () => {
       translationServiceStub.translate.callsFake(async (req) => {
         if (req.targetLanguageCode === "es") {
           return {
-            status: "success",
-            result: {
+            success: true,
+            data: {
               targetLanguageCode: "es",
               translations: JSON.stringify({ hello: "Hola" }),
               usage: { charsUsed: 10 },
@@ -673,7 +689,7 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "error",
+        success: false,
         reason: "unauthorized",
         message: "Translation service returned no result",
       });
@@ -701,8 +717,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: undefined as any,
           usage: { charsUsed: 0 },
@@ -759,8 +775,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 15 },
@@ -794,11 +810,11 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: { charsUsed: 5000 },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -831,8 +847,8 @@ suite("AiTranslator Test Suite", () => {
       translationServiceStub.translate.callsFake(async () => {
         callCount++;
         return {
-          status: "success",
-          result: {
+          success: true,
+          data: {
             targetLanguageCode: "es",
             translations: JSON.stringify({ hello: "Hola" }),
             usage: { charsUsed: 10 },
@@ -866,8 +882,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -902,8 +918,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },
@@ -935,8 +951,8 @@ suite("AiTranslator Test Suite", () => {
       i18nProjectManagerStub.getUniqueFilePath.callsFake((p) => p);
 
       translationServiceStub.translate.resolves({
-        status: "success",
-        result: {
+        success: true,
+        data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
           usage: { charsUsed: 10 },

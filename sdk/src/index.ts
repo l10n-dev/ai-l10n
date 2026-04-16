@@ -229,15 +229,14 @@ export class AiTranslator {
 
             return result;
           } catch (error) {
-            const errorMessage =
-              error instanceof Error ? error.message : "Unknown error";
             this.logger.showAndLogError(
-              `Translation to ${targetLanguage} failed: ${errorMessage}`,
+              `Translation to ${targetLanguage} failed`,
+              error,
             );
             return {
               success: false,
               language: targetLanguage,
-              error: errorMessage,
+              error: error instanceof Error ? error.message : "Unknown error",
             };
           }
         },
@@ -292,9 +291,7 @@ export class AiTranslator {
         remainingBalance,
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      this.logger.showAndLogError(`❌ Translation failed: ${errorMessage}`);
+      this.logger.showAndLogError("Translation failed", error);
       return {
         success: false,
         results: [],
@@ -350,7 +347,7 @@ export class AiTranslator {
     // Call translation service
     const response = await this.translationService.translate(request, apiKey);
 
-    if (response.status === "error") {
+    if (!response.success) {
       return {
         success: false,
         language: targetLanguage,
@@ -358,8 +355,7 @@ export class AiTranslator {
       };
     }
 
-    const result = response.result!;
-
+    const result = response.data;
     if (!result.translations) {
       return {
         success: false,

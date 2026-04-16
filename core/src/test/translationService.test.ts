@@ -2,7 +2,11 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import { URLS } from "../constants";
 import { ILogger } from "../logger";
-import { L10nTranslationService, FileSchema, TranslationResponse } from "../translationService";
+import {
+  L10nTranslationService,
+  FileSchema,
+  TranslationResponse,
+} from "../translationService";
 
 // Mock fetch globally
 const mockFetch = sinon.stub();
@@ -66,35 +70,71 @@ suite("L10nTranslationService Test Suite", () => {
       const mockFetchResponse = {
         ok: true,
         json: sinon.stub().resolves(mockResponse),
+        text: sinon.stub().resolves(JSON.stringify(mockResponse)),
       };
 
       mockFetch.resolves(mockFetchResponse);
 
       const result = await service.predictLanguages("spanish", 5);
 
-      assert.strictEqual(result.length, 2);
-      assert.deepStrictEqual(result, mockResponse.languages);
+      assert.strictEqual(result.success, true);
+      assert.strictEqual(result.data.length, 2);
+      assert.deepStrictEqual(result.data, mockResponse.languages);
     });
 
     test("predictLanguages throws error on failed API call", async () => {
       const mockFetchResponse = {
         ok: false,
-        statusText: "Bad Request",
+        status: 503,
+        statusText: "Service Unavailable",
+        json: sinon.stub().rejects(new Error("no body")),
+        text: sinon.stub().resolves("Service Unavailable"),
       };
 
       mockFetch.resolves(mockFetchResponse);
 
-      await assert.rejects(
-        async () => await service.predictLanguages("test"),
-        /Failed to predict languages: Bad Request/,
+      const result = await service.predictLanguages("test");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "serverError");
+      assert.ok(/An internal server error occurred/.test(result.message));
+    });
+
+    test("predictLanguages returns bad request error on 400 with validation errors", async () => {
+      mockFetch.resolves({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        json: sinon.stub().resolves({
+          status: 400,
+          traceId: "",
+          errors: { "": ["invalid data."] },
+        }),
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            status: 400,
+            traceId: "",
+            errors: { "": ["invalid data."] },
+          }),
+        ),
+      });
+
+      const result = await service.predictLanguages("test");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "badRequest");
+      assert.ok(
+        /invalid data\./.test(result.message),
+        `Expected message to contain 'invalid data.', got: ${result.message}`,
       );
     });
   });
 
   suite("JSON Translation", () => {
     test("translate returns error when no API Key is set", async () => {
-      const result: TranslationResponse = await service.translate(createRequest(), "");
-      assert.strictEqual(result.status, "error");
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        "",
+      );
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "noApiKey");
 
       // Verify error was logged
@@ -132,10 +172,13 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockFetchResponse);
 
-      const result: TranslationResponse = await service.translate(request, apiKey);
+      const result: TranslationResponse = await service.translate(
+        request,
+        apiKey,
+      );
 
-      assert.strictEqual(result.status, "success");
-      assert.deepStrictEqual(result.result, mockTranslationResult);
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, mockTranslationResult);
 
       // Verify fetch was called with correct parameters
       assert.ok(mockFetch.called);
@@ -191,7 +234,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockFetchResponse);
 
       const r = await service.translate(request, apiKey);
-      assert.strictEqual(r.status, "success");
+      assert.strictEqual(r.success, true);
 
       const fetchCall = mockFetch.getCall(0);
       const requestOptions = fetchCall.args[1];
@@ -229,7 +272,7 @@ suite("L10nTranslationService Test Suite", () => {
       mockFetch.resolves(mockFetchResponse);
 
       const r = await service.translate(request, apiKey);
-      assert.strictEqual(r.status, "success");
+      assert.strictEqual(r.success, true);
 
       const fetchCall = mockFetch.getCall(0);
       const requestOptions = fetchCall.args[1];
@@ -244,15 +287,20 @@ suite("L10nTranslationService Test Suite", () => {
       const mockErrorResponse = {
         ok: false,
         status: 400,
-        json: sinon.stub().resolves({
-          errors: ["Invalid source strings format"],
-        }),
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            errors: { "": ["Invalid source strings format"] },
+          }),
+        ),
       };
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "badRequest");
       assert.ok(/Invalid source strings format/.test(result.message ?? ""));
     });
@@ -268,9 +316,12 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
 
-      assert.strictEqual(result.status, "error");
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "unauthorized");
 
       // Verify error was logged
@@ -283,19 +334,24 @@ suite("L10nTranslationService Test Suite", () => {
       const mockErrorResponse = {
         ok: false,
         status: 402,
-        json: sinon.stub().resolves({
-          data: {
-            requiredBalance: 1000,
-            currentBalance: 500,
-          },
-        }),
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            data: {
+              requiredBalance: 1000,
+              currentBalance: 500,
+            },
+          }),
+        ),
       };
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
 
-      assert.strictEqual(result.status, "error");
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "paymentRequired");
       assert.strictEqual(result.currentBalance, 500);
       assert.ok(/1,000 characters/.test(result.message ?? ""));
@@ -312,10 +368,17 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "requestTooLarge");
-      assert.ok(/Request too large. Maximum request size is 5 MB./.test(result.message ?? ""));
+      assert.ok(
+        /Request too large. Maximum request size is 5 MB./.test(
+          result.message ?? "",
+        ),
+      );
     });
 
     test("translate handles 500 Internal Server Error", async () => {
@@ -324,17 +387,26 @@ suite("L10nTranslationService Test Suite", () => {
       const mockErrorResponse = {
         ok: false,
         status: 500,
-        json: sinon.stub().resolves({
-          errorCode: "INTERNAL_ERROR_123",
-        }),
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            errorCode: "INTERNAL_ERROR_123",
+          }),
+        ),
       };
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "serverError");
-      assert.ok(/An internal server error occurred \(Error code: INTERNAL_ERROR_123\)/.test(result.message ?? ""));
+      assert.ok(
+        /An internal server error occurred \(Error code: INTERNAL_ERROR_123\)/.test(
+          result.message ?? "",
+        ),
+      );
     });
   });
 
@@ -345,37 +417,54 @@ suite("L10nTranslationService Test Suite", () => {
       const mockErrorResponse = {
         ok: false,
         status: 400,
-        json: sinon.stub().resolves({
-          errors: {
-            sourceStrings: ["is required"],
-            targetLanguageCode: ["is invalid", "must be BCP-47 format"],
-          },
-        }),
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            errors: {
+              sourceStrings: ["is required"],
+              targetLanguageCode: ["is invalid", "must be BCP-47 format"],
+            },
+          }),
+        ),
       };
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
-      assert.ok(/is required is invalid must be BCP-47 format/.test(result.message ?? ""));
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
+      assert.ok(
+        /sourceStrings: is required; \r\ntargetLanguageCode: is invalid must be BCP-47 format/.test(
+          result.message ?? "",
+        ),
+      );
     });
 
     test("handles array validation error structure", async () => {
       const apiKey = "valid-api-key";
 
+      const details = JSON.stringify({
+        errors: ["Field validation failed", "Invalid input format"],
+      });
       const mockErrorResponse = {
         ok: false,
         status: 400,
-        json: sinon.stub().resolves({
-          errors: ["Field validation failed", "Invalid input format"],
-        }),
+        text: sinon.stub().resolves(details),
       };
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
-      assert.ok(/Field validation failed Invalid input format/.test(result.message ?? ""));
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
+      assert.ok(
+        /Invalid request. Please check your input and try again/.test(
+          result.message ?? "",
+        ),
+      );
     });
 
     test("handles JSON parsing failure in error response", async () => {
@@ -385,13 +474,21 @@ suite("L10nTranslationService Test Suite", () => {
         ok: false,
         status: 500,
         json: sinon.stub().rejects(new Error("JSON parse error")),
+        text: sinon.stub().resolves("Internal Server Error"),
       };
 
       mockFetch.resolves(mockErrorResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
-      assert.ok(/An internal server error occurred \(Error code: unknown\)/.test(result.message ?? ""));
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
+      assert.ok(
+        /An internal server error occurred \(Error code: unknown\)/.test(
+          result.message ?? "",
+        ),
+      );
     });
   });
 
@@ -415,11 +512,14 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
 
       // insufficientBalance finish reason returns result with partial translations
-      assert.strictEqual(result.status, "success");
-      assert.deepStrictEqual(result.result, expectedResult);
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, expectedResult);
     });
 
     test("returns error status for error finish reason", async () => {
@@ -439,10 +539,15 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "error");
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, false);
       assert.strictEqual(result.reason, "translationError");
-      assert.ok(/Translation failed due to an error\./.test(result.message ?? ""));
+      assert.ok(
+        /Translation failed due to an error\./.test(result.message ?? ""),
+      );
     });
 
     test("returns success with partial result for length finish reason", async () => {
@@ -465,9 +570,12 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "success");
-      assert.deepStrictEqual(result.result, expectedResult);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, expectedResult);
     });
 
     test("returns success with partial result for contentFilter finish reason", async () => {
@@ -490,9 +598,12 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "success");
-      assert.deepStrictEqual(result.result, expectedResult);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, expectedResult);
     });
 
     test("returns success for stop finish reason", async () => {
@@ -514,9 +625,12 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "success");
-      assert.deepStrictEqual(result.result, expectedResult);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, expectedResult);
     });
 
     test("works normally when no finish reason is present", async () => {
@@ -537,9 +651,12 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "success");
-      assert.deepStrictEqual(result.result, expectedResult);
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, expectedResult);
     });
 
     test("sets currentBalance from result.remainingBalance on success", async () => {
@@ -559,13 +676,22 @@ suite("L10nTranslationService Test Suite", () => {
 
       mockFetch.resolves(mockResponse);
 
-      const result: TranslationResponse = await service.translate(createRequest(), apiKey);
-      assert.strictEqual(result.status, "success");
+      const result: TranslationResponse = await service.translate(
+        createRequest(),
+        apiKey,
+      );
+      assert.strictEqual(result.success, true);
       assert.strictEqual(result.currentBalance, 9500);
     });
   });
 
   suite("Balance", () => {
+    test("getBalance returns error when no API key", async () => {
+      const result = await service.getBalance("");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "noApiKey");
+    });
+
     test("getBalance returns current balance on success", async () => {
       const apiKey = "valid-api-key";
 
@@ -578,14 +704,71 @@ suite("L10nTranslationService Test Suite", () => {
 
       const result = await service.getBalance(apiKey);
 
-      assert.strictEqual(result.currentBalance, 25000);
+      assert.strictEqual(result.success, true);
+      assert.strictEqual(result.data.currentBalance, 25000);
 
       const fetchCall = mockFetch.getCall(0);
       assert.ok(fetchCall.args[0].endsWith("/v2/balance"));
       assert.strictEqual(fetchCall.args[1].headers["X-API-Key"], apiKey);
     });
 
-    test("getBalance throws on 401 Unauthorized", async () => {
+    test("getBalance returns bad request error on 400 with validation errors", async () => {
+      const apiKey = "valid-api-key";
+
+      mockFetch.resolves({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            type: "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+            title: "One or more validation errors occurred.",
+            status: 400,
+            traceId: "",
+            errors: {
+              sourceStrings: [
+                "Failed to deserialize source strings. Ensure the content matches the specified format.",
+              ],
+            },
+          }),
+        ),
+      });
+
+      const result = await service.getBalance(apiKey);
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "badRequest");
+      assert.ok(
+        /Failed to deserialize source strings/.test(result.message),
+        `Expected message to contain validation detail, got: ${result.message}`,
+      );
+    });
+
+    test("getBalance returns bad request error on 400 with empty-key errors", async () => {
+      const apiKey = "valid-api-key";
+
+      mockFetch.resolves({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            status: 400,
+            traceId: "",
+            errors: { "": ["invalid data."] },
+          }),
+        ),
+      });
+
+      const result = await service.getBalance(apiKey);
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "badRequest");
+      assert.ok(
+        /invalid data\./.test(result.message),
+        `Expected message to contain 'invalid data.', got: ${result.message}`,
+      );
+    });
+
+    test("getBalance returns unauthorized error on 401", async () => {
       const apiKey = "bad-key";
 
       mockFetch.resolves({
@@ -594,13 +777,12 @@ suite("L10nTranslationService Test Suite", () => {
         statusText: "Unauthorized",
       });
 
-      await assert.rejects(
-        async () => await service.getBalance(apiKey),
-        /Failed to get balance: 401 Unauthorized/,
-      );
+      const result = await service.getBalance(apiKey);
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "unauthorized");
     });
 
-    test("getBalance throws on 500 Server Error", async () => {
+    test("getBalance returns server error on 500", async () => {
       const apiKey = "valid-api-key";
 
       mockFetch.resolves({
@@ -609,10 +791,114 @@ suite("L10nTranslationService Test Suite", () => {
         statusText: "Internal Server Error",
       });
 
-      await assert.rejects(
-        async () => await service.getBalance(apiKey),
-        /Failed to get balance: 500 Internal Server Error/,
+      const result = await service.getBalance(apiKey);
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "serverError");
+      assert.ok(
+        /An internal server error occurred \(Error code: unknown\)/.test(
+          result.message,
+        ),
       );
+    });
+  });
+
+  suite("Languages", () => {
+    test("getLanguages returns error when no API key", async () => {
+      const result = await service.getLanguages("");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "noApiKey");
+    });
+
+    test("getLanguages returns unauthorized error on 401", async () => {
+      mockFetch.resolves({
+        ok: false,
+        status: 401,
+        statusText: "Unauthorized",
+      });
+
+      const result = await service.getLanguages("api-key");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "unauthorized");
+    });
+
+    test("getLanguages returns bad request with validation message on 400", async () => {
+      mockFetch.resolves({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        text: sinon.stub().resolves(
+          JSON.stringify({
+            type: "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+            title: "One or more validation errors occurred.",
+            status: 400,
+            traceId: "",
+            errors: {
+              sourceStrings: [
+                "Failed to deserialize source strings. Ensure the content matches the specified format.",
+              ],
+            },
+          }),
+        ),
+      });
+
+      const result = await service.getLanguages("api-key");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "badRequest");
+      assert.ok(
+        /Failed to deserialize source strings/.test(result.message),
+        `Expected message to contain validation detail, got: ${result.message}`,
+      );
+    });
+
+    test("getLanguages returns bad request error on 400", async () => {
+      mockFetch.resolves({ ok: false, status: 400, statusText: "Bad Request" });
+
+      const result = await service.getLanguages("api-key");
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.reason, "badRequest");
+    });
+
+    test("getLanguages returns language list on success", async () => {
+      const apiKey = "valid-api-key";
+      const mockData = {
+        languages: [{ code: "es", name: "Spanish", nativeName: "Español" }],
+      };
+
+      mockFetch.resolves({
+        ok: true,
+        json: sinon.stub().resolves(mockData),
+      });
+
+      const result = await service.getLanguages(apiKey);
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, mockData);
+
+      const fetchCall = mockFetch.getCall(0);
+      assert.strictEqual(fetchCall.args[1].headers["X-API-Key"], apiKey);
+    });
+
+    test("getLanguages sends codes and proficiencyLevels as query params", async () => {
+      const apiKey = "valid-api-key";
+      const appendStub = sinon.stub();
+      (global as any).URL = function (url: string) {
+        this.searchParams = { append: appendStub };
+        this.toString = () => url;
+      };
+
+      mockFetch.resolves({
+        ok: true,
+        json: sinon.stub().resolves({ languages: [] }),
+      });
+
+      const result = await service.getLanguages(apiKey, {
+        codes: ["es", "fr"],
+        proficiencyLevels: ["strong"],
+      });
+
+      assert.strictEqual(result.success, true);
+      assert.ok(appendStub.calledWith("c", "es"));
+      assert.ok(appendStub.calledWith("c", "fr"));
+      assert.ok(appendStub.calledWith("p", "strong"));
     });
   });
 });

@@ -12,16 +12,12 @@ export class ConsoleLogger implements ILogger {
     error?: unknown,
     context?: string,
     linkBtnText?: string,
-    url?: string
+    url?: string,
   ): void {
-    console.error(`❌ ${message}`);
-
-    if (context) {
-      console.error(`Context: ${context}`);
-    }
-
     if (error) {
-      this.logErrorDetails(error, console.error);
+      console.error(`❌ ${message}`, context ?? "", error);
+    } else {
+      console.error(`❌ ${message}`, context ?? "");
     }
 
     if (linkBtnText && url) {
@@ -40,9 +36,10 @@ export class ConsoleLogger implements ILogger {
    * Log warning message
    */
   logWarning(message: string, error?: unknown): void {
-    console.warn(`⚠️  ${message}`);
     if (error) {
-      this.logErrorDetails(error, console.warn);
+      console.warn(`⚠️  ${message}`, error);
+    } else {
+      console.warn(`⚠️  ${message}`);
     }
   }
 
@@ -50,26 +47,10 @@ export class ConsoleLogger implements ILogger {
    * Log error message
    */
   logError(message: string, error?: unknown): void {
-    console.error(`❌ ${message}`);
     if (error) {
-      this.logErrorDetails(error, console.error);
-    }
-  }
-
-  /**
-   * Log error details to console
-   */
-  private logErrorDetails(
-    error: unknown,
-    logFn: (message: string) => void
-  ): void {
-    if (error instanceof Error) {
-      logFn(`Error: ${error.message}`);
-      if (error.stack) {
-        logFn(error.stack);
-      }
+      console.error(`❌ ${message}`, error);
     } else {
-      logFn(`Error: ${String(error)}`);
+      console.error(`❌ ${message}`);
     }
   }
 }

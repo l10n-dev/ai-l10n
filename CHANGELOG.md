@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated to `ai-l10n-sdk@1.5.0` and `ai-l10n-core@1.5.0`
+- All `L10nTranslationService` API methods (`translate`, `getBalance`, `getLanguages`, `predictLanguages`) now return structured `ApiResponse<T>` responses and never throw
 - Translation errors (previously thrown or returned as `null` from the core service) are now uniformly reported as failed translation results in the summary
 
 ## [1.4.0] - 2026-04-02

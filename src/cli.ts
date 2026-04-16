@@ -12,7 +12,7 @@ function getVersion(): string {
     const packageJson = require("../package.json");
     return packageJson.version;
   } catch {
-    return "1.1.4"; // Fallback version
+    return "v1"; // Fallback version
   }
 }
 

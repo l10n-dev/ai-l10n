@@ -25,45 +25,36 @@ suite("ConsoleLogger Test Suite", () => {
 
       assert.ok(consoleErrorStub.calledOnce);
       assert.ok(consoleErrorStub.firstCall.args[0].includes("❌"));
-      assert.ok(consoleErrorStub.firstCall.args[0].includes("Test error message"));
+      assert.ok(
+        consoleErrorStub.firstCall.args[0].includes("Test error message"),
+      );
     });
 
     test("logs context when provided", () => {
       logger.showAndLogError("Error", undefined, "Test context");
 
-      assert.ok(consoleErrorStub.calledTwice);
-      assert.ok(consoleErrorStub.secondCall.args[0].includes("Context:"));
-      assert.ok(consoleErrorStub.secondCall.args[0].includes("Test context"));
+      assert.ok(consoleErrorStub.calledOnce);
+      assert.ok(consoleErrorStub.firstCall.args[0].includes("❌ Error"));
+      assert.ok(consoleErrorStub.firstCall.args[1].includes("Test context"));
     });
 
     test("logs Error object with message and stack", () => {
       const error = new Error("Test error");
       logger.showAndLogError("Error occurred", error);
 
-      // Should log: main message, error message, and stack
-      assert.ok(consoleErrorStub.callCount >= 2);
-
-      const calls = consoleErrorStub.getCalls();
-      const errorMessageCall = calls.find((call) =>
-        call.args[0].includes("Error: Test error")
+      assert.ok(consoleErrorStub.calledOnce);
+      assert.ok(
+        consoleErrorStub.firstCall.args[0].includes("❌ Error occurred"),
       );
-      assert.ok(errorMessageCall, "Should log error message");
-
-      const stackCall = calls.find(
-        (call) => typeof call.args[0] === "string" && call.args[0].includes("at ")
-      );
-      assert.ok(stackCall, "Should log stack trace");
+      assert.strictEqual(consoleErrorStub.firstCall.args[2], error);
     });
 
     test("logs non-Error objects as strings", () => {
       const error = { message: "Custom error" };
       logger.showAndLogError("Error occurred", error);
 
-      const calls = consoleErrorStub.getCalls();
-      const errorCall = calls.find((call) =>
-        call.args[0].includes("[object Object]")
-      );
-      assert.ok(errorCall, "Should convert error to string");
+      assert.ok(consoleErrorStub.calledOnce);
+      assert.strictEqual(consoleErrorStub.firstCall.args[2], error);
     });
 
     test("logs link when both linkBtnText and url provided", () => {
@@ -72,14 +63,14 @@ suite("ConsoleLogger Test Suite", () => {
         undefined,
         undefined,
         "Visit docs",
-        "https://example.com"
+        "https://example.com",
       );
 
       const calls = consoleErrorStub.getCalls();
       const linkCall = calls.find(
         (call) =>
           call.args[0].includes("Visit docs") &&
-          call.args[0].includes("https://example.com")
+          call.args[0].includes("https://example.com"),
       );
       assert.ok(linkCall, "Should log link with button text");
     });
@@ -97,7 +88,7 @@ suite("ConsoleLogger Test Suite", () => {
         undefined,
         undefined,
         undefined,
-        "https://example.com"
+        "https://example.com",
       );
 
       // Should only log the main error message, not the link
@@ -111,19 +102,18 @@ suite("ConsoleLogger Test Suite", () => {
         error,
         "Full context",
         "Help link",
-        "https://help.com"
+        "https://help.com",
       );
 
-      // Should log: message, context, error message, stack, link
-      assert.ok(consoleErrorStub.callCount >= 4);
+      assert.strictEqual(consoleErrorStub.callCount, 2);
 
-      const allCalls = consoleErrorStub.getCalls().map((call) => call.args[0]);
-      const allOutput = allCalls.join(" ");
+      const firstCall = consoleErrorStub.firstCall;
+      assert.ok(firstCall.args[0].includes("❌ Complete error"));
+      assert.strictEqual(firstCall.args[1], "Full context");
+      assert.strictEqual(firstCall.args[2], error);
 
-      assert.ok(allOutput.includes("❌ Complete error"));
-      assert.ok(allOutput.includes("Context: Full context"));
-      assert.ok(allOutput.includes("Error: Full test error"));
-      assert.ok(allOutput.includes("Help link: https://help.com"));
+      const secondCall = consoleErrorStub.secondCall;
+      assert.ok(secondCall.args[0].includes("Help link: https://help.com"));
     });
 
     test("handles Error without stack trace", () => {
@@ -132,12 +122,8 @@ suite("ConsoleLogger Test Suite", () => {
 
       logger.showAndLogError("Error", error);
 
-      // Should still log the error message
-      const calls = consoleErrorStub.getCalls();
-      const errorCall = calls.find((call) =>
-        call.args[0].includes("Error: No stack error")
-      );
-      assert.ok(errorCall, "Should log error message even without stack");
+      assert.ok(consoleErrorStub.calledOnce);
+      assert.strictEqual(consoleErrorStub.firstCall.args[2], error);
     });
 
     test("handles null error", () => {
@@ -157,19 +143,18 @@ suite("ConsoleLogger Test Suite", () => {
     test("handles number as error", () => {
       logger.showAndLogError("Error", 404);
 
-      const calls = consoleErrorStub.getCalls();
-      const errorCall = calls.find((call) => call.args[0].includes("Error: 404"));
-      assert.ok(errorCall, "Should convert number to string");
+      assert.ok(consoleErrorStub.calledOnce);
+      assert.strictEqual(consoleErrorStub.firstCall.args[2], 404);
     });
 
     test("handles string as error", () => {
       logger.showAndLogError("Error", "String error message");
 
-      const calls = consoleErrorStub.getCalls();
-      const errorCall = calls.find((call) =>
-        call.args[0].includes("Error: String error message")
+      assert.ok(consoleErrorStub.calledOnce);
+      assert.strictEqual(
+        consoleErrorStub.firstCall.args[2],
+        "String error message",
       );
-      assert.ok(errorCall, "Should log string error");
     });
   });
 
@@ -180,7 +165,7 @@ suite("ConsoleLogger Test Suite", () => {
       assert.ok(consoleLogStub.calledOnce);
       assert.strictEqual(
         consoleLogStub.firstCall.args[0],
-        "Information message"
+        "Information message",
       );
     });
 

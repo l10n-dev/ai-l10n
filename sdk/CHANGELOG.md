@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] - 2026-04-16
 
 ### Changed
-- Updated to use `ai-l10n-core@1.5.0` — `translate()` now returns `TranslationResponse` instead of `TranslationResult | null`
+- Updated to use `ai-l10n-core@1.5.0` — all API methods now return `ApiResponse<T>` and never throw
 - `TranslationOutput.remainingBalance` is now sourced from `TranslationResponse.currentBalance` (unchanged behavior for consumers)
 - Error results from `translate()` (previously thrown or null-returned) are now uniformly surfaced as failed `TranslationOutput` entries with the error `message` from `TranslationResponse`
 
