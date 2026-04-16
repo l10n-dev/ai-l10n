@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n-core",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Platform-independent core for AI-powered localization — translation API client, language utilities, and shared types",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

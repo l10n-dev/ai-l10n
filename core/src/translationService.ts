@@ -21,7 +21,6 @@ export interface TranslationRequest {
   useShortening?: boolean;
   generatePluralForms?: boolean;
   translateMetadata?: boolean;
-  returnTranslationsAsString: boolean;
   client: string;
   translateOnlyNewStrings?: boolean;
   targetStrings?: string;
@@ -58,7 +57,6 @@ export enum FinishReason {
   stop = "stop",
   length = "length",
   contentFilter = "contentFilter",
-  insufficientBalance = "insufficientBalance",
   error = "error",
 }
 
@@ -104,15 +102,74 @@ export interface SupportedLanguagesResponse {
   languages: SupportedLanguage[];
 }
 
+// ── Balance ──────────────────────────────────────────────────────────────────
+
+export interface BalanceResponse {
+  /** Current balance of characters available for translation. */
+  currentBalance: number;
+}
+
+// ── Generic API Response ─────────────────────────────────────────────────────
+
+/**
+ * Discriminated union returned by all public service methods.
+ * Check `success` to narrow to the data or error branch.
+ */
+export type ApiResponse<T> =
+  | { success: true; data: T }
+  | { success: false; reason: string; message: string };
+
+// ── Translation Response ─────────────────────────────────────────────────────
+
+/**
+ * Response from translate(). Extends ApiResponse<TranslationResult> with an
+ * optional currentBalance field present on both the success and error branches.
+ *
+ * On success: data contains the TranslationResult; currentBalance is the remaining balance.
+ * On error: reason and message describe the failure; currentBalance is set on 402 errors.
+ */
+export type TranslationResponse = ApiResponse<TranslationResult> & {
+  currentBalance?: number;
+};
+
 // ── Translation Service ─────────────────────────────────────────────────────
 
 export class L10nTranslationService {
   constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
-  async getLanguages(options?: {
-    codes?: string[];
-    proficiencyLevels?: LanguageProficiencyLevel[];
-  }): Promise<SupportedLanguagesResponse> {
+  async getBalance(apiKey: string): Promise<ApiResponse<BalanceResponse>> {
+    const apiKeyError = this.checkApiKey(apiKey);
+    if (apiKeyError) {
+      return apiKeyError;
+    }
+
+    this.logger.logInfo("Fetching current balance");
+
+    const response = await fetch(`${URLS.API_BASE}/v2/balance`, {
+      headers: {
+        "X-API-Key": apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      return this.handleErrorResponse(response, "Get balance");
+    }
+    const result = (await response.json()) as BalanceResponse;
+    return { success: true, data: result };
+  }
+
+  async getLanguages(
+    apiKey: string,
+    options?: {
+      codes?: string[];
+      proficiencyLevels?: LanguageProficiencyLevel[];
+    },
+  ): Promise<ApiResponse<SupportedLanguagesResponse>> {
+    const apiKeyError = this.checkApiKey(apiKey);
+    if (apiKeyError) {
+      return apiKeyError;
+    }
+
     const url = new URL(`${URLS.API_BASE}/v2/languages`);
     if (options?.codes) {
       for (const c of options.codes) {
@@ -125,21 +182,36 @@ export class L10nTranslationService {
       }
     }
 
-    const response = await fetch(url.toString());
+    this.logger.logInfo(
+      `Fetching supported languages with filters - codes: ${
+        options?.codes ? options.codes.join(",") : "none"
+      }, proficiency levels: ${
+        options?.proficiencyLevels
+          ? options.proficiencyLevels.join(",")
+          : "none"
+      }`,
+    );
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        "X-API-Key": apiKey,
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(
-        `Failed to get languages: ${response.status} ${response.statusText}`,
-      );
+      return this.handleErrorResponse(response, "Get languages");
     }
-
-    return (await response.json()) as SupportedLanguagesResponse;
+    const result = (await response.json()) as SupportedLanguagesResponse;
+    this.logger.logInfo(
+      `Successfully fetched ${result.languages.length} languages`,
+    );
+    return { success: true, data: result };
   }
 
   async predictLanguages(
     input: string,
     limit: number = 10,
-  ): Promise<Language[]> {
+  ): Promise<ApiResponse<Language[]>> {
     const url = new URL(`${URLS.API_BASE}/v2/languages/predict`);
     url.searchParams.append("input", input);
     url.searchParams.append("limit", limit.toString());
@@ -151,37 +223,24 @@ export class L10nTranslationService {
     const response = await fetch(url.toString());
 
     if (!response.ok) {
-      this.logger.logWarning(
-        `Language prediction failed - ${response.status} ${response.statusText}`,
-      );
-      const error = new Error(
-        `Failed to predict languages: ${response.statusText}`,
-      );
-      throw error;
+      return this.handleErrorResponse(response, "Predict languages");
     }
-
     const result: LanguagePredictionResponse =
       (await response.json()) as LanguagePredictionResponse;
 
     this.logger.logInfo(
       `Successfully predicted ${result.languages.length} languages`,
     );
-    return result.languages;
+    return { success: true, data: result.languages };
   }
 
   async translate(
     request: TranslationRequest,
     apiKey: string,
-  ): Promise<TranslationResult | null> {
-    if (!apiKey) {
-      this.logger.showAndLogError(
-        "API Key not set. Please configure your API Key first.",
-        null,
-        "",
-        "Get API Key",
-        URLS.API_KEYS,
-      );
-      return null;
+  ): Promise<TranslationResponse> {
+    const apiKeyError = this.checkApiKey(apiKey);
+    if (apiKeyError) {
+      return apiKeyError;
     }
 
     this.logger.logInfo(
@@ -197,118 +256,182 @@ export class L10nTranslationService {
       body: JSON.stringify(request),
     });
 
-    if (!response.ok) {
-      let errorMessage: string;
-      let errorData: any = null;
+    if (response.ok) {
+      const result = (await response.json()) as TranslationResult;
+      const currentBalance = result?.remainingBalance;
 
-      // Try to parse error response body
-      try {
-        errorData = await response.json();
-      } catch {
-        // Ignore JSON parsing errors
+      // Note: FinishReason.contentFilter and FinishReason.length return partial results with filteredStrings populated, so we treat them as success cases.
+      // Only FinishReason.error is treated as an error status.
+      if (!result || result.finishReason === FinishReason.error) {
+        const message = "Translation failed due to an error.";
+        this.logger.showAndLogError(message);
+        return {
+          success: false,
+          reason: "translationError",
+          message,
+          currentBalance,
+        };
       }
 
-      this.logger.logWarning(
-        `Translation API error - ${response.status} ${response.statusText}`,
-      );
-      if (errorData) {
-        this.logger.logWarning(
-          `API error details - ${JSON.stringify(errorData)}`,
-        );
-      }
-
-      switch (response.status) {
-        case 400: {
-          // Try to extract validation errors from the error response
-          let validationMessage =
-            "Invalid request. Please check your input and try again.";
-          if (errorData && errorData.errors) {
-            const errorDetails = errorData.errors;
-            if (Array.isArray(errorDetails)) {
-              validationMessage = errorDetails.join(" ");
-            } else if (typeof errorDetails === "object") {
-              validationMessage = Object.values(errorDetails)
-                .map((v) => (Array.isArray(v) ? v.join(" ") : v))
-                .join(" ");
-            }
-          }
-          errorMessage = validationMessage;
-          break;
-        }
-        case 401:
-          errorMessage = "Unauthorized. Please check your API Key.";
-          this.logger.showAndLogError(
-            errorMessage,
-            errorData,
-            "",
-            "Get API Key",
-            URLS.API_KEYS,
-          );
-          return null;
-        case 402: {
-          // Try to extract required characters from the error response
-          let message =
-            "Not enough characters remaining for this translation. You can try translating a smaller portion of your file or purchase more characters.";
-
-          const requiredBalance = errorData?.data?.requiredBalance as number;
-          if (requiredBalance) {
-            const currentBalance =
-              (errorData?.data?.currentBalance as number) ?? 0;
-            message = `This translation requires ${requiredBalance.toLocaleString()} characters, but you only have ${currentBalance.toLocaleString()} characters available. You can try translating a smaller portion of your file or purchase more characters.`;
-          }
-
-          this.logger.showAndLogError(
-            message,
-            errorData,
-            "",
-            "Visit l10n.dev",
-            URLS.PRICING,
-          );
-          return null;
-        }
-        case 413:
-          errorMessage = "Request too large. Maximum request size is 5 MB.";
-          break;
-        case 500:
-          errorMessage = `An internal server error occurred (Error code: ${
-            errorData?.errorCode || "unknown"
-          }). Please try again later.`;
-          break;
-        default:
-          errorMessage =
-            "Failed to translate. Please check your connection and try again.";
-      }
-
-      throw new Error(errorMessage);
-    }
-
-    const result = (await response.json()) as TranslationResult;
-
-    // Handle finish reasons
-    if (result.finishReason) {
       if (result.finishReason !== FinishReason.stop) {
         this.logger.logWarning(
           `Translation finished with reason: ${result.finishReason}`,
         );
       }
 
-      switch (result.finishReason) {
-        case FinishReason.insufficientBalance:
-          const message = `Not enough characters remaining for this translation. You can try translating a smaller portion of your file or purchase more characters.`;
-          this.logger.showAndLogError(
-            message,
-            undefined,
-            "",
-            "Visit l10n.dev",
-            URLS.PRICING,
-          );
-          return result;
-        case FinishReason.error:
-          throw new Error("Translation failed due to an error.");
-        // Note: FinishReason.contentFilter and FinishReason.length return partial results with filteredStrings
-      }
+      return { success: true, data: result, currentBalance };
     }
 
-    return result;
+    if (response.status === 402) {
+      this.logger.logWarning(
+        `Translation error - ${response.status} ${response.statusText}`,
+      );
+      const errorData = await this.parseErrorBody(response);
+      let message =
+        "Not enough characters remaining for this translation. You can try translating a smaller portion of your content or purchase more characters.";
+      const requiredBalance = errorData?.data?.requiredBalance as number;
+      const currentBalance = errorData?.data?.currentBalance as number;
+      if (requiredBalance && currentBalance !== undefined) {
+        message = `This translation requires ${requiredBalance.toLocaleString()} characters, but you only have ${currentBalance.toLocaleString()} characters available. You can try translating a smaller portion of your content or purchase more characters.`;
+      }
+      this.logger.showAndLogError(
+        message,
+        !requiredBalance ? errorData : undefined,
+        "",
+        "Visit l10n.dev",
+        URLS.PRICING,
+      );
+      return {
+        success: false,
+        reason: "paymentRequired",
+        message,
+        currentBalance,
+      };
+    } else if (response.status === 413) {
+      this.logger.logWarning(
+        `Translation error - ${response.status} ${response.statusText}`,
+      );
+      const errorData = await this.parseErrorBody(response);
+      const message = "Request too large. Maximum request size is 5 MB.";
+      this.logger.showAndLogError(message, errorData);
+      return { success: false, reason: "requestTooLarge", message };
+    }
+
+    return this.handleErrorResponse(response, "Translate");
+  }
+
+  private checkApiKey(
+    apiKey: string,
+  ): { success: false; reason: string; message: string } | null {
+    if (!apiKey) {
+      const message = "API Key not set. Please configure your API Key first.";
+      this.logger.showAndLogError(
+        message,
+        null,
+        "",
+        "Get API Key",
+        URLS.API_KEYS,
+      );
+      return { success: false, reason: "noApiKey", message };
+    }
+    return null;
+  }
+
+  /**
+   * Maps an HTTP error to a structured ApiResponse error.
+   * Handles 400 (with validation error extraction), 401, 403, 429, 502, 503, and 500.
+   */
+  private async handleErrorResponse(
+    response: Response,
+    title: string,
+  ): Promise<{ success: false; reason: string; message: string }> {
+    this.logger.logWarning(
+      `${title} failed - ${response.status} ${response.statusText}`,
+    );
+    const errorData = await this.parseErrorBody(response);
+    const status = response.status;
+    switch (status) {
+      case 400: {
+        let message = "Invalid request. Please check your input and try again.";
+        if (
+          errorData?.errors &&
+          typeof errorData.errors === "object" &&
+          !Array.isArray(errorData.errors)
+        ) {
+          const e = errorData.errors;
+          message = Object.keys(e)
+            .map((k) => {
+              const v = e[k];
+              if (k) {
+                // not empty key
+                if (Array.isArray(v)) {
+                  return `${k}: ${v.join(" ")}`;
+                } else {
+                  return `${k}: ${String(v)}`;
+                }
+              }
+              return Array.isArray(v) ? v.join(" ") : String(v);
+            })
+            .join("; \r\n");
+          this.logger.showAndLogError(message);
+        } else {
+          this.logger.showAndLogError(message, errorData);
+        }
+        return { success: false, reason: "badRequest", message };
+      }
+      case 401: {
+        const message = "Unauthorized. Please check your API Key.";
+        this.logger.showAndLogError(
+          message,
+          errorData,
+          "",
+          "Get API Key",
+          URLS.API_KEYS,
+        );
+        return { success: false, reason: "unauthorized", message: message };
+      }
+      case 403: {
+        const message =
+          "Forbidden. You don't have permission to access this resource.";
+        this.logger.showAndLogError(message, errorData);
+        return { success: false, reason: "forbidden", message: message };
+      }
+      case 429: {
+        const message =
+          "Too many requests. You're being rate limited. Please try again later.";
+        this.logger.showAndLogError(message, errorData);
+        return { success: false, reason: "rateLimited", message: message };
+      }
+      case 502:
+      case 503:
+      case 500: {
+        const message = `An internal server error occurred (Error code: ${
+          errorData?.errorCode ?? "unknown"
+        }). Please try again later.`;
+        this.logger.showAndLogError(message, errorData);
+        return { success: false, reason: "serverError", message: message };
+      }
+      default: {
+        const message = `Failed to ${title.toLowerCase()}: ${response.status} ${response.statusText}`;
+        this.logger.showAndLogError(message, errorData);
+        return { success: false, reason: "networkError", message: message };
+      }
+    }
+  }
+
+  /**
+   * Attempts to parse the response body as JSON. If parsing fails, returns the raw text.
+   * Logs a warning if JSON parsing fails.
+   */
+  private async parseErrorBody(response: Response): Promise<any> {
+    let rawBody: string | undefined;
+
+    try {
+      rawBody = await response.text();
+      return JSON.parse(rawBody);
+    } catch {
+      this.logger.logWarning("Failed to parse error response");
+      return rawBody;
+    }
   }
 }

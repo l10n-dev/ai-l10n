@@ -7,7 +7,7 @@ export class ApiKeyManager {
   private readonly configDir: string;
   private readonly configFile: string;
   private readonly noApiKeyMessage =
-    "ℹ️ API Key not found. Please provide it via:\n" +
+    "ℹ️  API Key not found. Please provide it via:\n" +
     "1. Configuration option (apiKey)\n" +
     "2. Environment variable (L10N_API_KEY)\n" +
     "3. Run 'ai-l10n config --api-key YOUR_KEY' to save it\n" +

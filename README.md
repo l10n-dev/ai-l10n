@@ -357,7 +357,7 @@ The service uses automated content filtering systems configured at moderate sens
 
 If strings are filtered, you'll see:
 ```
-⚠️ X string(s) were excluded due to content policy violations
+⚠️ Some strings were excluded due to content policy violations
 ℹ️ View content policy at: https://l10n.dev/terms-of-service#content-policy
 📝 Filtered strings saved to: path/to/file.filtered.json
 ```
