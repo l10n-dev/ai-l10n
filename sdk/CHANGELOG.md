@@ -5,6 +5,16 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-04-17
+
+### Changed
+- Updated to use `ai-l10n-core@1.5.1`
+- Set default client identifier on `translate()` requests.
+- Standardized the `reason` type used in API error responses to a fixed union of values.
+
+### Fixed
+- API documentation
+
 ## [1.5.0] - 2026-04-16
 
 ### Changed

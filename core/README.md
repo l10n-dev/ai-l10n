@@ -150,7 +150,7 @@ Retrieves the current character balance available for translation.
 
 **Returns:** `Promise<ApiResponse<BalanceResponse>>` — Always resolves (never throws). Check `success` to determine success or failure. On success, `data.currentBalance` holds the number of characters available.
 
-**Error reasons:** `noApiKey`, `unauthorized`, `networkError`
+**Error reasons:** `noApiKey`, `unauthorized`, `serverError`, `networkError`
 
 **Example:**
 ```typescript
@@ -172,7 +172,7 @@ Predicts possible language codes from a text input (language name in English or 
 
 **Returns:** `Promise<ApiResponse<Language[]>>` — Always resolves (never throws). On success, `data` is an array of predicted languages with codes and names.
 
-**Error reasons:** `networkError`
+**Error reasons:** , `serverError`, `networkError`
 
 ##### `getLanguages(apiKey: string, options?: { codes?: string[]; proficiencyLevels?: LanguageProficiencyLevel[] }): Promise<ApiResponse<SupportedLanguagesResponse>>`
 
@@ -186,7 +186,7 @@ Retrieves a list of supported languages, optionally filtered by language codes o
 
 **Returns:** `Promise<ApiResponse<SupportedLanguagesResponse>>` — Always resolves (never throws). On success, `data.languages` is an array of `SupportedLanguage` entries.
 
-**Error reasons:** `noApiKey`, `unauthorized`, `badRequest`, `networkError`
+**Error reasons:** `noApiKey`, `unauthorized`, `badRequest`, `serverError`, `networkError`
 
 **Example:**
 ```typescript
@@ -216,7 +216,21 @@ const response = await service.getLanguages(apiKey, {
 ```typescript
 type ApiResponse<T> =
   | { success: true; data: T }
-  | { success: false; reason: string; message: string };
+  | {
+      success: false;
+      reason:
+        | "paymentRequired"
+        | "translationError"
+        | "requestTooLarge"
+        | "badRequest"
+        | "unauthorized"
+        | "forbidden"
+        | "rateLimited"
+        | "serverError"
+        | "networkError"
+        | "noApiKey";
+      message: string;
+    };
 ```
 
 All methods that contact the API return an `ApiResponse<T>`. Check `success` before accessing `data`.
@@ -389,14 +403,16 @@ All methods always resolve — they never throw. Check `response.success`:
 
 | `reason` | Description |
 |----------|-------------|
-| `"noApiKey"` | API key was not provided |
-| `"unauthorized"` | API key is invalid (401) |
 | `"paymentRequired"` | Insufficient balance (402); `currentBalance` is set |
-| `"badRequest"` | Validation error (400); `message` contains details |
+| `"translationError"` | Translation failed; API returned `finishReason: "error"` |
 | `"requestTooLarge"` | Request exceeds 5 MB (413) |
+| `"badRequest"` | Validation error (400); `message` contains details |
+| `"unauthorized"` | API key is invalid (401) |
+| `"forbidden"` | API key lacks required permissions (403) |
+| `"rateLimited"` | Requests are being rate-limited (429) |
 | `"serverError"` | Internal server error (500) |
 | `"networkError"` | Connection or other failure |
-| `"translationError"` | API returned `finishReason: "error"` |
+| `"noApiKey"` | API key was not provided |
 
 ##### `getBalance()` error reasons
 
@@ -404,6 +420,7 @@ All methods always resolve — they never throw. Check `response.success`:
 |----------|-------------|
 | `"noApiKey"` | API key was not provided |
 | `"unauthorized"` | API key is invalid (401) |
+| `"serverError"` | Internal server error (500) |
 | `"networkError"` | Connection or other failure |
 
 ##### `getLanguages()` error reasons
@@ -413,12 +430,14 @@ All methods always resolve — they never throw. Check `response.success`:
 | `"noApiKey"` | API key was not provided |
 | `"unauthorized"` | API key is invalid (401) |
 | `"badRequest"` | Validation error (400); `message` contains details |
+| `"serverError"` | Internal server error (500) |
 | `"networkError"` | Connection or other failure |
 
 ##### `predictLanguages()` error reasons
 
 | `reason` | Description |
 |----------|-------------|
+| `"serverError"` | Internal server error (500) |
 | `"networkError"` | Connection or other failure |
 
 ---
