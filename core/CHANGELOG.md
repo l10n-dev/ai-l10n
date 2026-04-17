@@ -5,6 +5,15 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-04-17
+
+### Changed
+- Set default client identifier on `translate()` requests.
+- Standardized the `reason` type used in API error responses to a fixed union of values.
+
+### Fixed
+- API documentation
+
 ## [1.5.0] - 2026-04-16
 
 ### Added
@@ -12,7 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```typescript
   type ApiResponse<T> =
     | { success: true; data: T }
-    | { success: false; reason: string; message: string };
+    | {
+        success: false;
+        reason:
+          | "paymentRequired"
+          | "translationError"
+          | "requestTooLarge"
+          | "badRequest"
+          | "unauthorized"
+          | "forbidden"
+          | "rateLimited"
+          | "serverError"
+          | "networkError"
+          | "noApiKey";
+        message: string;
+      };
   ```
 - **Balance API** — New `getBalance(apiKey)` method on `L10nTranslationService` retrieves the current character balance from the `GET /v2/balance` endpoint. Returns `ApiResponse<BalanceResponse>` (always resolves, never throws).
 - **`BalanceResponse` type** — `{ currentBalance: number }`
@@ -24,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The method always resolves — it never throws
   - On success: `{ success: true, data: TranslationResult, currentBalance?: number }`
   - On error: `{ success: false, reason: string, message: string, currentBalance?: number }`
-  - `reason` values: `"noApiKey"`, `"unauthorized"`, `"paymentRequired"`, `"badRequest"`, `"requestTooLarge"`, `"serverError"`, `"networkError"`, `"translationError"`
+  - `reason` values: "paymentRequired", "translationError", "requestTooLarge", "badRequest", "unauthorized", "forbidden", "rateLimited", "serverError", "networkError", "noApiKey"
 - **`getLanguages()` now requires `apiKey` as its first parameter** (bug fix — previously no API key was sent)
   - New signature: `getLanguages(apiKey: string, options?: ...): Promise<ApiResponse<SupportedLanguagesResponse>>`
   - Returns structured `ApiResponse` instead of throwing; error reasons: `noApiKey`, `unauthorized`, `badRequest`, `networkError`

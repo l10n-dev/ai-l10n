@@ -129,6 +129,42 @@ suite("L10nTranslationService Test Suite", () => {
   });
 
   suite("JSON Translation", () => {
+    test("translate set client to 'ai-l10n-core-npmjs' if not provided", async () => {
+      const apiKey = "valid-api-key";
+
+      const request = {
+        sourceStrings: JSON.stringify({ hello: "Hello" }),
+        targetLanguageCode: "es",
+        useContractions: false,
+        useShortening: false,
+        schema: null,
+      };
+      const mockTranslationResult = {
+        targetLanguageCode: "es",
+        translations: JSON.stringify({ hello: "Hola" }),
+        usage: { charsUsed: 10 },
+        completedChunks: 1,
+        totalChunks: 1,
+      };
+      const mockFetchResponse = {
+        ok: true,
+        json: sinon.stub().resolves(mockTranslationResult),
+      };
+      mockFetch.resolves(mockFetchResponse);
+      const result: TranslationResponse = await service.translate(
+        request,
+        apiKey,
+      );
+      assert.strictEqual(result.success, true);
+      assert.deepStrictEqual(result.data, mockTranslationResult);
+      // Verify fetch was called with correct parameters
+      assert.ok(mockFetch.called);
+      const fetchCall = mockFetch.getCall(0);
+      const requestOptions = fetchCall.args[1];
+      const requestBody = JSON.parse(requestOptions.body);
+      assert.strictEqual(requestBody.client, "ai-l10n-core-npmjs");
+    });
+
     test("translate returns error when no API Key is set", async () => {
       const result: TranslationResponse = await service.translate(
         createRequest(),

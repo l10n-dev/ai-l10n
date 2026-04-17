@@ -117,7 +117,21 @@ export interface BalanceResponse {
  */
 export type ApiResponse<T> =
   | { success: true; data: T }
-  | { success: false; reason: string; message: string };
+  | {
+      success: false;
+      reason:
+        | "paymentRequired"
+        | "translationError"
+        | "requestTooLarge"
+        | "badRequest"
+        | "unauthorized"
+        | "forbidden"
+        | "rateLimited"
+        | "serverError"
+        | "networkError"
+        | "noApiKey";
+      message: string;
+    };
 
 // ── Translation Response ─────────────────────────────────────────────────────
 
@@ -247,6 +261,10 @@ export class L10nTranslationService {
       `Starting translation to ${request.targetLanguageCode}`,
     );
 
+    if (!request.client) {
+      request.client = "ai-l10n-core-npmjs";
+    }
+
     const response = await fetch(`${URLS.API_BASE}/v2/translate`, {
       method: "POST",
       headers: {
@@ -322,7 +340,7 @@ export class L10nTranslationService {
 
   private checkApiKey(
     apiKey: string,
-  ): { success: false; reason: string; message: string } | null {
+  ): { success: false; reason: "noApiKey"; message: string } | null {
     if (!apiKey) {
       const message = "API Key not set. Please configure your API Key first.";
       this.logger.showAndLogError(
@@ -344,7 +362,17 @@ export class L10nTranslationService {
   private async handleErrorResponse(
     response: Response,
     title: string,
-  ): Promise<{ success: false; reason: string; message: string }> {
+  ): Promise<{
+    success: false;
+    reason:
+      | "badRequest"
+      | "unauthorized"
+      | "forbidden"
+      | "rateLimited"
+      | "serverError"
+      | "networkError";
+    message: string;
+  }> {
     this.logger.logWarning(
       `${title} failed - ${response.status} ${response.statusText}`,
     );
