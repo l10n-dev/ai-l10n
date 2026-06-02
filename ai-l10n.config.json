@@ -3,7 +3,6 @@
     "sourceFile": "./test-data/en.json",
     "targetLanguages": ["es"],
     "translateOnlyNewStrings": false,
-    "generateGlossary": true,
     "verbose": true
   },
   {
