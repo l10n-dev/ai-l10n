@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-06-02
+
+### Fixed
+- Pass `targetStrings` to generate glossary with AI properly based on existing translations when `generateGlossary` is true.
+- `AiTranslator.translate()` now reads targie file if `generateGlossary` is true.
+
+### Changed
+- Updated to use `ai-l10n-sdk@1.6.1` and `ai-l10n-core@1.6.1`
+
 ## [1.6.0] - 2026-06-02
 
 ### Added

@@ -374,9 +374,12 @@ export class AiTranslator {
 
     // Check if target file exists and read it if updating
     let targetStrings: string | undefined = undefined;
-    if (translateOnlyNewStrings && fs.existsSync(targetFilePath)) {
+    if (
+      (translateOnlyNewStrings || generateGlossary) &&
+      fs.existsSync(targetFilePath)
+    ) {
       targetStrings = fs.readFileSync(targetFilePath, "utf8");
-      if (verbose) {
+      if (verbose && translateOnlyNewStrings) {
         this.logger.logInfo(`  📄 Updating existing file: ${targetFilePath}`);
       }
     }
