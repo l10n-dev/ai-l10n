@@ -5,6 +5,21 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-06-02
+
+### Added
+- **`I18nProjectManager.extractLanguageCodeFromPath(sourceFilePath)`** — New public method that returns the detected source language code from the file path (e.g., `"en"` for `locales/en.json`) or `null` if the structure is unrecognised. Used internally by `AiTranslator` to auto-populate `sourceLanguageCode` on translation requests.
+- **Extended `TranslationConfig`** with four new optional fields:
+  - `sourceLanguageCode?: string | null` — BCP-47 source language; auto-detected from the file path when not provided
+  - `generateGlossary?: boolean` — generates and saves a glossary for this language pair for future translations (default: `false`)
+  - `glossary?: GlossaryEntry[] | null` — override the active glossary: omit/`null` = use active, `[]` = disable, entries = replace for this request
+  - `terminology?: TerminologyEntry[]` — terms for consistent translation with disallowed synonyms
+- **`GlossaryEntry` and `TerminologyEntry`** re-exported from `ai-l10n-core` for convenience
+
+### Changed
+- Updated to use `ai-l10n-core@1.6.0`
+- `AiTranslator.translate()` now auto-detects the source language code from the project structure and passes it to the API as `sourceLanguageCode`
+
 ## [1.5.1] - 2026-04-17
 
 ### Changed

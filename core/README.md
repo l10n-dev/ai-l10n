@@ -294,6 +294,32 @@ interface TranslationRequest {
    * See the [supported formats table](https://l10n.dev/ws/translate-i18n-files#supported-formats).
    */
   format?: string;
+  
+  /**
+   * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
+   * If not specified, auto-detected from the source file path.
+   */
+  sourceLanguageCode?: string | null;
+
+  /**
+   * When true, generates a glossary from source and translated target content and saves it as the
+   * active glossary for this language pair for future translations.
+   * Balance is debited for the full source content upfront — even when translateOnlyNewStrings is true.
+   * When false (default), an internal glossary is generated only for large content at no extra cost.
+   */
+  generateGlossary?: boolean;
+
+  /**
+   * Glossary entries to apply during translation.
+   * null/omitted = use active glossary, [] = disable glossary, entries = replace active for this request.
+   * Manage saved glossaries at https://l10n.dev/ws/translation-glossary
+   */
+  glossary?: GlossaryEntry[] | null;
+
+  /**
+   * A list of terms for consistent translations. Synonyms are replaced by the preferred term.
+   */
+  terminology?: TerminologyEntry[];
 }
 ```
 
@@ -382,6 +408,7 @@ interface Language {
 }
 
 ```
+
 ##### SupportedLanguage
 
 ```typescript
@@ -392,6 +419,37 @@ interface SupportedLanguage {
   level?: "strong" | "high" | "moderate" | "limited";
   regions?: Region[] | null;
   scripts?: Script[] | null;
+}
+```
+
+#### GlossaryEntry
+
+Maps a source term to a preferred target translation for use in `TranslationConfig.glossary`.
+
+```typescript
+interface GlossaryEntry {
+  /** The term in the source language to be translated. Max length: 255. */
+  sourceTerm: string;
+  /** The preferred translation of the term in the target language. Max length: 255. */
+  targetTerm: string;
+  /**
+   * Optional context to clarify the meaning when the term is ambiguous. Max length: 500.
+   * Example: 'bank' could mean 'financial institution' or 'river bank'.
+   */
+  context?: string | null;
+}
+```
+
+#### TerminologyEntry
+
+Specifies a preferred term and disallowed synonyms for use in `TranslationConfig.terminology`.
+
+```typescript
+interface TerminologyEntry {
+  /** The preferred term to use in translations. */
+  term: string;
+  /** Synonyms that should be replaced by `term`. */
+  synonyms?: string[];
 }
 ```
 

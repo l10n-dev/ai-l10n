@@ -5,6 +5,22 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-06-02
+
+### Added
+- **`GlossaryEntry` interface** — Maps a source term to a preferred target translation with optional disambiguation context:
+  - `sourceTerm: string` (required, max 255 characters)
+  - `targetTerm: string` (required, max 255 characters)
+  - `context?: string | null` (optional, max 500 characters — clarifies meaning for ambiguous terms)
+- **`TerminologyEntry` interface** — Specifies a preferred term and disallowed synonyms for consistent translations:
+  - `term: string` (required)
+  - `synonyms?: string[]` — synonyms that should be replaced by `term`
+- **Extended `TranslationRequest`** with four new optional fields:
+  - `sourceLanguageCode?: string | null` — BCP-47 source language code; auto-detected from `sourceStrings` when not provided
+  - `generateGlossary?: boolean` — when `true`, generates a glossary from source and target strings and saves it as the active glossary for this language pair; balance is debited for the full source content upfront
+  - `glossary?: GlossaryEntry[] | null` — `null`/omitted = use active glossary, `[]` = disable glossary, entries = replace active glossary for this request
+  - `terminology?: TerminologyEntry[]` — list of terms for consistent translation
+
 ## [1.5.1] - 2026-04-17
 
 ### Changed

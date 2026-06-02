@@ -14,6 +14,8 @@ import {
   ILogger,
   validateLanguageCode,
   normalizeLanguageCode,
+  GlossaryEntry,
+  TerminologyEntry,
 } from "ai-l10n-core";
 
 /**
@@ -79,6 +81,36 @@ export interface TranslationConfig {
    * Enable verbose logging (default: false)
    */
   verbose?: boolean;
+
+  /**
+   * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
+   * If not specified, auto-detected from the source file path.
+   */
+  sourceLanguageCode?: string | null;
+
+  /**
+   * When true, generates a glossary from source and translated target content and saves it as the
+   * active glossary for this language pair for future translations.
+   * Balance is debited for the full source content upfront — even when `translateOnlyNewStrings` is true.
+   * When false (default), an internal glossary is generated only for large content that exceeds the AI
+   * chunk size, at no extra cost. (default: false)
+   */
+  generateGlossary?: boolean;
+
+  /**
+   * Glossary entries to apply during translation.
+   * - `null` or omitted: use the active glossary for this language pair.
+   * - Empty array `[]`: disable glossary translation entirely.
+   * - One or more entries: replace the active glossary for this request.
+   * Manage saved glossaries at https://l10n.dev/ws/translation-glossary
+   */
+  glossary?: GlossaryEntry[] | null;
+
+  /**
+   * A list of terms to use for consistent translations.
+   * Synonyms listed per entry will be replaced by the preferred term.
+   */
+  terminology?: TerminologyEntry[];
 }
 
 /**
@@ -144,6 +176,7 @@ export class AiTranslator {
       const apiKey = await this.apiKeyManager.ensureApiKey(config.apiKey);
 
       // Determine target languages
+      let sourceLanguageCode = config.sourceLanguageCode;
       let targetLanguages = config.targetLanguages;
 
       if (!targetLanguages || targetLanguages.length === 0) {
@@ -155,6 +188,13 @@ export class AiTranslator {
           throw new Error(
             "No target languages found. Please specify targetLanguages in config or ensure your project has the proper structure (e.g., folders named with language codes or files named with language codes).",
           );
+        }
+
+        // Auto-detect source language code from file path if not provided
+        // If we can detect target languages from the project structure, we can also attempt to detect the source language code from the file path.
+        if (!sourceLanguageCode) {
+          sourceLanguageCode =
+            this.i18nProjectManager.extractLanguageCodeFromPath(sourceFilePath);
         }
 
         this.logger.logInfo(
@@ -184,6 +224,9 @@ export class AiTranslator {
       const translateMetadata = config.translateMetadata ?? false;
       const saveFilteredStrings = config.saveFilteredStrings ?? true;
       const translateOnlyNewStrings = config.translateOnlyNewStrings ?? false;
+      const generateGlossary = config.generateGlossary ?? false;
+      const glossary = config.glossary;
+      const terminology = config.terminology;
 
       if (verbose) {
         this.logger.logInfo(`Configuration:
@@ -192,7 +235,11 @@ export class AiTranslator {
   - Generate plural forms: ${generatePluralForms}
   - Translate metadata: ${translateMetadata}
   - Save filtered strings: ${saveFilteredStrings}
-  - Translate only new strings: ${translateOnlyNewStrings}`);
+  - Translate only new strings: ${translateOnlyNewStrings}
+  - Source language: ${sourceLanguageCode ?? "auto-detect"}
+  - Generate glossary: ${generateGlossary}
+  - Glossary entries: ${glossary === undefined ? "use active" : glossary === null ? "use active" : glossary.length === 0 ? "disabled" : `${glossary.length} entries`}
+  - Terminology entries: ${terminology?.length ?? 0}`);
       }
 
       // Perform translations in parallel
@@ -225,6 +272,10 @@ export class AiTranslator {
               saveFilteredStrings,
               format,
               verbose,
+              sourceLanguageCode,
+              generateGlossary,
+              glossary,
+              terminology,
             );
 
             return result;
@@ -313,6 +364,10 @@ export class AiTranslator {
     saveFilteredStrings: boolean,
     format: string,
     verbose: boolean,
+    sourceLanguageCode: string | null | undefined,
+    generateGlossary: boolean,
+    glossary: GlossaryEntry[] | null | undefined,
+    terminology: TerminologyEntry[] | undefined,
   ): Promise<TranslationOutput & { remainingBalance?: number }> {
     // Read source file
     const sourceContent = fs.readFileSync(sourceFilePath, "utf8");
@@ -333,6 +388,7 @@ export class AiTranslator {
     const request: TranslationRequest = {
       sourceStrings: sourceContent,
       targetLanguageCode: normalizedLanguage,
+      sourceLanguageCode: sourceLanguageCode ?? null,
       useContractions,
       useShortening,
       generatePluralForms,
@@ -342,6 +398,9 @@ export class AiTranslator {
       targetStrings,
       schema: format === "arb" ? FileSchema.ARBFlutter : null,
       format,
+      generateGlossary,
+      glossary,
+      terminology,
     };
 
     // Call translation service

@@ -169,6 +169,15 @@ export class I18nProjectManager {
     }
   }
 
+  /**
+   * Extracts the source language code from the file path using project structure detection.
+   * Returns the language code (e.g., `"en"`, `"en-US"`) or `null` if it cannot be determined.
+   */
+  extractLanguageCodeFromPath(sourceFilePath: string): string | null {
+    const structureInfo = this.detectProjectStructure(sourceFilePath);
+    return structureInfo.sourceLanguage ?? null;
+  }
+
   getUniqueFilePath(filePath: string): string {
     if (!fs.existsSync(filePath)) {
       return filePath;
