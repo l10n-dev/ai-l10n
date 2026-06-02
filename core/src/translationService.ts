@@ -14,9 +14,40 @@ export enum FileSchema {
 }
 
 // API Types based on the OpenAPI specification
+
+/**
+ * A single glossary entry mapping a source term to a preferred target translation.
+ */
+export interface GlossaryEntry {
+  /** The term in the source language to be translated. Max length: 255. */
+  sourceTerm: string;
+  /** The preferred translation of the term in the target language. Max length: 255. */
+  targetTerm: string;
+  /**
+   * Optional context to clarify the meaning when the term is ambiguous.
+   * Example: 'bank' could mean 'financial institution' or 'river bank'. Max length: 500.
+   */
+  context?: string | null;
+}
+
+/**
+ * A terminology entry specifying a preferred term and disallowed synonyms.
+ */
+export interface TerminologyEntry {
+  /** The preferred term to use in translations. */
+  term: string;
+  /** Disallowed synonyms that should be replaced by `term`. */
+  synonyms?: string[];
+}
+
 export interface TranslationRequest {
   sourceStrings: string;
   targetLanguageCode: string;
+  /**
+   * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
+   * If not specified, the source language will be auto-detected from `sourceStrings` content.
+   */
+  sourceLanguageCode?: string | null;
   useContractions?: boolean;
   useShortening?: boolean;
   generatePluralForms?: boolean;
@@ -31,6 +62,24 @@ export interface TranslationRequest {
    * See https://l10n.dev/ws/translate-i18n-files#supported-formats for supported formats.
    */
   format?: string;
+  /**
+   * When false (default), a glossary is generated internally only for large content.
+   * When true, the glossary is generated from source and target strings, saved as the active
+   * glossary for this language pair, and balance is debited for the full source content upfront.
+   */
+  generateGlossary?: boolean;
+  /**
+   * Glossary entries to apply during translation.
+   * - `null` or omitted: use the active glossary for this language pair.
+   * - Empty array `[]`: disable glossary translation entirely.
+   * - One or more entries: replace the active glossary for this request.
+   */
+  glossary?: GlossaryEntry[] | null;
+  /**
+   * A list of terms to use for consistent translations.
+   * Synonyms listed per entry will be replaced by the preferred term.
+   */
+  terminology?: TerminologyEntry[];
 }
 
 export interface TranslationResult {

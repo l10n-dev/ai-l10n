@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-06-02
+
+### Added
+- **AI Glossary Generation** — New `generateGlossary` option (CLI: `--glossary`, config: `generateGlossary: true`) that generates a translation glossary from source and target content and saves it as the active glossary for this language pair, improving consistency across future translations. Balance is debited for the full source content upfront — even when `translateOnlyNewStrings` is enabled. When disabled (default), an internal glossary is generated only for large content that exceeds the AI chunk size at no extra cost.
+- **Manual Glossary Override** — New `glossary: GlossaryEntry[]` option in `TranslationConfig` to supply custom term mappings for a single request. Omit/`null` to use the active glossary, `[]` to disable glossary entirely, or provide entries to replace the active glossary for this request. Manage saved glossaries at [l10n.dev/ws/translation-glossary](https://l10n.dev/ws/translation-glossary).
+- **Terminology Support** — New `terminology: TerminologyEntry[]` option in `TranslationConfig` to specify preferred terms and disallowed synonyms for consistent translations.
+- **Source Language Detection** — `sourceLanguageCode` is now auto-detected from the project file path and sent to the API, improving auto-detection accuracy. Can be overridden via `sourceLanguageCode` in `TranslationConfig`.
+- **`GlossaryEntry` and `TerminologyEntry`** types exported from both `ai-l10n-sdk` and `ai-l10n-core`.
+- **`I18nProjectManager.extractLanguageCodeFromPath()`** — New public method in the SDK.
+
+### Changed
+- Updated to use `ai-l10n-sdk@1.6.0` and `ai-l10n-core@1.6.0`
+
 ## [1.5.1] - 2026-04-17
 
 ### Changed

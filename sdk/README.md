@@ -155,7 +155,7 @@ const result = await translator.translate({
 });
 ```
 
-For the full list of supported formats see the [API documentation](https://l10n.dev/ws/translate-i18n-files#supported-formats).
+For the full list of supported formats see the [API documentation](https://api.l10n.dev/doc/#tag/ai-translation/post/v2/translate).
 
 ### Multiple Files
 
@@ -168,6 +168,64 @@ for (const file of files) {
     targetLanguages: ['es', 'fr', 'de'],
   });
 }
+```
+
+### Glossary & Terminology
+
+#### Generate and Save a Glossary
+
+When `generateGlossary` is enabled, a glossary is built from the source and translated target content and saved as the active glossary for this source/target language pair. It is then used automatically on future translations.
+
+> **Balance note:** Balance is debited for the full source content upfront — even when `translateOnlyNewStrings` is `true`. When disabled (default), a temporary internal glossary is generated at no extra cost only for content that exceeds the AI chunk size.
+
+```typescript
+const result = await translator.translate({
+  sourceFile: './locales/en.json',
+  targetLanguages: ['de', 'fr'],
+  generateGlossary: true,
+});
+```
+
+Manage your saved glossaries at [l10n.dev/ws/translation-glossary](https://l10n.dev/ws/translation-glossary).
+
+#### Override the Glossary for a Single Request
+
+Supply your own term mappings via `glossary`. Each `GlossaryEntry` maps a source term to the preferred target translation with an optional context note.
+
+```typescript
+import { AiTranslator, GlossaryEntry } from 'ai-l10n-sdk';
+
+const glossary: GlossaryEntry[] = [
+  { sourceTerm: 'Settings', targetTerm: 'Einstellungen' },
+  { sourceTerm: 'bank', targetTerm: 'Bank', context: 'financial institution' },
+];
+
+const result = await translator.translate({
+  sourceFile: './locales/en.json',
+  targetLanguages: ['de'],
+  glossary,
+});
+```
+
+Pass an empty array (`glossary: []`) to disable the active glossary entirely for this request.
+
+#### Terminology
+
+Use `terminology` to enforce consistent term usage. Synonyms listed for each entry are replaced with the preferred `term`.
+
+```typescript
+import { AiTranslator, TerminologyEntry } from 'ai-l10n-sdk';
+
+const terminology: TerminologyEntry[] = [
+  { term: 'Settings', synonyms: ['Preferences', 'Options', 'Configuration'] },
+  { term: 'Dashboard' },
+];
+
+const result = await translator.translate({
+  sourceFile: './locales/en.json',
+  targetLanguages: ['de', 'fr'],
+  terminology,
+});
 ```
 
 ## Core API
@@ -284,6 +342,32 @@ interface TranslationConfig {
    * Enable verbose logging (default: false)
    */
   verbose?: boolean;
+
+  /**
+   * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
+   * If not specified, auto-detected from the source file path.
+   */
+  sourceLanguageCode?: string | null;
+
+  /**
+   * When true, generates a glossary from source and translated target content and saves it as the
+   * active glossary for this language pair for future translations.
+   * Balance is debited for the full source content upfront — even when translateOnlyNewStrings is true.
+   * When false (default), an internal glossary is generated only for large content at no extra cost.
+   */
+  generateGlossary?: boolean;
+
+  /**
+   * Glossary entries to apply during translation.
+   * null/omitted = use active glossary, [] = disable glossary, entries = replace active for this request.
+   * Manage saved glossaries at https://l10n.dev/ws/translation-glossary
+   */
+  glossary?: GlossaryEntry[] | null;
+
+  /**
+   * A list of terms for consistent translations. Synonyms are replaced by the preferred term.
+   */
+  terminology?: TerminologyEntry[];
 }
 ```
 
@@ -330,6 +414,37 @@ interface TranslationOutput {
 }
 ```
 
+#### GlossaryEntry
+
+Maps a source term to a preferred target translation for use in `TranslationConfig.glossary`.
+
+```typescript
+interface GlossaryEntry {
+  /** The term in the source language to be translated. Max length: 255. */
+  sourceTerm: string;
+  /** The preferred translation of the term in the target language. Max length: 255. */
+  targetTerm: string;
+  /**
+   * Optional context to clarify the meaning when the term is ambiguous. Max length: 500.
+   * Example: 'bank' could mean 'financial institution' or 'river bank'.
+   */
+  context?: string | null;
+}
+```
+
+#### TerminologyEntry
+
+Specifies a preferred term and disallowed synonyms for use in `TranslationConfig.terminology`.
+
+```typescript
+interface TerminologyEntry {
+  /** The preferred term to use in translations. */
+  term: string;
+  /** Synonyms that should be replaced by `term`. */
+  synonyms?: string[];
+}
+```
+
 ### I18nProjectManager
 
 Utility class for managing i18n project structure detection, language code validation, and file path generation.
@@ -353,6 +468,25 @@ Creates an instance of I18nProjectManager.
 - `logger?: ILogger` — Optional custom logger. Defaults to `ConsoleLogger` if not provided.
 
 #### Methods
+
+##### `extractLanguageCodeFromPath(sourceFilePath: string): string | null`
+
+Extracts the source language code from the file path using project structure detection.
+
+**Parameters:**
+- `sourceFilePath: string` - Path to the source file
+
+**Returns:** `string | null` — The detected language code (e.g., `"en"`, `"en-US"`) or `null` if the structure is unrecognised
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+manager.extractLanguageCodeFromPath('./locales/en.json');   // Returns: 'en'
+manager.extractLanguageCodeFromPath('./locales/en/common.json'); // Returns: 'en'
+manager.extractLanguageCodeFromPath('./lib/l10n/app_en_US.arb'); // Returns: 'en_US'
+manager.extractLanguageCodeFromPath('./strings.json');     // Returns: null
+```
 
 ##### `detectLanguagesFromProject(sourceFilePath: string): string[]`
 
@@ -440,6 +574,10 @@ manager.getUniqueFilePath('./output.json');
 manager.getUniqueFilePath('./output.json');
 // Returns: './output (2).json'
 ```
+
+### I18nProjectManager.extractLanguageCodeFromPath usage in AiTranslator
+
+`AiTranslator` calls `extractLanguageCodeFromPath()` automatically on each translation to populate `sourceLanguageCode` in the API request. You can override this by setting `sourceLanguageCode` explicitly in `TranslationConfig`.
 
 ## License
 

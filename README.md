@@ -23,6 +23,7 @@ Powered by [l10n](https://l10n.dev).dev
 - 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings are saved separately in i18n JSON format for review
 - 📊 **Usage Tracking** - Monitor character usage and remaining balance
 - 💰 **Free Tier** - Get 30,000 characters free every month
+- 📚 **Translation Glossary** - Generate and save AI glossaries for consistent terminology across translations. Supply custom term mappings or terminology lists to override AI choices
 
 ## Installation
 
@@ -86,6 +87,7 @@ npx ai-l10n translate ./locales/en.json \
   --shorten \                   # Use shortening
   --no-contractions \           # Don't use contractions (e.g., "don't" vs "do not")
   --update \                    # Update existing files only
+  --glossary \                  # Generate and save glossary for future translations
   --verbose                     # Detailed logging
 ```
 
@@ -347,6 +349,10 @@ theme/locales/
 | `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to a separate `.filtered` file |
 | `translateOnlyNewStrings` | `boolean` | `false` | Update existing files with only new translations |
 | `verbose` | `boolean` | `false` | Enable detailed logging |
+| `sourceLanguageCode` | `string \| null` | auto-detect | BCP-47 source language code (e.g., `"en"`, `"en-US"`). Auto-detected from the file path when not set |
+| `generateGlossary` | `boolean` | `false` | Generate and save a glossary from source and translated content for this language pair. Balance debited upfront for full source content. See [Translation Glossary](#translation-glossary) |
+| `glossary` | `GlossaryEntry[] \| null` | use active | Override the active glossary: `null`/omit = use active, `[]` = disable, entries = replace for this request |
+| `terminology` | `TerminologyEntry[]` | none | Terms for consistent translation — synonyms are replaced with the preferred term |
 
 ## Content Filtering
 
@@ -361,6 +367,58 @@ If strings are filtered, you'll see:
 ℹ️ View content policy at: https://l10n.dev/terms-of-service#content-policy
 📝 Filtered strings saved to: path/to/file.filtered.json
 ```
+
+## Translation Glossary
+
+A translation glossary maps specific source-language terms to approved target-language equivalents, ensuring the AI uses your exact terminology instead of valid-but-unintended synonyms. Glossaries are especially valuable for brand names, legal terms, clinical vocabulary, and product-specific concepts.
+
+### AI Glossary Generation (`--glossary` / `generateGlossary`)
+
+Use `--glossary` (CLI) or `generateGlossary: true` (config) to automatically build a glossary from the source and translated target content, then save it as the active glossary for this source/target language pair:
+
+```bash
+npx ai-l10n translate ./locales/en.json --languages de,fr --glossary
+```
+
+Once saved, the glossary is applied automatically on all future translations for the same language pair.
+
+> **Balance note:** When `--glossary` is enabled, your balance is debited for the full source content upfront — even when `--update` is on. When disabled (default), a temporary internal glossary is generated automatically at no extra cost only for large files that exceed the AI chunk size.
+
+### Manual Glossary Override (`glossary`)
+
+Supply your own term mappings via `glossary` in `TranslationConfig` (programmatic / batch config):
+
+```json
+{
+  "sourceFile": "./locales/en.json",
+  "targetLanguages": ["de"],
+  "glossary": [
+    { "sourceTerm": "Settings", "targetTerm": "Einstellungen" },
+    { "sourceTerm": "bank", "targetTerm": "Bank", "context": "financial institution" }
+  ]
+}
+```
+
+- **Omit or `null`**: use the active saved glossary for this language pair
+- **Empty array `[]`**: disable glossary entirely for this request
+- **One or more entries**: replace the active glossary for this request only
+
+### Terminology
+
+Use `terminology` to enforce consistent terms across translations. List synonyms that should be replaced by the preferred term:
+
+```json
+{
+  "sourceFile": "./locales/en.json",
+  "targetLanguages": ["de", "fr"],
+  "terminology": [
+    { "term": "Settings", "synonyms": ["Preferences", "Options"] },
+    { "term": "Dashboard" }
+  ]
+}
+```
+
+Manage your saved glossaries at [l10n.dev/ws/translation-glossary](https://l10n.dev/ws/translation-glossary).
 
 ## Language Support
 
