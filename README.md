@@ -22,7 +22,7 @@ Powered by [l10n](https://l10n.dev).dev
 - 🕵️ **Smart Error Detection & Chunking** - Automatically detects and retries if placeholders or formatting are lost. For large files, splits content into manageable chunks while maintaining context. Prevents issues common with direct AI uploads (Claude/GPT) where exceeding ~16,000 characters causes content loss
 - 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings are saved separately in i18n JSON format for review
 - 📊 **Usage Tracking** - Monitor character usage and remaining balance
-- 💰 **Free Tier** - Get 30,000 characters free every month
+- 💰 **Free Tier** - Get 10,000 characters free every month
 - 📚 **Translation Glossary** - Generate and save AI glossaries for consistent terminology across translations. Supply custom term mappings or terminology lists to override AI choices
 
 ## Installation
@@ -479,7 +479,7 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 
 ## Pricing
 
-- **Free Characters**: 30,000 characters free every month
+- **Free Characters**: 10,000 characters free every month
 - **Pay-as-you-go**: Affordable character-based pricing with no subscription required
 - **Current Pricing**: Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date rates
 
