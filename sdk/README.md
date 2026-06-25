@@ -46,7 +46,7 @@ console.log(`Used ${result.totalCharsUsed} characters`);
 // If targetLanguages is not provided or empty, languages will be auto-detected from project structure
 await translator.translate({
   sourceFile: './locales/en.json',
-  translateOnlyNewStrings: true,
+  translateOnlyNewStrings: true, // Updates existing files
 });
 ```
 
@@ -67,6 +67,7 @@ const config: TranslationConfig = {
   translateMetadata: false, // Keeps metadata unchanged (default)
   saveFilteredStrings: true,
   translateOnlyNewStrings: false,
+  instruction: "Use formal tone",
   replace: true, // Replaces existing files, overwise it adds a copy number in the end.
   verbose: true,
 };
