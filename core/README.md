@@ -283,17 +283,17 @@ interface TranslationRequest {
   translateOnlyNewStrings?: boolean;
 
   /** Existing target strings (for incremental updates) */
-  targetStrings?: string;
+  targetStrings?: string | null;
 
   /** File schema format */
-  schema: FileSchema | null;
+  schema?: FileSchema | null;
 
   /**
    * Localization file format (e.g., "json", "arb", "po", "yaml", "xml").
    * If not specified, auto-detected from sourceStrings content.
    * See the [supported formats table](https://l10n.dev/ws/translate-i18n-files#supported-formats).
    */
-  format?: string;
+  format?: string | null;
   
   /**
    * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
@@ -319,7 +319,23 @@ interface TranslationRequest {
   /**
    * A list of terms for consistent translations. Synonyms are replaced by the preferred term.
    */
-  terminology?: TerminologyEntry[];
+  terminology?: TerminologyEntry[] | null;
+
+  /**
+   * Linguistic instruction to apply during translation. 
+   * If null or not specified, the active linguistic instruction is used. 
+   * If an empty string is provided, linguistic instruction is disabled. 
+   * If a non-empty string is provided, it replaces the active linguistic instruction for this request.
+   * Max length: 1000. */
+  instruction?: string | null;
+
+  /** 
+   * The scope of the translation request. 
+   * When `translateOnlyNewStrings` is true, the scope determines which strings are considered new/changed. 
+   * It allows for more granular control over which strings are translated. 
+   * It can be a file name, namespace, or any other identifier.
+   */
+  scope?: string | null;
 }
 ```
 

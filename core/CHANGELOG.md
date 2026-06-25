@@ -5,6 +5,15 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-06-25
+
+### Added
+- `instruction` —  Linguistic Instruction controls the overall style, tone, and translation behavior.
+- `scope` —  When `translateOnlyNewStrings` is true, the scope determines which strings are considered new/changed. It allows for more granular control over which strings are translated. 
+
+### Changed
+- Updated README
+
 ## [1.6.3] - 2026-06-15
 
 ### Changed

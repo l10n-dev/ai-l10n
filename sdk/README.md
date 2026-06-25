@@ -42,9 +42,8 @@ console.log(`Used ${result.totalCharsUsed} characters`);
 ### Update Existing Translations
 
 ```typescript
-// Only translate new keys, preserve existing translations
-// If targetLanguages is not provided or empty, 
-// languages will be auto-detected from project structure
+// Only translate new/changed strings, preserve existing translations
+// If targetLanguages is not provided or empty, languages will be auto-detected from project structure
 await translator.translate({
   sourceFile: './locales/en.json',
   translateOnlyNewStrings: true,
@@ -65,9 +64,10 @@ const config: TranslationConfig = {
   generatePluralForms: true,
   useShortening: false,
   useContractions: true,
-  translateMetadata: false, // Keep metadata unchanged (default)
+  translateMetadata: false, // Keeps metadata unchanged (default)
   saveFilteredStrings: true,
   translateOnlyNewStrings: false,
+  replace: true, // Replaces existing files, overwise it adds a copy number in the end.
   verbose: true,
 };
 
@@ -228,6 +228,10 @@ const result = await translator.translate({
 });
 ```
 
+### Linguistic Instruction
+
+Use `instruction` to guide AI the overall style, tone, and translation behavior. Combined with AI Glossaries, they give much more control over localization quality and brand consistency.
+
 ## Core API
 
 `ILogger`, `ConsoleLogger`, `L10nTranslationService`, and all related types are part of the core library. See [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core) for full documentation. These are also re-exported from `ai-l10n-sdk` for convenience.
@@ -367,7 +371,21 @@ interface TranslationConfig {
   /**
    * A list of terms for consistent translations. Synonyms are replaced by the preferred term.
    */
-  terminology?: TerminologyEntry[];
+  terminology?: TerminologyEntry[] | null;
+
+  /**
+   * Linguistic instruction to apply during translation.
+   * If null or not specified, the active linguistic instruction is used.
+   * If an empty string is provided, linguistic instruction is disabled.
+   * If a non-empty string is provided, it replaces the active linguistic instruction for this request.
+   * Max length: 1000.
+   **/
+  instruction?: string | null;
+
+  /**
+   * If true, existing target files will be replaced. If false, new files will be created with unique names (default: false)
+   */
+  replace?: boolean;
 }
 ```
 
