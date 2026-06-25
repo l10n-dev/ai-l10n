@@ -1,0 +1,5 @@
+{
+  "welcome": "Welcome to our application",
+  "greeting": "Hello, {{name}}!",
+  "testReplace": "Should be replaced"
+}

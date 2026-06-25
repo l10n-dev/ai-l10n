@@ -54,20 +54,23 @@ export interface TranslationRequest {
   translateMetadata?: boolean;
   client: string;
   translateOnlyNewStrings?: boolean;
-  targetStrings?: string;
-  schema: FileSchema | null;
+  targetStrings?: string | null;
+  schema?: FileSchema | null;
+
   /**
    * Localization file format (e.g., "json", "arb", "po", "yaml", "xml").
    * If not specified, auto-detected from sourceStrings content.
    * See https://l10n.dev/ws/translate-i18n-files#supported-formats for supported formats.
    */
-  format?: string;
+  format?: string | null;
+
   /**
    * When false (default), a glossary is generated internally only for large content.
    * When true, the glossary is generated from source and target strings, saved as the active
    * glossary for this language pair, and balance is debited for the full source content upfront.
    */
   generateGlossary?: boolean;
+
   /**
    * Glossary entries to apply during translation.
    * - `null` or omitted: use the active glossary for this language pair.
@@ -75,11 +78,29 @@ export interface TranslationRequest {
    * - One or more entries: replace the active glossary for this request.
    */
   glossary?: GlossaryEntry[] | null;
+
   /**
    * A list of terms to use for consistent translations.
    * Synonyms listed per entry will be replaced by the preferred term.
    */
-  terminology?: TerminologyEntry[];
+  terminology?: TerminologyEntry[] | null;
+
+  /**
+   * Linguistic instruction to apply during translation.
+   * If null or not specified, the active linguistic instruction is used.
+   * If an empty string is provided, linguistic instruction is disabled.
+   * If a non-empty string is provided, it replaces the active linguistic instruction for this request.
+   * Max length: 1000.
+   **/
+  instruction?: string | null;
+
+  /**
+   * The scope of the translation request.
+   * When `translateOnlyNewStrings` is true, the scope determines which strings are considered new/changed.
+   * It allows for more granular control over which strings are translated.
+   * It can be a file name, namespace, or any other identifier.
+   */
+  scope?: string | null;
 }
 
 export interface TranslationResult {

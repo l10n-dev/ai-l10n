@@ -50,11 +50,20 @@ program
   .option("--no-save-filtered", "Don't save filtered strings to separate file")
   .option("--update", "Update existing files with only new translations", false)
   .option(
+    "--replace",
+    "Replace existing target files instead of creating new ones",
+    false,
+  )
+  .option(
     "--glossary",
     "Generate and save a glossary from source and translated content for this language pair. " +
       "Your balance is debited for the full source content upfront — even when 'Translate only new strings' is on. " +
       "Disable to let the system generate a temporary internal glossary only for large content that exceeds the AI limits, at no extra cost.",
     false,
+  )
+  .option(
+    "--instruction <instruction>",
+    "Linguistic instruction to apply during translation",
   )
   .option("-v, --verbose", "Enable verbose logging", false)
   .action(async (file: string, options: any) => {
@@ -71,6 +80,8 @@ program
       saveFilteredStrings: options.saveFiltered,
       translateOnlyNewStrings: options.update,
       generateGlossary: options.glossary,
+      instruction: options.instruction,
+      replace: options.replace,
       verbose: options.verbose,
     };
 

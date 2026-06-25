@@ -13,7 +13,7 @@ Powered by [l10n](https://l10n.dev).dev
 
 - 🤖 **AI-Powered Translations** - Context-aware translation to 165+ languages using advanced AI
 - 📁 **Smart Detection** - Automatically detects target languages from your project structure
-- 🔄 **Incremental Updates** - Translate only new strings while preserving existing translations
+- 🔄 **Incremental Updates** - Translate only new/changed strings while preserving existing translations
 - 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null stays null
 - 🎯 **Multiple Formats** - Supports JSON, JSONC, Flutter ARB, Shopify theme files, YAML, PO (gettext), XLIFF, and any other text-based localization format. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats)
 - ⚙️ **Flexible Configuration** - Use via CLI, programmatically, or in CI/CD pipelines
@@ -24,6 +24,7 @@ Powered by [l10n](https://l10n.dev).dev
 - 📊 **Usage Tracking** - Monitor character usage and remaining balance
 - 💰 **Free Tier** - Get 10,000 characters free every month
 - 📚 **Translation Glossary** - Generate and save AI glossaries for consistent terminology across translations. Supply custom term mappings or terminology lists to override AI choices
+- **Linguistic Instruction** - Control the overall style, tone, and translation behavior
 
 ## Installation
 
@@ -87,7 +88,9 @@ npx ai-l10n translate ./locales/en.json \
   --shorten \                   # Use shortening
   --no-contractions \           # Don't use contractions (e.g., "don't" vs "do not")
   --update \                    # Update existing files only
+  --replace \                   # Replace existing files (overwise it adds a copy number e.g., `es (1).json`)
   --glossary \                  # Generate and save glossary for future translations
+  --instruction "Be formal" \   # Control the overall style, tone, and translation behavior
   --verbose                     # Detailed logging
 ```
 
@@ -105,7 +108,8 @@ Create a config file `translate-config.json`:
   },
   {
     "sourceFile": "./locales/en/admin.json",
-    "targetLanguages": ["pl", "ru", "ar", "de"]
+    "targetLanguages": ["pl", "ru", "ar", "de"],
+    "replace": true
   }
 ]
 ```
@@ -157,6 +161,7 @@ Add scripts to your `package.json`:
   "scripts": {
     "translate": "ai-l10n translate ./locales/en.json",
     "translate:update": "ai-l10n translate ./locales/en.json --update",
+    "translate:replace": "ai-l10n translate ./locales/en.json --replace",
     "translate:all": "ai-l10n batch translate-config.json"
   }
 }
@@ -167,6 +172,7 @@ Then run:
 ```bash
 npm run translate
 npm run translate:update
+npm run translate:replace
 npm run translate:all
 ```
 
@@ -347,11 +353,13 @@ theme/locales/
 | `useContractions` | `boolean` | `true` | Use contractions in translations (using contractions makes the translation less formal) |
 | `translateMetadata` | `boolean` | `false` | Translate metadata along with UI strings. For example, in Flutter ARB files, metadata entries like @key contain descriptions that can also be translated. Disabling this option ensures that metadata remains unchanged in the target files |
 | `saveFilteredStrings` | `boolean` | `true` | Save filtered strings (i18n JSON format with source strings excluded due to content policy violations) to a separate `.filtered` file |
-| `translateOnlyNewStrings` | `boolean` | `false` | Update existing files with only new translations |
+| `translateOnlyNewStrings` | `boolean` | `false` | Update existing files with only new/changed translations. When `true`, we store hashes of source strings (without text itself), so the system can detect which strings are new vs. old based on the presence of their hashes. |
+| `replace` | `boolean` | `false` | Replace existing files with new translations, overwise if the target file already exists it adds a copy number (e.g., `es (1).json`) |
 | `verbose` | `boolean` | `false` | Enable detailed logging |
 | `sourceLanguageCode` | `string \| null` | auto-detect | BCP-47 source language code (e.g., `"en"`, `"en-US"`). Auto-detected from the file path when not set |
 | `generateGlossary` | `boolean` | `false` | Generate and save a glossary from source and translated content for this language pair. Balance debited upfront for full source content. See [Translation Glossary](#translation-glossary) |
 | `glossary` | `GlossaryEntry[] \| null` | use active | Override the active glossary: `null`/omit = use active, `[]` = disable, entries = replace for this request |
+| `instruction` | `string \| null` | use active | Override the active linquistic instruction: `null`/omit = use active, ` ` = disable, `string` = replace for this request |
 | `terminology` | `TerminologyEntry[]` | none | Terms for consistent translation — synonyms are replaced with the preferred term |
 
 ## Content Filtering
@@ -380,7 +388,8 @@ Use `--glossary` (CLI) or `generateGlossary: true` (config) to automatically bui
 npx ai-l10n translate ./locales/en.json --languages de,fr --glossary
 ```
 
-Once saved, the glossary is applied automatically on all future translations for the same language pair.
+Once saved, the glossary is applied automatically on all future translations for the same language pair. 
+Manage your saved glossaries at [l10n.dev/ws/translation-glossary](https://l10n.dev/ws/translation-glossary).
 
 > **Balance note:** When `--glossary` is enabled, your balance is debited for the full source content upfront — even when `--update` is on. When disabled (default), a temporary internal glossary is generated automatically at no extra cost only for large files that exceed the AI chunk size.
 
@@ -418,7 +427,22 @@ Use `terminology` to enforce consistent terms across translations. List synonyms
 }
 ```
 
-Manage your saved glossaries at [l10n.dev/ws/translation-glossary](https://l10n.dev/ws/translation-glossary).
+## Linguistic Instructions
+
+Use `instruction` to set a Linguistic Instruction, it let you guide AI, for example:
+- 📝 "Use formal tone"
+- 📝 "Do not translate product names"
+- 📝 "Use active voice"
+
+Unlike glossaries that control specific terms, Linguistic Instructions control the overall style, tone, and translation behavior.
+Combined with AI Glossaries, they give much more control over localization quality and brand consistency. 
+
+```bash
+npx ai-l10n translate ./locales/en.json --languages de,fr --instruction "Use formal tone"
+```
+
+If not set it applies saved active linguistic Instruction.  
+Manage your saved linguistic Instructions at [l10n.dev/ws/linguistic-instructions](https://l10n.dev/ws/linguistic-instructions).
 
 ## Language Support
 
