@@ -46,7 +46,7 @@ jobs:
             {
               "sourceFile": "./test-data/en.json",
               "targetLanguages": ["es"],
-              "translateOnlyNewStrings": false,
+              "replace": true,
               "generateGlossary": true,
               "verbose": true
             },

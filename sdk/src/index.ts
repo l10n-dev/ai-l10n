@@ -110,7 +110,21 @@ export interface TranslationConfig {
    * A list of terms to use for consistent translations.
    * Synonyms listed per entry will be replaced by the preferred term.
    */
-  terminology?: TerminologyEntry[];
+  terminology?: TerminologyEntry[] | null;
+
+  /**
+   * Linguistic instruction to apply during translation.
+   * If null or not specified, the active linguistic instruction is used.
+   * If an empty string is provided, linguistic instruction is disabled.
+   * If a non-empty string is provided, it replaces the active linguistic instruction for this request.
+   * Max length: 1000.
+   **/
+  instruction?: string | null;
+
+  /**
+   * If true, existing target files will be replaced. If false, new files will be created with unique names (default: false)
+   */
+  replace?: boolean;
 }
 
 /**
@@ -227,6 +241,8 @@ export class AiTranslator {
       const generateGlossary = config.generateGlossary ?? false;
       const glossary = config.glossary;
       const terminology = config.terminology;
+      const instruction = config.instruction;
+      const replace = config.replace ?? false;
 
       if (verbose) {
         this.logger.logInfo(`Configuration:
@@ -239,7 +255,9 @@ export class AiTranslator {
   - Source language: ${sourceLanguageCode ?? "auto-detect"}
   - Generate glossary: ${generateGlossary}
   - Glossary entries: ${glossary === undefined ? "use active" : glossary === null ? "use active" : glossary.length === 0 ? "disabled" : `${glossary.length} entries`}
-  - Terminology entries: ${terminology?.length ?? 0}`);
+  - Terminology entries: ${terminology?.length ?? 0}
+  - Instruction: ${instruction ?? "use active"}
+  - Replace existing translations: ${replace}`);
       }
 
       // Perform translations in parallel
@@ -276,6 +294,8 @@ export class AiTranslator {
               generateGlossary,
               glossary,
               terminology,
+              instruction,
+              replace,
             );
 
             return result;
@@ -367,10 +387,13 @@ export class AiTranslator {
     sourceLanguageCode: string | null | undefined,
     generateGlossary: boolean,
     glossary: GlossaryEntry[] | null | undefined,
-    terminology: TerminologyEntry[] | undefined,
+    terminology: TerminologyEntry[] | null | undefined,
+    instruction: string | null | undefined,
+    replace: boolean,
   ): Promise<TranslationOutput & { remainingBalance?: number }> {
     // Read source file
     const sourceContent = fs.readFileSync(sourceFilePath, "utf8");
+    const sourceFileName = path.basename(sourceFilePath);
 
     // Check if target file exists and read it if updating
     let targetStrings: string | undefined = undefined;
@@ -404,6 +427,8 @@ export class AiTranslator {
       generateGlossary,
       glossary,
       terminology,
+      instruction,
+      scope: sourceFileName,
     };
 
     // Call translation service
@@ -428,7 +453,7 @@ export class AiTranslator {
 
     // Determine output path
     let outputPath = targetFilePath;
-    if (!translateOnlyNewStrings) {
+    if (!translateOnlyNewStrings && !replace) {
       outputPath = this.i18nProjectManager.getUniqueFilePath(targetFilePath);
     }
 
