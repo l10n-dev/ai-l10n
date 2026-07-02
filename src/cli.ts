@@ -37,7 +37,7 @@ program
   )
   .option(
     "-k, --api-key <key>",
-    "API key for l10n.dev (or set L10N_API_KEY env variable)",
+    "API key for l10n.dev (store using 'ai-l10n config --api-key <key>' or set L10N_API_KEY env variable)",
   )
   .option("--plural", "Generate plural forms", false)
   .option("--shorten", "Use shortening in translations", false)
@@ -48,7 +48,11 @@ program
     false,
   )
   .option("--no-save-filtered", "Don't save filtered strings to separate file")
-  .option("--update", "Update existing files with only new translations", false)
+  .option(
+    "--update",
+    "Update existing files (translates only new and changed strings)",
+    false,
+  )
   .option(
     "--replace",
     "Replace existing target files instead of creating new ones",

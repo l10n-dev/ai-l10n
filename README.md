@@ -87,8 +87,8 @@ npx ai-l10n translate ./locales/en.json \
   --plural \                    # Generate plural forms (adds suffixes, e.g., for i18next)
   --shorten \                   # Use shortening
   --no-contractions \           # Don't use contractions (e.g., "don't" vs "do not")
-  --update \                    # Update existing files only
-  --replace \                   # Replace existing files (overwise it adds a copy number e.g., `es (1).json`)
+  --update \                    # Update existing files (translates only new and changed strings)
+  --replace \                   # Replace existing files (rewrites file with new translations, overwise it adds a copy number e.g., `es (1).json`)
   --glossary \                  # Generate and save glossary for future translations
   --instruction "Be formal" \   # Control the overall style, tone, and translation behavior
   --verbose                     # Detailed logging
