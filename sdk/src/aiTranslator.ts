@@ -8,7 +8,6 @@ import {
   TranslationResult,
   FileSchema,
   FinishReason,
-  CONFIG,
   URLS,
   ConsoleLogger,
   ILogger,
@@ -32,12 +31,6 @@ export interface TranslationConfig {
    * If not provided, will be auto-detected from project structure
    */
   targetLanguages?: string[];
-
-  /**
-   * API key for l10n.dev service
-   * Can also be set via L10N_API_KEY environment variable
-   */
-  apiKey?: string;
 
   /**
    * Generates additional plural form strings (e.g., for i18next) with plural suffixes.
@@ -136,10 +129,10 @@ export interface TranslationOutput {
   outputPath?: string;
   charsUsed?: number;
   usageDetails?: {
-    sourceStringsCharCount?: number;
-    terminologyCharCount?: number;
-    glossaryCharCount?: number;
-    instructionCharCount?: number;
+    sourceStringsCharCount: number;
+    terminologyCharCount: number;
+    glossaryCharCount: number;
+    instructionCharCount: number;
   };
   error?: string;
 }
@@ -170,8 +163,14 @@ export class AiTranslator {
 
   /**
    * Translate a localization file to one or more target languages
+   * @param config Translation configuration
+   * @param apiKey Optional API key to use for this translation. If not provided, will be retrieved from environment variable or stored config.
+   * @returns Translation summary with results for each target language
    */
-  async translate(config: TranslationConfig): Promise<TranslationSummary> {
+  async translate(
+    config: TranslationConfig,
+    apiKey?: string,
+  ): Promise<TranslationSummary> {
     const verbose = config.verbose ?? false;
 
     try {
@@ -193,7 +192,9 @@ export class AiTranslator {
       }
 
       // Ensure API key is available
-      const apiKey = await this.apiKeyManager.ensureApiKey(config.apiKey);
+      if (!apiKey) {
+        apiKey = await this.apiKeyManager.ensureApiKey();
+      }
 
       // Determine target languages
       let sourceLanguageCode = config.sourceLanguageCode;
@@ -284,7 +285,7 @@ export class AiTranslator {
             );
 
             const result = await this.performTranslation(
-              apiKey,
+              apiKey!,
               sourceFilePath,
               targetLanguage,
               targetFilePath,
@@ -425,7 +426,7 @@ export class AiTranslator {
       useShortening,
       generatePluralForms,
       translateMetadata,
-      client: CONFIG.CLIENT,
+      client: "ai-l10n-npmjs",
       translateOnlyNewStrings,
       targetStrings,
       schema: format === "arb" ? FileSchema.ARBFlutter : null,
@@ -527,33 +528,5 @@ export class AiTranslator {
     } else {
       this.logger.logInfo(`  📝 Filtered strings:\n${filteredStringsContent}`);
     }
-  }
-
-  /**
-   * Set API key for l10n.dev service
-   */
-  async setApiKey(apiKey: string): Promise<void> {
-    await this.apiKeyManager.setApiKey(apiKey);
-  }
-
-  /**
-   * Clear stored API key
-   */
-  async clearApiKey(): Promise<void> {
-    await this.apiKeyManager.clearApiKey();
-  }
-
-  /**
-   * Get current API key (if set)
-   */
-  async getApiKey(): Promise<string | undefined> {
-    return await this.apiKeyManager.getApiKey();
-  }
-
-  /**
-   * Mask the API key for display purposes
-   */
-  async displayApiKey(): Promise<string> {
-    return await this.apiKeyManager.displayApiKey();
   }
 }

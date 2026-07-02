@@ -544,13 +544,11 @@ interface ILogger {
 ### Constants
 
 ```typescript
-import { URLS, CONFIG } from 'ai-l10n-core';
+import { URLS } from 'ai-l10n-core';
 
 // API endpoints
 URLS.API_BASE    // Base URL for l10n.dev API
 
-// Configuration keys
-CONFIG.API_KEY   // Key name for stored API key
 ```
 
 ---

@@ -60,7 +60,6 @@ const translator = new AiTranslator();
 const config: TranslationConfig = {
   sourceFile: './locales/en.json',
   targetLanguages: ['es', 'fr', 'de', 'ja', 'zh-CN'],
-  apiKey: 'your-api-key', // Optional, can use env variable
   generatePluralForms: true,
   useShortening: false,
   useContractions: true,
@@ -265,17 +264,15 @@ Creates an instance of AiTranslator.
 - **Results Saving**: Automatically saves translated files adjacent to the source file with appropriate language suffixes (e.g., `en.json` → `es.json`, `fr.json`)
 - **Incremental Updates**: When `translateOnlyNewStrings: true`, reads existing target files, merges new translations, and overwrites the files
 
-**Notes:**
-- If apiKey is not provided in TranslationConfig, the SDK uses the L10N_API_KEY environment variable.
-
 #### Methods
 
-##### `translate(config: TranslationConfig): Promise<TranslationSummary>`
+##### `translate(config: TranslationConfig, apiKey?: string): Promise<TranslationSummary>`
 
 Translates a i18n file to one or more target languages.
 
 **Parameters:**
 - `config: TranslationConfig` - Translation configuration object
+- `apiKey?: string` - Optional API key to use for this translation. If not provided, will be retrieved from environment variable or stored config.
 
 **Returns:** `Promise<TranslationSummary>` - Summary of translation results
 
@@ -299,12 +296,6 @@ interface TranslationConfig {
    * If not provided, will be auto-detected from project structure
    */
   targetLanguages?: string[];
-
-  /**
-   * API key for l10n.dev service
-   * Can also be set via L10N_API_KEY environment variable
-   */
-  apiKey?: string;
 
   /**
    * Generates additional plural form strings (e.g., for i18next) with plural suffixes.
@@ -429,10 +420,10 @@ interface TranslationOutput {
   charsUsed?: number;
 
   usageDetails?: {
-    sourceStringsCharCount?: number;
-    terminologyCharCount?: number;
-    glossaryCharCount?: number;
-    instructionCharCount?: number;
+    sourceStringsCharCount: number;
+    terminologyCharCount: number;
+    glossaryCharCount: number;
+    instructionCharCount: number;
   };
   
   /** Error message (if failed) */

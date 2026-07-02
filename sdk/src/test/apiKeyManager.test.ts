@@ -29,15 +29,15 @@ suite("ApiKeyManager Test Suite", () => {
 
   suite("API Key Storage", () => {
     test("returns undefined when no API key is stored", async () => {
-      const apiKey = await manager.getApiKey();
+      const apiKey = await manager.getStoredApiKey();
       assert.strictEqual(apiKey, undefined);
     });
 
     test("stores and retrieves API key", async () => {
       const testKey = "test-api-key-12345";
 
-      await manager.setApiKey(testKey);
-      const retrievedKey = await manager.getApiKey();
+      await manager.storeApiKey(testKey);
+      const retrievedKey = await manager.getStoredApiKey();
 
       assert.strictEqual(retrievedKey, testKey);
     });
@@ -49,7 +49,7 @@ suite("ApiKeyManager Test Suite", () => {
       // Ensure directory doesn't exist
       assert.strictEqual(fs.existsSync(configDir), false);
 
-      await manager.setApiKey(testKey);
+      await manager.storeApiKey(testKey);
 
       // Directory should now exist
       assert.strictEqual(fs.existsSync(configDir), true);
@@ -59,16 +59,16 @@ suite("ApiKeyManager Test Suite", () => {
       const firstKey = "first-key";
       const secondKey = "second-key";
 
-      await manager.setApiKey(firstKey);
-      await manager.setApiKey(secondKey);
+      await manager.storeApiKey(firstKey);
+      await manager.storeApiKey(secondKey);
 
-      const retrievedKey = await manager.getApiKey();
+      const retrievedKey = await manager.getStoredApiKey();
       assert.strictEqual(retrievedKey, secondKey);
     });
 
     test("stores API key in valid JSON format", async () => {
       const testKey = "test-key-json";
-      await manager.setApiKey(testKey);
+      await manager.storeApiKey(testKey);
 
       const configData = fs.readFileSync(configFilePath, "utf8");
       const config = JSON.parse(configData);
@@ -81,84 +81,71 @@ suite("ApiKeyManager Test Suite", () => {
   suite("API Key Deletion", () => {
     test("clears stored API key", async () => {
       const testKey = "test-key-to-clear";
-      await manager.setApiKey(testKey);
+      await manager.storeApiKey(testKey);
 
       // Verify key is stored
-      let retrievedKey = await manager.getApiKey();
+      let retrievedKey = await manager.getStoredApiKey();
       assert.strictEqual(retrievedKey, testKey);
 
       // Clear the key
-      await manager.clearApiKey();
+      await manager.clearStoredApiKey();
 
       // Verify key is cleared
-      retrievedKey = await manager.getApiKey();
+      retrievedKey = await manager.getStoredApiKey();
       assert.strictEqual(retrievedKey, undefined);
     });
 
     test("clearing non-existent key doesn't throw error", async () => {
       await assert.doesNotReject(async () => {
-        await manager.clearApiKey();
+        await manager.clearStoredApiKey();
       });
     });
 
     test("removes config file when clearing", async () => {
       const testKey = "test-key";
-      await manager.setApiKey(testKey);
+      await manager.storeApiKey(testKey);
 
       assert.strictEqual(fs.existsSync(configFilePath), true);
 
-      await manager.clearApiKey();
+      await manager.clearStoredApiKey();
       assert.strictEqual(fs.existsSync(configFilePath), false);
     });
   });
 
   suite("API Key Validation", () => {
     test("ensures API key is provided with environment variable fallback", async () => {
-      const envKey = "env-api-key";
-      const providedKey = "provided-key";
-
-      // Test with provided key
-      const result1 = await manager.ensureApiKey(providedKey);
-      assert.strictEqual(result1, providedKey);
+      // Test with stored key
+      await manager.storeApiKey("stored-key");
+      const result = await manager.ensureApiKey();
+      assert.strictEqual(result, "stored-key");
 
       // Test with environment variable
+      const envKey = "env-api-key";
       process.env.L10N_API_KEY = envKey;
       const result2 = await manager.ensureApiKey();
       assert.strictEqual(result2, envKey);
       delete process.env.L10N_API_KEY;
 
       // Test with stored key
-      await manager.setApiKey("stored-key");
       const result3 = await manager.ensureApiKey();
       assert.strictEqual(result3, "stored-key");
     });
 
     test("throws error when no API key is available", async () => {
       // Clear any existing keys
-      await manager.clearApiKey();
+      await manager.clearStoredApiKey();
       delete process.env.L10N_API_KEY;
 
       await assert.rejects(
         async () => await manager.ensureApiKey(),
-        /API Key not found/
+        /API Key not found/,
       );
-    });
-
-    test("prefers provided key over environment and stored", async () => {
-      const providedKey = "provided-priority-key";
-      process.env.L10N_API_KEY = "env-key";
-      await manager.setApiKey("stored-key");
-
-      const result = await manager.ensureApiKey(providedKey);
-      assert.strictEqual(result, providedKey);
-
-      delete process.env.L10N_API_KEY;
     });
 
     test("prefers environment key over stored", async () => {
       const envKey = "env-priority-key";
       process.env.L10N_API_KEY = envKey;
-      await manager.setApiKey("stored-key");
+      await manager.storeApiKey("stored-key");
 
       const result = await manager.ensureApiKey();
       assert.strictEqual(result, envKey);
@@ -175,7 +162,7 @@ suite("ApiKeyManager Test Suite", () => {
       fs.mkdirSync(configDir, { recursive: true });
       fs.writeFileSync(configFilePath, "{ invalid json", "utf8");
 
-      const apiKey = await manager.getApiKey();
+      const apiKey = await manager.getStoredApiKey();
       assert.strictEqual(apiKey, undefined);
     });
 
@@ -186,12 +173,12 @@ suite("ApiKeyManager Test Suite", () => {
         return;
       }
 
-      await manager.setApiKey("test-key");
+      await manager.storeApiKey("test-key");
 
       // Make file unreadable
       fs.chmodSync(configFilePath, 0o000);
 
-      const apiKey = await manager.getApiKey();
+      const apiKey = await manager.getStoredApiKey();
       assert.strictEqual(apiKey, undefined);
 
       // Restore permissions for cleanup
@@ -212,8 +199,8 @@ suite("ApiKeyManager Test Suite", () => {
       fs.chmodSync(configDir, 0o444);
 
       await assert.rejects(
-        async () => await manager.setApiKey("test-key"),
-        /Failed to save API key/
+        async () => await manager.storeApiKey("test-key"),
+        /Failed to save API key/,
       );
 
       // Restore permissions for cleanup
@@ -223,7 +210,7 @@ suite("ApiKeyManager Test Suite", () => {
 
   suite("Config File Structure", () => {
     test("stores config with proper indentation", async () => {
-      await manager.setApiKey("test-key");
+      await manager.storeApiKey("test-key");
 
       const configData = fs.readFileSync(configFilePath, "utf8");
 
@@ -233,7 +220,7 @@ suite("ApiKeyManager Test Suite", () => {
     });
 
     test("stores only apiKey in config", async () => {
-      await manager.setApiKey("test-key");
+      await manager.storeApiKey("test-key");
 
       const configData = fs.readFileSync(configFilePath, "utf8");
       const config = JSON.parse(configData);
@@ -247,9 +234,9 @@ suite("ApiKeyManager Test Suite", () => {
   suite("Display API Key", () => {
     test("displays API key with proper masking", async () => {
       const testKey = "abcdefghijklmnopqrstuvwxyz";
-      await manager.setApiKey(testKey);
+      await manager.storeApiKey(testKey);
 
-      const displayed = await manager.displayApiKey();
+      const displayed = await manager.displayStoredApiKey();
 
       // Should show first 8 and last 4 characters
       assert.ok(displayed.includes("abcdefgh"));
@@ -258,15 +245,15 @@ suite("ApiKeyManager Test Suite", () => {
     });
 
     test("displays message when no key is stored", async () => {
-      const displayed = await manager.displayApiKey();
+      const displayed = await manager.displayStoredApiKey();
       assert.ok(displayed.includes("API Key not found"));
     });
 
     test("displays short keys completely if less than 12 chars", async () => {
       const shortKey = "short";
-      await manager.setApiKey(shortKey);
+      await manager.storeApiKey(shortKey);
 
-      const displayed = await manager.displayApiKey();
+      const displayed = await manager.displayStoredApiKey();
       // For very short keys, it should handle gracefully
       assert.ok(displayed.length > 0);
     });

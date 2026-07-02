@@ -3,7 +3,7 @@
 import { Command } from "commander";
 import * as path from "path";
 import * as fs from "fs";
-import { AiTranslator, TranslationConfig } from "ai-l10n-sdk";
+import { AiTranslator, ApiKeyManager, TranslationConfig } from "ai-l10n-sdk";
 
 // Read version using require for better reliability
 function getVersion(): string {
@@ -76,7 +76,6 @@ program
       targetLanguages: options.languages
         ? options.languages.split(",").map((l: string) => l.trim())
         : undefined,
-      apiKey: options.apiKey,
       generatePluralForms: options.plural,
       useShortening: options.shorten,
       useContractions: options.contractions,
@@ -90,7 +89,7 @@ program
     };
 
     const translator = new AiTranslator();
-    const result = await translator.translate(config);
+    const result = await translator.translate(config, options.apiKey);
 
     if (!result.success) {
       process.exit(1);
@@ -104,14 +103,14 @@ program
   .option("--api-key <key>", "Set API key")
   .option("--clear", "Clear stored API key")
   .action(async (options: any) => {
-    const translator = new AiTranslator();
+    const apiKeyManager = new ApiKeyManager();
 
     if (options.clear) {
-      await translator.clearApiKey();
+      await apiKeyManager.clearStoredApiKey();
     } else if (options.apiKey) {
-      await translator.setApiKey(options.apiKey);
+      await apiKeyManager.storeApiKey(options.apiKey);
     } else {
-      console.log(await translator.displayApiKey());
+      console.log(await apiKeyManager.displayStoredApiKey());
     }
   });
 
@@ -120,7 +119,11 @@ program
   .command("batch")
   .description("Translate multiple files using a config file")
   .argument("<config>", "Path to config file (JSON)")
-  .action(async (configFile: string) => {
+  .option(
+    "-k, --api-key <key>",
+    "API key for l10n.dev (store using 'ai-l10n config --api-key <key>' or set L10N_API_KEY env variable)",
+  )
+  .action(async (configFile: string, options: any) => {
     try {
       const configPath = path.resolve(configFile);
       if (!fs.existsSync(configPath)) {
@@ -175,7 +178,7 @@ program
         );
         console.log(`${"=".repeat(60)}`);
 
-        const result = await translator.translate(config);
+        const result = await translator.translate(config, options.apiKey);
 
         if (result.success) {
           successCount++;

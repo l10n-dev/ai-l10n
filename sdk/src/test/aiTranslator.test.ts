@@ -55,42 +55,6 @@ suite("AiTranslator Test Suite", () => {
     });
   });
 
-  suite("API Key Management", () => {
-    test("setApiKey delegates to ApiKeyManager", async () => {
-      apiKeyManagerStub.setApiKey.resolves();
-
-      await translator.setApiKey("test-key");
-
-      assert.ok(apiKeyManagerStub.setApiKey.calledOnceWith("test-key"));
-    });
-
-    test("clearApiKey delegates to ApiKeyManager", async () => {
-      apiKeyManagerStub.clearApiKey.resolves();
-
-      await translator.clearApiKey();
-
-      assert.ok(apiKeyManagerStub.clearApiKey.calledOnce);
-    });
-
-    test("getApiKey delegates to ApiKeyManager", async () => {
-      apiKeyManagerStub.getApiKey.resolves("stored-key");
-
-      const result = await translator.getApiKey();
-
-      assert.strictEqual(result, "stored-key");
-      assert.ok(apiKeyManagerStub.getApiKey.calledOnce);
-    });
-
-    test("displayApiKey delegates to ApiKeyManager", async () => {
-      apiKeyManagerStub.displayApiKey.resolves("API Key: abcd...xyz");
-
-      const result = await translator.displayApiKey();
-
-      assert.strictEqual(result, "API Key: abcd...xyz");
-      assert.ok(apiKeyManagerStub.displayApiKey.calledOnce);
-    });
-  });
-
   suite("Translation - Validation", () => {
     test("throws error when sourceFile is not provided", async () => {
       const config: TranslationConfig = {
@@ -152,6 +116,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -217,6 +182,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -380,6 +346,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 8,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -429,6 +396,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -472,6 +440,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -514,6 +483,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -559,6 +529,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -603,6 +574,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -780,6 +752,7 @@ suite("AiTranslator Test Suite", () => {
                   instructionCharCount: 0,
                 },
               },
+              finishReason: FinishReason.stop,
               completedChunks: 1,
               totalChunks: 1,
             },
@@ -854,6 +827,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.contentFilter,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -920,6 +894,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -963,6 +938,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -1008,6 +984,7 @@ suite("AiTranslator Test Suite", () => {
                 instructionCharCount: 0,
               },
             },
+            finishReason: FinishReason.stop,
             completedChunks: 1,
             totalChunks: 1,
           },
@@ -1051,6 +1028,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -1095,6 +1073,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -1136,6 +1115,7 @@ suite("AiTranslator Test Suite", () => {
               instructionCharCount: 0,
             },
           },
+          finishReason: FinishReason.stop,
           completedChunks: 1,
           totalChunks: 1,
         },
