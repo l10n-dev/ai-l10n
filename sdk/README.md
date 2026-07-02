@@ -427,6 +427,13 @@ interface TranslationOutput {
   
   /** Characters used for this translation */
   charsUsed?: number;
+
+  usageDetails?: {
+    sourceStringsCharCount?: number;
+    terminologyCharCount?: number;
+    glossaryCharCount?: number;
+    instructionCharCount?: number;
+  };
   
   /** Error message (if failed) */
   error?: string;

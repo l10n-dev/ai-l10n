@@ -3,9 +3,8 @@ import * as sinon from "sinon";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { AiTranslator, TranslationConfig } from "../index";
+import { AiTranslator, I18nProjectManager, TranslationConfig } from "../index";
 import { ApiKeyManager } from "../apiKeyManager";
-import { I18nProjectManager } from "../i18nProjectManager";
 import { FinishReason, L10nTranslationService } from "ai-l10n-core";
 
 suite("AiTranslator Test Suite", () => {
@@ -144,7 +143,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: 'msgid "hello"\nmsgstr "Hola"',
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -201,7 +208,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -259,7 +274,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -294,7 +317,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 5,
+              terminologyCharCount: 2,
+              instructionCharCount: 9,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -313,6 +344,13 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(result.results[0].success, true);
       assert.strictEqual(result.results[0].language, "es");
       assert.strictEqual(result.totalCharsUsed, 10);
+      assert.strictEqual(result.results[0].charsUsed, 10);
+      assert.deepStrictEqual(result.results[0].usageDetails, {
+        sourceStringsCharCount: 10,
+        glossaryCharCount: 5,
+        terminologyCharCount: 2,
+        instructionCharCount: 9,
+      });
       assert.strictEqual(result.remainingBalance, 1000);
     });
 
@@ -333,10 +371,19 @@ suite("AiTranslator Test Suite", () => {
           translations: JSON.stringify({
             hello: `Hello-${req.targetLanguageCode}`,
           }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 9,
+              terminologyCharCount: 2,
+              instructionCharCount: 8,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
+        finishReason: FinishReason.stop,
         currentBalance: 1000,
       }));
 
@@ -351,6 +398,11 @@ suite("AiTranslator Test Suite", () => {
       assert.strictEqual(result.results.length, 3);
       assert.strictEqual(result.results.filter((r) => r.success).length, 3);
       assert.strictEqual(result.totalCharsUsed, 30);
+      assert.strictEqual(result.remainingBalance, 1000);
+      assert.strictEqual(
+        result.results.every((r) => r.success),
+        true,
+      );
     });
 
     test("creates output files with translated content", async () => {
@@ -368,7 +420,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -403,7 +463,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -437,7 +505,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -474,7 +550,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -510,7 +594,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola", world: "Mundo" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -547,7 +639,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           finishReason: FinishReason.contentFilter,
           filteredStrings: '{"badWord":"inappropriate"}',
           completedChunks: 1,
@@ -582,7 +682,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           finishReason: FinishReason.contentFilter,
           filteredStrings: '{"badWord":"inappropriate"}',
           completedChunks: 1,
@@ -616,7 +724,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           finishReason: FinishReason.length,
           filteredStrings: '{"longText":"very long content..."}',
           completedChunks: 1,
@@ -655,7 +771,15 @@ suite("AiTranslator Test Suite", () => {
             data: {
               targetLanguageCode: "es",
               translations: JSON.stringify({ hello: "Hola" }),
-              usage: { charsUsed: 10 },
+              usage: {
+                charsUsed: 10,
+                details: {
+                  sourceStringsCharCount: 10,
+                  glossaryCharCount: 0,
+                  terminologyCharCount: 0,
+                  instructionCharCount: 0,
+                },
+              },
               completedChunks: 1,
               totalChunks: 1,
             },
@@ -721,7 +845,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: undefined as any,
-          usage: { charsUsed: 0 },
+          usage: {
+            charsUsed: 0,
+            details: {
+              sourceStringsCharCount: 0,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -779,7 +911,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 15 },
+          usage: {
+            charsUsed: 15,
+            details: {
+              sourceStringsCharCount: 15,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -814,7 +954,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 5000 },
+          usage: {
+            charsUsed: 5000,
+            details: {
+              sourceStringsCharCount: 5000,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -851,7 +999,15 @@ suite("AiTranslator Test Suite", () => {
           data: {
             targetLanguageCode: "es",
             translations: JSON.stringify({ hello: "Hola" }),
-            usage: { charsUsed: 10 },
+            usage: {
+              charsUsed: 10,
+              details: {
+                sourceStringsCharCount: 10,
+                glossaryCharCount: 0,
+                terminologyCharCount: 0,
+                instructionCharCount: 0,
+              },
+            },
             completedChunks: 1,
             totalChunks: 1,
           },
@@ -886,7 +1042,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -922,7 +1086,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },
@@ -955,7 +1127,15 @@ suite("AiTranslator Test Suite", () => {
         data: {
           targetLanguageCode: "es",
           translations: JSON.stringify({ hello: "Hola" }),
-          usage: { charsUsed: 10 },
+          usage: {
+            charsUsed: 10,
+            details: {
+              sourceStringsCharCount: 10,
+              glossaryCharCount: 0,
+              terminologyCharCount: 0,
+              instructionCharCount: 0,
+            },
+          },
           completedChunks: 1,
           totalChunks: 1,
         },

@@ -353,7 +353,7 @@ interface TranslationResult {
   usage: TranslationUsage;
 
   /** Reason translation finished */
-  finishReason?: FinishReason;
+  finishReason: FinishReason;
 
   /** Number of chunks completed */
   completedChunks: number;
@@ -374,7 +374,13 @@ interface TranslationResult {
 ```typescript
 interface TranslationUsage {
   /** Number of characters used */
-  charsUsed?: number;
+  charsUsed: number;
+  details: {
+    sourceStringsCharCount: number;
+    terminologyCharCount: number;
+    glossaryCharCount: number;
+    instructionCharCount: number;
+  };
 }
 ```
 

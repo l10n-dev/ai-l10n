@@ -5,6 +5,11 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-07-02
+
+### Added
+- **Extended `TranslationResult`** with usage `details` field that provides information about how much glossary, content itself, terminology, and linguistic instruction contribute in debiting of character balance during translation.
+
 ## [1.7.0] - 2026-06-25
 
 ### Added

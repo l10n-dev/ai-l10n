@@ -107,7 +107,7 @@ export interface TranslationResult {
   targetLanguageCode: string;
   translations?: string;
   usage: TranslationUsage;
-  finishReason?: FinishReason;
+  finishReason: FinishReason;
   completedChunks: number;
   totalChunks: number;
   remainingBalance?: number;
@@ -120,7 +120,13 @@ export interface TranslationResult {
 }
 
 export interface TranslationUsage {
-  charsUsed?: number;
+  charsUsed: number;
+  details: {
+    sourceStringsCharCount: number;
+    terminologyCharCount: number;
+    glossaryCharCount: number;
+    instructionCharCount: number;
+  };
 }
 
 export enum FinishReason {
