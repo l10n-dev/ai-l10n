@@ -8,9 +8,6 @@ async function main() {
     sourceFile: "./test-data/en.json",
     targetLanguages: ["es", "fr", "de"],
 
-    // API configuration
-    apiKey: process.env.L10N_API_KEY, // Optional, can also use stored key
-
     // Translation options
     generatePluralForms: true, // Generate plural forms
     useShortening: false, // Don't use shortening

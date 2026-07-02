@@ -1,15 +1,3 @@
-// Configuration constants shared across the package
-export const CONFIG = {
-  CLIENT: "ai-l10n-npmjs",
-  KEYS: {
-    API_KEY: "apiKey",
-    USE_CONTRACTIONS: "useContractions",
-    USE_SHORTENING: "useShortening",
-    GENERATE_PLURAL_FORMS: "generatePluralForms",
-    SAVE_FILTERED_STRINGS: "saveFilteredStrings",
-  },
-} as const;
-
 // URL constants for l10n.dev service
 export const URLS = {
   BASE: "https://l10n.dev",

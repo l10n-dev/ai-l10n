@@ -8,9 +8,8 @@ export class ApiKeyManager {
   private readonly configFile: string;
   private readonly noApiKeyMessage =
     "ℹ️  API Key not found. Please provide it via:\n" +
-    "1. Configuration option (apiKey)\n" +
-    "2. Environment variable (L10N_API_KEY)\n" +
-    "3. Run 'ai-l10n config --api-key YOUR_KEY' to save it\n" +
+    "1. Environment variable (L10N_API_KEY)\n" +
+    "2. Run 'ai-l10n config --api-key YOUR_KEY' to save it in your home directory\n" +
     `Get your API key from ${URLS.API_KEYS}`;
 
   constructor(private readonly logger: ILogger = new ConsoleLogger()) {
@@ -19,7 +18,10 @@ export class ApiKeyManager {
     this.configFile = path.join(this.configDir, "config.json");
   }
 
-  async getApiKey(): Promise<string | undefined> {
+  /**
+   * Get current API key (if stored)
+   */
+  async getStoredApiKey(): Promise<string | undefined> {
     try {
       if (!fs.existsSync(this.configFile)) {
         return undefined;
@@ -34,7 +36,10 @@ export class ApiKeyManager {
     }
   }
 
-  async setApiKey(apiKey: string): Promise<void> {
+  /**
+   * Set API key for l10n.dev service
+   */
+  async storeApiKey(apiKey: string): Promise<void> {
     try {
       // Create config directory if it doesn't exist
       if (!fs.existsSync(this.configDir)) {
@@ -45,40 +50,39 @@ export class ApiKeyManager {
       fs.writeFileSync(
         this.configFile,
         JSON.stringify(config, null, 2),
-        "utf8"
+        "utf8",
       );
       this.logger.logInfo("✅ API Key saved successfully!");
     } catch (error) {
       throw new Error(
         `Failed to save API key: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     }
   }
 
-  async ensureApiKey(providedApiKey?: string): Promise<string> {
-    // First, check if API key was provided as parameter
-    if (providedApiKey) {
-      return providedApiKey;
+  /**
+   * Mask the API key for display purposes
+   */
+  async displayStoredApiKey(): Promise<string> {
+    const apiKey = await this.getStoredApiKey();
+    if (!apiKey) {
+      return this.noApiKeyMessage;
     }
 
-    // Check environment variable
-    const envApiKey = process.env.L10N_API_KEY;
-    if (envApiKey) {
-      return envApiKey;
-    }
-
-    // Check stored config
-    const storedApiKey = await this.getApiKey();
-    if (storedApiKey) {
-      return storedApiKey;
-    }
-
-    throw new Error(this.noApiKeyMessage);
+    // Mask the API key (show first 8 and last 4 characters)
+    const key =
+      apiKey.length <= 12
+        ? `${apiKey.substring(0, 4)}...`
+        : `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`;
+    return `✅ API Key is configured. Key: ${key}`;
   }
 
-  async clearApiKey(): Promise<void> {
+  /**
+   * Clear stored API key
+   */
+  async clearStoredApiKey(): Promise<void> {
     try {
       if (fs.existsSync(this.configFile)) {
         fs.unlinkSync(this.configFile);
@@ -90,22 +94,27 @@ export class ApiKeyManager {
       throw new Error(
         `Failed to clear API key: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     }
   }
 
-  async displayApiKey(): Promise<string> {
-    const apiKey = await this.getApiKey();
-    if (!apiKey) {
-      return this.noApiKeyMessage;
+  /**
+   * Ensure an API key is available (either from env or stored config)
+   */
+  async ensureApiKey(): Promise<string> {
+    // Check environment variable
+    const envApiKey = process.env.L10N_API_KEY;
+    if (envApiKey) {
+      return envApiKey;
     }
 
-    // Mask the API key (show first 8 and last 4 characters)
-    const key =
-      apiKey.length <= 12
-        ? `${apiKey.substring(0, 4)}...`
-        : `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`;
-    return `✅ API Key is configured. Key: ${key}`;
+    // Check stored config
+    const storedApiKey = await this.getStoredApiKey();
+    if (storedApiKey) {
+      return storedApiKey;
+    }
+
+    throw new Error(this.noApiKeyMessage);
   }
 }
