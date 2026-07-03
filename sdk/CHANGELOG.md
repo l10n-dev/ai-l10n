@@ -5,6 +5,20 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-07-03
+
+### Added
+- **`GlossaryManager`** — High-level manager for glossaries:
+  - Wraps `L10nGlossaryService` from `ai-l10n-core`
+  - Resolves API key from optional parameter, `L10N_API_KEY` env var, or stored key
+  - Full CRUD for glossaries: `listGlossaries`, `createGlossary`, `getGlossary`, `updateGlossary`, `deleteGlossary`
+  - Entry management: `listGlossaryEntries`, `addGlossaryEntry`, `updateGlossaryEntry`, `deleteGlossaryEntry`
+- **`LinguisticInstructionsManager`** — High-level manager for linguistic instructions:
+  - Wraps `L10nInstructionService` from `ai-l10n-core`
+  - Resolves API key from optional parameter, `L10N_API_KEY` env var, or stored key
+  - Full CRUD for instructions: `listInstructions`, `createInstruction`, `getInstruction`, `updateInstruction`, `deleteInstruction`
+- Updated to use `ai-l10n-core@1.9.0`
+
 ## [1.8.0] - 2026-07-02
 
 ### Changed

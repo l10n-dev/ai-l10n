@@ -3,9 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/ai-l10n-core.svg)](https://www.npmjs.com/package/ai-l10n-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Platform-independent core for AI-powered localization — translation API client, language utilities, and shared types.
+Platform-independent core for AI-powered localization — translation API client, glossary & instruction management, language utilities, and shared types.
 
-This is the foundational library for the [ai-l10n](https://www.npmjs.com/package/ai-l10n) ecosystem. It provides the low-level translation API client, logger interface, and language utilities used by the SDK and CLI.
+This is the foundational library for the [ai-l10n](https://www.npmjs.com/package/ai-l10n) ecosystem. It provides the low-level translation API client, glossary & instruction API clients, logger interface, and language utilities used by the SDK and CLI.
 
 Powered by [l10n](https://l10n.dev).dev
 
@@ -664,6 +664,236 @@ extractLanguageCode('es-ES.schema.json');          // 'es-ES'
 extractLanguageCode('readme.md');                  // null
 extractLanguageCode('invalid.json');               // null
 ```
+
+---
+
+### L10nGlossaryService
+
+Low-level client for the l10n.dev Glossary API.
+
+A glossary maps source-language terms to preferred target-language translations. Only one glossary can be active per language pair — the active glossary is applied automatically during translation.
+
+All methods always resolve (never throw). Check `response.success` before accessing `data`.
+
+#### Constructor
+
+```typescript
+import { L10nGlossaryService } from 'ai-l10n-core';
+
+const service = new L10nGlossaryService();
+// or with a custom logger:
+const service = new L10nGlossaryService(customLogger);
+```
+
+#### Methods
+
+| Method | Description |
+|--------|-------------|
+| `listGlossaries(apiKey)` | Returns all glossaries for the user |
+| `createGlossary(apiKey, request)` | Creates a new glossary for a language pair |
+| `getGlossary(apiKey, glossaryId)` | Returns a glossary by ID |
+| `updateGlossary(apiKey, glossaryId, request)` | Updates name or active status |
+| `deleteGlossary(apiKey, glossaryId)` | Permanently deletes a glossary and all its entries |
+| `listGlossaryEntries(apiKey, glossaryId)` | Returns all term mappings, sorted by source term |
+| `addGlossaryEntry(apiKey, glossaryId, request)` | Adds a source → target term mapping |
+| `updateGlossaryEntry(apiKey, glossaryId, entryId, request)` | Replaces an existing term mapping |
+| `deleteGlossaryEntry(apiKey, glossaryId, entryId)` | Removes a term mapping |
+
+#### Types
+
+##### CreateGlossaryRequest
+
+```typescript
+interface CreateGlossaryRequest {
+  /** BCP-47 source language code (e.g., "en", "en-US"). */
+  sourceLanguageCode: string;
+  /** BCP-47 target language code (e.g., "es", "de"). */
+  targetLanguageCode: string;
+  /** Optional display name. Defaults to "sourceCode → targetCode" when omitted. */
+  name?: string | null;
+  /**
+   * Whether this glossary is active and applied during translation.
+   * When true, all other glossaries for the same language pair are deactivated.
+   * Defaults to true.
+   */
+  isActive?: boolean;
+}
+```
+
+##### UpdateGlossaryRequest
+
+```typescript
+interface UpdateGlossaryRequest {
+  /** Whether this glossary is active. Setting true deactivates others for the same pair. */
+  isActive: boolean;
+  /** Display name. Pass null to reset to the default language-pair name. */
+  name?: string | null;
+}
+```
+
+##### GlossaryEntryRequest
+
+```typescript
+interface GlossaryEntryRequest {
+  /** The term in the source language. Max length: 255. */
+  sourceTerm: string;
+  /** The preferred translation of the term in the target language. Max length: 255. */
+  targetTerm: string;
+  /**
+   * Optional context to clarify the meaning when the term is ambiguous.
+   * Example: 'bank' could mean 'financial institution' or 'river bank'. Max length: 500.
+   */
+  context?: string | null;
+}
+```
+
+##### GlossaryResponse
+
+```typescript
+interface GlossaryResponse {
+  id: number;
+  name: string;
+  sourceLanguageCode: string;
+  targetLanguageCode: string;
+  isActive: boolean;
+  entryCount: number;
+  /** Total additional characters debited per translation when this glossary is active. */
+  charsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+##### GlossaryEntryResponse
+
+```typescript
+interface GlossaryEntryResponse {
+  id: number;
+  sourceTerm: string;
+  targetTerm: string;
+  context: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+##### GlossaryEntryListResponse
+
+```typescript
+interface GlossaryEntryListResponse {
+  entries: GlossaryEntryResponse[];
+  entryCount: number;
+  /** Total additional characters debited per translation. */
+  charsCount: number;
+}
+```
+
+#### Error reasons for glossary methods
+
+| `reason` | Description |
+|----------|-------------|
+| `"noApiKey"` | API key was not provided |
+| `"unauthorized"` | API key is invalid (401) |
+| `"forbidden"` | No permission to access the resource (403) |
+| `"notFound"` | Glossary or entry does not exist (404) |
+| `"badRequest"` | Validation error (400) |
+| `"rateLimited"` | Rate limited (429) |
+| `"serverError"` | Internal server error (500/502/503) |
+| `"networkError"` | Connection or other failure |
+
+---
+
+### L10nInstructionService
+
+Low-level client for the l10n.dev Linguistic Instructions API.
+
+A linguistic instruction guides the AI's overall translation behavior — tone, style, and grammar rules. Only one instruction can be active per language pair.
+
+Use instructions for style/tone guidance (e.g., `"Use formal tone"`). For specific term mappings, use a glossary instead.
+
+All methods always resolve (never throw). Check `response.success` before accessing `data`.
+
+#### Constructor
+
+```typescript
+import { L10nInstructionService } from 'ai-l10n-core';
+
+const service = new L10nInstructionService();
+// or with a custom logger:
+const service = new L10nInstructionService(customLogger);
+```
+
+#### Methods
+
+| Method | Description |
+|--------|-------------|
+| `listInstructions(apiKey)` | Returns all instructions for the user |
+| `createInstruction(apiKey, request)` | Creates a new instruction for a language pair |
+| `getInstruction(apiKey, instructionId)` | Returns an instruction by ID |
+| `updateInstruction(apiKey, instructionId, request)` | Updates text, name, or active status |
+| `deleteInstruction(apiKey, instructionId)` | Permanently deletes an instruction |
+
+#### Types
+
+##### CreateInstructionRequest
+
+```typescript
+interface CreateInstructionRequest {
+  /** BCP-47 source language code (e.g., "en", "en-US"). */
+  sourceLanguageCode: string;
+  /** BCP-47 target language code (e.g., "es", "de"). */
+  targetLanguageCode: string;
+  /**
+   * The linguistic rule or instruction text that guides the AI's translation behavior.
+   * Examples: "Use formal tone", "Place adjectives after the noun". Max length: 1000.
+   */
+  text: string;
+  /** Optional display name. Defaults to "sourceCode → targetCode" when omitted. */
+  name?: string | null;
+  /**
+   * Whether this instruction is active and applied during translation.
+   * When true, all other instructions for the same language pair are deactivated.
+   * Defaults to true.
+   */
+  isActive?: boolean;
+}
+```
+
+##### UpdateInstructionRequest
+
+```typescript
+interface UpdateInstructionRequest {
+  /** The linguistic rule or instruction text. Max length: 1000. */
+  text: string;
+  /** Whether this instruction is active. Setting true deactivates others for the same pair. */
+  isActive: boolean;
+  /** Display name. Pass null to reset to the default language-pair name. */
+  name?: string | null;
+}
+```
+
+##### InstructionResponse
+
+```typescript
+interface InstructionResponse {
+  id: number;
+  name: string;
+  sourceLanguageCode: string;
+  targetLanguageCode: string;
+  isActive: boolean;
+  text: string;
+  /** Total additional characters debited per translation when this instruction is active. */
+  charsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+#### Error reasons for instruction methods
+
+Same set as glossary methods: `"noApiKey"`, `"unauthorized"`, `"forbidden"`, `"notFound"`, `"badRequest"`, `"rateLimited"`, `"serverError"`, `"networkError"`.
+
+---
 
 ## License
 

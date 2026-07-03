@@ -1,6 +1,11 @@
 import { ConsoleLogger } from "./consoleLogger";
 import { URLS } from "./constants";
 import { ILogger } from "./logger";
+import {
+  checkApiKey,
+  handleErrorResponse,
+  parseErrorBody,
+} from "./serviceHelpers";
 
 /**
  * Supported file schema formats for translation requests.
@@ -202,6 +207,7 @@ export type ApiResponse<T> =
         | "badRequest"
         | "unauthorized"
         | "forbidden"
+        | "notFound"
         | "rateLimited"
         | "serverError"
         | "networkError"
@@ -228,7 +234,7 @@ export class L10nTranslationService {
   constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
 
   async getBalance(apiKey: string): Promise<ApiResponse<BalanceResponse>> {
-    const apiKeyError = this.checkApiKey(apiKey);
+    const apiKeyError = checkApiKey(apiKey, this.logger);
     if (apiKeyError) {
       return apiKeyError;
     }
@@ -242,7 +248,7 @@ export class L10nTranslationService {
     });
 
     if (!response.ok) {
-      return this.handleErrorResponse(response, "Get balance");
+      return handleErrorResponse(response, "Get balance", this.logger);
     }
     const result = (await response.json()) as BalanceResponse;
     return { success: true, data: result };
@@ -255,7 +261,7 @@ export class L10nTranslationService {
       proficiencyLevels?: LanguageProficiencyLevel[];
     },
   ): Promise<ApiResponse<SupportedLanguagesResponse>> {
-    const apiKeyError = this.checkApiKey(apiKey);
+    const apiKeyError = checkApiKey(apiKey, this.logger);
     if (apiKeyError) {
       return apiKeyError;
     }
@@ -289,7 +295,7 @@ export class L10nTranslationService {
     });
 
     if (!response.ok) {
-      return this.handleErrorResponse(response, "Get languages");
+      return handleErrorResponse(response, "Get languages", this.logger);
     }
     const result = (await response.json()) as SupportedLanguagesResponse;
     this.logger.logInfo(
@@ -313,7 +319,7 @@ export class L10nTranslationService {
     const response = await fetch(url.toString());
 
     if (!response.ok) {
-      return this.handleErrorResponse(response, "Predict languages");
+      return handleErrorResponse(response, "Predict languages", this.logger);
     }
     const result: LanguagePredictionResponse =
       (await response.json()) as LanguagePredictionResponse;
@@ -328,7 +334,7 @@ export class L10nTranslationService {
     request: TranslationRequest,
     apiKey: string,
   ): Promise<TranslationResponse> {
-    const apiKeyError = this.checkApiKey(apiKey);
+    const apiKeyError = checkApiKey(apiKey, this.logger);
     if (apiKeyError) {
       return apiKeyError;
     }
@@ -371,6 +377,10 @@ export class L10nTranslationService {
         this.logger.logWarning(
           `Translation finished with reason: ${result.finishReason}`,
         );
+      } else {
+        this.logger.logInfo(
+          `Translation to ${request.targetLanguageCode} completed successfully`,
+        );
       }
 
       return { success: true, data: result, currentBalance };
@@ -380,7 +390,7 @@ export class L10nTranslationService {
       this.logger.logWarning(
         `Translation error - ${response.status} ${response.statusText}`,
       );
-      const errorData = await this.parseErrorBody(response);
+      const errorData = await parseErrorBody(response, this.logger);
       let message =
         "Not enough characters remaining for this translation. You can try translating a smaller portion of your content or purchase more characters.";
       const requiredBalance = errorData?.data?.requiredBalance as number;
@@ -405,137 +415,12 @@ export class L10nTranslationService {
       this.logger.logWarning(
         `Translation error - ${response.status} ${response.statusText}`,
       );
-      const errorData = await this.parseErrorBody(response);
+      const errorData = await parseErrorBody(response, this.logger);
       const message = "Request too large. Maximum request size is 5 MB.";
       this.logger.showAndLogError(message, errorData);
       return { success: false, reason: "requestTooLarge", message };
     }
 
-    return this.handleErrorResponse(response, "Translate");
-  }
-
-  private checkApiKey(
-    apiKey: string,
-  ): { success: false; reason: "noApiKey"; message: string } | null {
-    if (!apiKey) {
-      const message = "API Key not set. Please configure your API Key first.";
-      this.logger.showAndLogError(
-        message,
-        null,
-        "",
-        "Get API Key",
-        URLS.API_KEYS,
-      );
-      return { success: false, reason: "noApiKey", message };
-    }
-    return null;
-  }
-
-  /**
-   * Maps an HTTP error to a structured ApiResponse error.
-   * Handles 400 (with validation error extraction), 401, 403, 429, 502, 503, and 500.
-   */
-  private async handleErrorResponse(
-    response: Response,
-    title: string,
-  ): Promise<{
-    success: false;
-    reason:
-      | "badRequest"
-      | "unauthorized"
-      | "forbidden"
-      | "rateLimited"
-      | "serverError"
-      | "networkError";
-    message: string;
-  }> {
-    this.logger.logWarning(
-      `${title} failed - ${response.status} ${response.statusText}`,
-    );
-    const errorData = await this.parseErrorBody(response);
-    const status = response.status;
-    switch (status) {
-      case 400: {
-        let message = "Invalid request. Please check your input and try again.";
-        if (
-          errorData?.errors &&
-          typeof errorData.errors === "object" &&
-          !Array.isArray(errorData.errors)
-        ) {
-          const e = errorData.errors;
-          message = Object.keys(e)
-            .map((k) => {
-              const v = e[k];
-              if (k) {
-                // not empty key
-                if (Array.isArray(v)) {
-                  return `${k}: ${v.join(" ")}`;
-                } else {
-                  return `${k}: ${String(v)}`;
-                }
-              }
-              return Array.isArray(v) ? v.join(" ") : String(v);
-            })
-            .join("; \r\n");
-          this.logger.showAndLogError(message);
-        } else {
-          this.logger.showAndLogError(message, errorData);
-        }
-        return { success: false, reason: "badRequest", message };
-      }
-      case 401: {
-        const message = "Unauthorized. Please check your API Key.";
-        this.logger.showAndLogError(
-          message,
-          errorData,
-          "",
-          "Get API Key",
-          URLS.API_KEYS,
-        );
-        return { success: false, reason: "unauthorized", message: message };
-      }
-      case 403: {
-        const message =
-          "Forbidden. You don't have permission to access this resource.";
-        this.logger.showAndLogError(message, errorData);
-        return { success: false, reason: "forbidden", message: message };
-      }
-      case 429: {
-        const message =
-          "Too many requests. You're being rate limited. Please try again later.";
-        this.logger.showAndLogError(message, errorData);
-        return { success: false, reason: "rateLimited", message: message };
-      }
-      case 502:
-      case 503:
-      case 500: {
-        const message = `An internal server error occurred (Error code: ${
-          errorData?.errorCode ?? "unknown"
-        }). Please try again later.`;
-        this.logger.showAndLogError(message, errorData);
-        return { success: false, reason: "serverError", message: message };
-      }
-      default: {
-        const message = `Failed to ${title.toLowerCase()}: ${response.status} ${response.statusText}`;
-        this.logger.showAndLogError(message, errorData);
-        return { success: false, reason: "networkError", message: message };
-      }
-    }
-  }
-
-  /**
-   * Attempts to parse the response body as JSON. If parsing fails, returns the raw text.
-   * Logs a warning if JSON parsing fails.
-   */
-  private async parseErrorBody(response: Response): Promise<any> {
-    let rawBody: string | undefined;
-
-    try {
-      rawBody = await response.text();
-      return JSON.parse(rawBody);
-    } catch {
-      this.logger.logWarning("Failed to parse error response");
-      return rawBody;
-    }
+    return handleErrorResponse(response, "Translate", this.logger);
   }
 }

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-07-03
+
+### Added
+- **Glossary CLI** — New `glossary` command group to manage translation glossaries:
+  - `glossary list` — list all glossaries
+  - `glossary create --source <code> --target <code> [--name <name>] [--no-activate]`
+  - `glossary get <id>` — show glossary details
+  - `glossary update <id> [--name <name>] [--activate | --deactivate]`
+  - `glossary delete <id>`
+  - `glossary entries <glossaryId>` — list all term mappings
+  - `glossary add-entry <glossaryId> --source <term> --target <term> [--context <ctx>]`
+  - `glossary update-entry <glossaryId> <entryId> --source <term> --target <term> [--context <ctx>]`
+  - `glossary delete-entry <glossaryId> <entryId>`
+- **Instruction CLI** — New `instruction` command group to manage linguistic instructions:
+  - `instruction list`
+  - `instruction create --source <code> --target <code> --text <text> [--name <name>] [--no-activate]`
+  - `instruction get <id>`
+  - `instruction update <id> --text <text> [--name <name>] [--activate | --deactivate]`
+  - `instruction delete <id>`
+- Updated to use `ai-l10n-sdk@1.9.0` and `ai-l10n-core@1.9.0`
+
 ## [1.8.0] - 2026-07-02
 
 ### Changed

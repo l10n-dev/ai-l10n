@@ -596,6 +596,124 @@ manager.getUniqueFilePath('./output.json');
 
 `AiTranslator` calls `extractLanguageCodeFromPath()` automatically on each translation to populate `sourceLanguageCode` in the API request. You can override this by setting `sourceLanguageCode` explicitly in `TranslationConfig`.
 
+---
+
+## GlossaryManager
+
+High-level manager for translation glossaries. Wraps `L10nGlossaryService` from `ai-l10n-core` with API key management — when `apiKey` is omitted, the key is resolved from the `L10N_API_KEY` environment variable or from the key stored via `ApiKeyManager`.
+
+All methods return `ApiResponse<T>` and never throw. Check `response.success` before accessing `response.data`.
+
+### Constructor
+
+```typescript
+import { GlossaryManager } from 'ai-l10n-sdk';
+
+// Default: uses ConsoleLogger
+const manager = new GlossaryManager();
+
+// With a custom logger
+const manager = new GlossaryManager(customLogger);
+```
+
+### Usage Example
+
+```typescript
+import { GlossaryManager } from 'ai-l10n-sdk';
+
+const manager = new GlossaryManager();
+
+// Create a glossary
+const created = await manager.createGlossary({
+  sourceLanguageCode: 'en',
+  targetLanguageCode: 'de',
+  name: 'My German Glossary',
+});
+
+if (created.success) {
+  const glossaryId = created.data.id;
+
+  // Add term mappings
+  await manager.addGlossaryEntry(glossaryId, {
+    sourceTerm: 'settings',
+    targetTerm: 'Einstellungen',
+  });
+  await manager.addGlossaryEntry(glossaryId, {
+    sourceTerm: 'bank',
+    targetTerm: 'Bank',
+    context: 'financial institution',
+  });
+
+  // List entries
+  const entries = await manager.listGlossaryEntries(glossaryId);
+  if (entries.success) {
+    console.log(entries.data.entries);
+  }
+}
+
+```
+
+### Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `listGlossaries(apiKey?)` | `ApiResponse<GlossaryListResponse>` | List all glossaries |
+| `createGlossary(request, apiKey?)` | `ApiResponse<GlossaryResponse>` | Create a new glossary |
+| `getGlossary(glossaryId, apiKey?)` | `ApiResponse<GlossaryResponse>` | Get a glossary by ID |
+| `updateGlossary(glossaryId, request, apiKey?)` | `ApiResponse<GlossaryResponse>` | Update name or active status |
+| `deleteGlossary(glossaryId, apiKey?)` | `ApiResponse<undefined>` | Delete a glossary and all its entries |
+| `listGlossaryEntries(glossaryId, apiKey?)` | `ApiResponse<GlossaryEntryListResponse>` | List all term mappings |
+| `addGlossaryEntry(glossaryId, request, apiKey?)` | `ApiResponse<GlossaryEntryResponse>` | Add a term mapping |
+| `updateGlossaryEntry(glossaryId, entryId, request, apiKey?)` | `ApiResponse<GlossaryEntryResponse>` | Replace a term mapping |
+| `deleteGlossaryEntry(glossaryId, entryId, apiKey?)` | `ApiResponse<undefined>` | Remove a term mapping |
+
+For full type definitions (`GlossaryResponse`, `GlossaryEntryResponse`, `CreateGlossaryRequest`, `UpdateGlossaryRequest`, `GlossaryEntryRequest`) see [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core). All types are also re-exported from `ai-l10n-sdk` for convenience.
+
+## LinguisticInstructionsManager
+
+High-level manager for linguistic instructions. Wraps `L10nInstructionService` from `ai-l10n-core` with API key management — when `apiKey` is omitted, the key is resolved from the `L10N_API_KEY` environment variable or from the key stored via `ApiKeyManager`.
+
+All methods return `ApiResponse<T>` and never throw. Check `response.success` before accessing `response.data`.
+
+### Constructor
+
+```typescript
+import { LinguisticInstructionsManager } from 'ai-l10n-sdk';
+
+// Default: uses ConsoleLogger
+const manager = new LinguisticInstructionsManager();
+
+// With a custom logger
+const manager = new LinguisticInstructionsManager(customLogger);
+```
+
+### Usage Example
+
+```typescript
+import { LinguisticInstructionsManager } from 'ai-l10n-sdk';
+
+const manager = new LinguisticInstructionsManager();
+
+// Create a linguistic instruction
+const instruction = await manager.createInstruction({
+  sourceLanguageCode: 'en',
+  targetLanguageCode: 'de',
+  text: 'Use formal tone (Sie, not du)',
+});
+```
+
+### Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `listInstructions(apiKey?)` | `ApiResponse<InstructionListResponse>` | List all instructions |
+| `createInstruction(request, apiKey?)` | `ApiResponse<InstructionResponse>` | Create a new instruction |
+| `getInstruction(instructionId, apiKey?)` | `ApiResponse<InstructionResponse>` | Get an instruction by ID |
+| `updateInstruction(instructionId, request, apiKey?)` | `ApiResponse<InstructionResponse>` | Update text, name, or active status |
+| `deleteInstruction(instructionId, apiKey?)` | `ApiResponse<undefined>` | Delete an instruction |
+
+For full type definitions (`InstructionResponse`, `CreateInstructionRequest`, `UpdateInstructionRequest`) see [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core). All types are also re-exported from `ai-l10n-sdk` for convenience.
+
 ## License
 
 MIT
