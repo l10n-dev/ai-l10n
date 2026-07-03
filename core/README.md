@@ -3,9 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/ai-l10n-core.svg)](https://www.npmjs.com/package/ai-l10n-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Platform-independent core for AI-powered localization — translation API client, glossary & instruction management, language utilities, and shared types.
-
-This is the foundational library for the [ai-l10n](https://www.npmjs.com/package/ai-l10n) ecosystem. It provides the low-level translation API client, glossary & instruction API clients, logger interface, and language utilities used by the SDK and CLI.
+Platform-independent core for AI-powered localization. This is the foundational library for the [ai-l10n](https://www.npmjs.com/package/ai-l10n) ecosystem. It provides the low-level translation API client, glossary & linguistic instructions API clients, logger interface, and language utilities used by the SDK and CLI.
 
 Powered by [l10n](https://l10n.dev).dev
 
@@ -224,6 +222,7 @@ type ApiResponse<T> =
         | "requestTooLarge"
         | "badRequest"
         | "unauthorized"
+        | "notFound"
         | "forbidden"
         | "rateLimited"
         | "serverError"
