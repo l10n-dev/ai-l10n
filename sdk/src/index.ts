@@ -2,4 +2,6 @@
 export * from "./i18nProjectManager";
 export * from "./aiTranslator";
 export * from "./apiKeyManager";
+export * from "./glossaryManager";
+export * from "./linguisticInstructionsManager";
 export * from "ai-l10n-core";

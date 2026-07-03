@@ -5,6 +5,28 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-07-03
+
+### Added
+- **`L10nGlossaryService`** — New low-level client for the l10n.dev Glossary API:
+  - `listGlossaries(apiKey)` — list all glossaries for the user
+  - `createGlossary(apiKey, request)` — create a new glossary for a language pair
+  - `getGlossary(apiKey, glossaryId)` — get a single glossary by ID
+  - `updateGlossary(apiKey, glossaryId, request)` — update name or active status
+  - `deleteGlossary(apiKey, glossaryId)` — permanently delete a glossary and all its entries
+  - `listGlossaryEntries(apiKey, glossaryId)` — list all term mappings
+  - `addGlossaryEntry(apiKey, glossaryId, request)` — add a source → target term mapping
+  - `updateGlossaryEntry(apiKey, glossaryId, entryId, request)` — replace a term mapping
+  - `deleteGlossaryEntry(apiKey, glossaryId, entryId)` — remove a term mapping
+- **`L10nInstructionService`** — New low-level client for the l10n.dev Linguistic Instructions API:
+  - `listInstructions(apiKey)` — list all instructions
+  - `createInstruction(apiKey, request)` — create a new instruction
+  - `getInstruction(apiKey, instructionId)` — get a single instruction by ID
+  - `updateInstruction(apiKey, instructionId, request)` — update text, name, or active status
+  - `deleteInstruction(apiKey, instructionId)` — permanently delete an instruction
+- **New types**: `GlossaryResponse`, `GlossaryListResponse`, `GlossaryEntryResponse`, `GlossaryEntryListResponse`, `CreateGlossaryRequest`, `UpdateGlossaryRequest`, `GlossaryEntryRequest`, `InstructionResponse`, `InstructionListResponse`, `CreateInstructionRequest`, `UpdateInstructionRequest`
+- **`"notFound"` reason** added to `ApiResponse<T>` error union (non-breaking additive change)
+
 ## [1.8.0] - 2026-07-02
 
 ### Changed

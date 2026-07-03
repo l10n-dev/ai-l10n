@@ -444,6 +444,68 @@ npx ai-l10n translate ./locales/en.json --languages de,fr --instruction "Use for
 If not set it applies saved active linguistic Instruction.  
 Manage your saved linguistic Instructions at [l10n.dev/ws/linguistic-instructions](https://l10n.dev/ws/linguistic-instructions).
 
+## Managing Glossaries via CLI
+
+Use the `glossary` command group to manage your translation glossaries directly from the terminal.
+
+### Glossary commands
+
+```bash
+# List all glossaries
+npx ai-l10n glossary list
+
+# Create a glossary (active by default)
+npx ai-l10n glossary create --source en --target de --name "My German Glossary"
+
+# Show glossary details
+npx ai-l10n glossary get 1
+
+# Activate or rename a glossary
+npx ai-l10n glossary update 1 --activate
+npx ai-l10n glossary update 1 --name "Updated Name" --deactivate
+
+# Delete a glossary (and all its entries)
+npx ai-l10n glossary delete 1
+```
+
+### Glossary entry commands
+
+```bash
+# List all term mappings in a glossary
+npx ai-l10n glossary entries 1
+
+# Add a term mapping
+npx ai-l10n glossary add-entry 1 --source "settings" --target "Einstellungen"
+npx ai-l10n glossary add-entry 1 --source "bank" --target "Bank" --context "financial institution"
+
+# Update a term mapping
+npx ai-l10n glossary update-entry 1 42 --source "settings" --target "Einstellungen"
+
+# Remove a term mapping
+npx ai-l10n glossary delete-entry 1 42
+```
+
+## Managing Linguistic Instructions via CLI
+
+Use the `instruction` command group to manage linguistic instructions.
+
+```bash
+# List all instructions
+npx ai-l10n instruction list
+
+# Create an instruction (active by default)
+npx ai-l10n instruction create --source en --target de --text "Use formal tone (Sie, not du)"
+
+# Show instruction details
+npx ai-l10n instruction get 1
+
+# Update an instruction
+npx ai-l10n instruction update 1 --text "Use formal tone" --activate
+
+# Delete an instruction
+npx ai-l10n instruction delete 1
+```
+
 ## Language Support
 
 l10n.dev supports 165+ languages with varying proficiency levels:
