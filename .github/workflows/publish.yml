@@ -254,7 +254,9 @@ jobs:
           npm rebuild esbuild
 
       - name: Build workspace dependencies
-        run: npm run build -w core
+        run: |
+          npm run build -w core
+          npm run build -w sdk
 
       - name: Build
         run: npm run build -w mcp
