@@ -42,8 +42,7 @@ Use the [ai-l10n-mcp](https://www.npmjs.com/package/ai-l10n-mcp) package to conn
   "mcpServers": {
     "l10n": {
       "command": "npx",
-      "args": ["-y", "ai-l10n-mcp"],
-      "env": { "L10N_API_KEY": "your-api-key-here" }
+      "args": ["-y", "ai-l10n-mcp"]
     }
   }
 }
