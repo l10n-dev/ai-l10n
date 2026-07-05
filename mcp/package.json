@@ -10,6 +10,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
+    "test": "echo \"No tests\"",
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
     "prepare": "npm run build",
     "verify": "node scripts/verify.js"
