@@ -33,6 +33,22 @@ Powered by [l10n](https://l10n.dev).dev
 npm install ai-l10n
 ```
 
+### For AI Agents (MCP Server)
+
+Use the [ai-l10n-mcp](https://www.npmjs.com/package/ai-l10n-mcp) package to connect AI agents (Claude Desktop, Cursor, Windsurf, GitHub Copilot, OpenAI Codex) directly to l10n.dev. See the [MCP server README](./ai-l10n-mcp/README.md) for configuration instructions.
+
+```json
+{
+  "mcpServers": {
+    "l10n": {
+      "command": "npx",
+      "args": ["-y", "ai-l10n-mcp"],
+      "env": { "L10N_API_KEY": "your-api-key-here" }
+    }
+  }
+}
+```
+
 ### For SDK Only
 
 ```bash

@@ -249,6 +249,8 @@ export class L10nTranslationService {
 
     if (!response.ok) {
       return handleErrorResponse(response, "Get balance", this.logger);
+    } else {
+      this.logger.logInfo("Successfully fetched current balance");
     }
     const result = (await response.json()) as BalanceResponse;
     return { success: true, data: result };
