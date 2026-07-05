@@ -189,7 +189,101 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────────
-  # Job 3: ai-l10n (root/CLI)
+  # Job 3: ai-l10n-mcp
+  # ─────────────────────────────────────────────────────────────────
+  publish-mcp:
+    name: Publish ai-l10n-mcp
+    runs-on: ubuntu-latest
+    needs: publish-sdk
+    permissions:
+      id-token: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      published: ${{ steps.publish.outputs.published }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.14.0"
+          registry-url: "https://registry.npmjs.org"
+      - name: Install npm 11.5.1+
+        run: npm install -g npm@^11.5.1
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./mcp/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 ai-l10n-mcp version: $VERSION"
+
+      - name: Check if already published
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view "ai-l10n-mcp@$VERSION" version &>/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  ai-l10n-mcp@$VERSION is already published — skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "✅ ai-l10n-mcp@$VERSION is not yet published — will publish"
+          fi
+
+      - name: Wait for ai-l10n-sdk registry propagation
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          SDK_VERSION=${{ needs.publish-sdk.outputs.version }}
+          echo "⏳ Waiting for ai-l10n-sdk@$SDK_VERSION to be available on the registry..."
+          for i in $(seq 1 20); do
+            if npm view "ai-l10n-sdk@$SDK_VERSION" version &>/dev/null 2>&1; then
+              echo "✅ ai-l10n-sdk@$SDK_VERSION is available (attempt $i)"
+              exit 0
+            fi
+            echo "  Attempt $i/20 — not available yet, retrying in 15s..."
+            sleep 15
+          done
+          echo "❌ Timed out waiting for ai-l10n-sdk@$SDK_VERSION after 5 minutes"
+          exit 1
+
+      - name: Install dependencies
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild esbuild
+
+      - name: Build workspace dependencies
+        run: npm run build -w core
+
+      - name: Build
+        run: npm run build -w mcp
+
+      - name: Test
+        working-directory: mcp
+        run: npm test
+
+      - name: Verify
+        working-directory: mcp
+        run: npm run verify
+
+      - name: Dry pack
+        working-directory: mcp
+        run: npm pack --dry-run
+
+      - name: Publish
+        id: publish
+        if: steps.check.outputs.skip != 'true' && inputs.dry_run != true
+        working-directory: mcp
+        run: |
+          npm publish --provenance --access public
+          echo "published=true" >> "$GITHUB_OUTPUT"
+          echo "✅ ai-l10n-mcp@${{ steps.version.outputs.version }} published"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ─────────────────────────────────────────────────────────────────
+  # Job 4: ai-l10n (root/CLI)
   # ─────────────────────────────────────────────────────────────────
   publish-root:
     name: Publish ai-l10n
@@ -282,12 +376,12 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────────
-  # Job 4: Tag & GitHub Release
+  # Job 5: Tag & GitHub Release
   # ─────────────────────────────────────────────────────────────────
   tag-release:
     name: Tag & GitHub Release
     runs-on: ubuntu-latest
-    needs: publish-root
+    needs: [publish-root, publish-mcp]
     if: ${{ inputs.dry_run != true }}
     permissions:
       contents: write
@@ -299,15 +393,18 @@ jobs:
           # Fetch full history so we can push tags
           fetch-depth: 0
 
-      - name: Read version
+      - name: Read versions
         id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          MCP_VERSION=$(node -p "require('./mcp/package.json').version")
           MAJOR=$(echo "$VERSION" | cut -d. -f1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
           echo "version_tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "major_tag=v$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "mcp_version=$MCP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "mcp_version_tag=mcp-v$MCP_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Configure git
         run: |
@@ -344,4 +441,29 @@ jobs:
               --title "v${{ steps.version.outputs.version }}" \
               --generate-notes
             echo "✅ GitHub Release $VERSION_TAG created"
+          fi
+
+      - name: Create MCP version tag
+        run: |
+          MCP_VERSION_TAG=${{ steps.version.outputs.mcp_version_tag }}
+          if git rev-parse "$MCP_VERSION_TAG" &>/dev/null; then
+            echo "ℹ️  Tag $MCP_VERSION_TAG already exists — skipping"
+          else
+            git tag -a "$MCP_VERSION_TAG" -m "Release ai-l10n-mcp ${{ steps.version.outputs.mcp_version }}"
+            git push origin "$MCP_VERSION_TAG"
+            echo "✅ Created and pushed tag $MCP_VERSION_TAG"
+          fi
+
+      - name: Create MCP GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MCP_VERSION_TAG=${{ steps.version.outputs.mcp_version_tag }}
+          if gh release view "$MCP_VERSION_TAG" &>/dev/null; then
+            echo "ℹ️  Release $MCP_VERSION_TAG already exists — skipping"
+          else
+            gh release create "$MCP_VERSION_TAG" \
+              --title "ai-l10n-mcp v${{ steps.version.outputs.mcp_version }}" \
+              --generate-notes
+            echo "✅ GitHub Release $MCP_VERSION_TAG created"
           fi

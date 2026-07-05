@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "l10n": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "ai-l10n-mcp"]
+    }
+  }
+}

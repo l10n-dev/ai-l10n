@@ -19,6 +19,7 @@ npm install ai-l10n-sdk
 
 - [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core) — Core translation API client, logger interface, and shared types
 - [ai-l10n](https://www.npmjs.com/package/ai-l10n) — CLI tool built on this SDK
+- [ai-l10n-mcp](https://www.npmjs.com/package/ai-l10n-mcp) — MCP server for AI agents (Claude Desktop, Cursor, Windsurf, GitHub Copilot, OpenAI Codex)
 
 ## Usage Examples
 

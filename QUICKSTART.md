@@ -61,7 +61,7 @@ lib/l10n/
 npx ai-l10n translate ./locales/en.json
 
 # Specify target languages
-npx ai-l10n translate ./locales/en.json --languages es,fr,de
+npx ai-l10n translate ./locales/en.json --languages es,fr,de --replace
 
 # Update existing translations
 npx ai-l10n translate ./locales/en.json --update
@@ -90,7 +90,8 @@ Add to your `package.json`:
 {
   "scripts": {
     "translate": "ai-l10n translate ./locales/en.json",
-    "translate:update": "ai-l10n translate ./locales/en.json --update"
+    "translate:update": "ai-l10n translate ./locales/en.json --update",
+    "translate:replace": "ai-l10n translate ./locales/en.json --replace"
   }
 }
 ```
@@ -103,7 +104,7 @@ npm run translate
 ## Common Options
 
 - `--languages es,fr,de` - Specify target languages
-- `--update` - Update existing files only
+- `--update` - Update existing files only by translating new/changed strings
 - `--plural` - Generate strings with additional plural forms (i18next)
 - `--verbose` - Detailed logging
 - `--api-key KEY` - Use specific API key

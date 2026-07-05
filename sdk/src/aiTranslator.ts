@@ -127,6 +127,7 @@ export interface TranslationOutput {
   success: boolean;
   language: string;
   outputPath?: string;
+  filteredStringsPath?: string;
   charsUsed?: number;
   usageDetails?: {
     sourceStringsCharCount: number;
@@ -468,8 +469,13 @@ export class AiTranslator {
     fs.writeFileSync(outputPath, result.translations, "utf8");
 
     // Handle filtered strings
+    let filteredStringsPath: string | undefined;
     if (result.filteredStrings) {
-      this.handleFilteredStrings(result, outputPath, saveFilteredStrings);
+      filteredStringsPath = this.handleFilteredStrings(
+        result,
+        outputPath,
+        saveFilteredStrings,
+      );
     }
 
     const charsUsed = result.usage.charsUsed || 0;
@@ -487,6 +493,7 @@ export class AiTranslator {
       success: true,
       language: targetLanguage,
       outputPath,
+      filteredStringsPath,
       charsUsed,
       usageDetails,
       remainingBalance: response.currentBalance,
@@ -497,7 +504,7 @@ export class AiTranslator {
     result: TranslationResult,
     targetFilePath: string,
     saveFilteredStrings: boolean,
-  ): void {
+  ): string | undefined {
     let reasonMessage: string;
     if (result.finishReason === FinishReason.contentFilter) {
       reasonMessage = "content policy violations";
@@ -525,6 +532,7 @@ export class AiTranslator {
 
       fs.writeFileSync(filteredPath, filteredStringsContent, "utf8");
       this.logger.logInfo(`  📝 Filtered strings saved to: ${filteredPath}`);
+      return filteredPath;
     } else {
       this.logger.logInfo(`  📝 Filtered strings:\n${filteredStringsContent}`);
     }
