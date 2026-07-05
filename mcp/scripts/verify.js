@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * Verification script to check SDK package integrity
+ * Verification script to check MCP package integrity
  */
 
 const fs = require("fs");
 const path = require("path");
 
-console.log("🔍 Verifying ai-l10n-sdk package...\n");
+console.log("🔍 Verifying ai-l10n-mcp package...\n");
 
 const checks = [];
 
@@ -56,10 +56,16 @@ checks.push({
 // Check 8: All source files compiled
 const sourceFiles = [
   "index",
-  "apiKeyManager",
-  "i18nProjectManager",
-  "aiTranslator",
-  "balanceManager",
+  "logger",
+  "server",
+  "prompts/setup",
+  "tools/apiKey",
+  "tools/translate",
+  "tools/balance",
+  "tools/instructions",
+  "tools/glossary",
+  "utils/format",
+  "utils/response",
 ];
 
 sourceFiles.forEach((file) => {
@@ -74,11 +80,7 @@ sourceFiles.forEach((file) => {
 });
 
 // Check 9: Test files exist
-const testFiles = [
-  "aiTranslator.test.ts",
-  "apiKeyManager.test.ts",
-  "i18nProjectManager.test.ts",
-];
+const testFiles = [];
 
 testFiles.forEach((file) => {
   checks.push({

@@ -1,5 +1,8 @@
 # ai-l10n-mcp
 
+[![npm version](https://img.shields.io/npm/v/ai-l10n-mcp.svg)](https://www.npmjs.com/package/ai-l10n-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 MCP server that gives AI agents access to l10n.dev — a **professional [localization service](https://l10n.dev)** purpose-built for software i18n files.
 
 When an AI agent needs to translate your app, the naive approach is to paste file contents into the chat. That breaks down fast: localization files are large, formats are strict, placeholders must survive verbatim, glossaries drift across sessions, and the agent has no memory between runs. **This MCP replaces that fragile workflow** with a dedicated localization engine that the agent calls as a tool — getting professional-grade output without wasting context window on raw file contents.

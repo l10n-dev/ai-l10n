@@ -16,6 +16,10 @@ cd ..
 cd sdk && npm run build && npm test && npm run verify
 cd ..
 
+# MCP
+cd mcp && npm run build && npm run verify
+cd ..
+
 # CLI / main package
 npm run build && npm test
 ```
@@ -91,7 +95,12 @@ cd sdk
 npm publish --access public
 cd ..
 
-# 3. CLI / main package (depends on ai-l10n-sdk)
+# 3. MCP
+cd mcp
+npm publish --access public
+cd ..
+
+# 4. CLI / main package (depends on ai-l10n-sdk)
 npm publish --access public
 ```
 
@@ -100,6 +109,7 @@ npm publish --access public
 # Visit package pages:
 # https://www.npmjs.com/package/ai-l10n-core
 # https://www.npmjs.com/package/ai-l10n-sdk
+# https://www.npmjs.com/package/ai-l10n-mcp
 # https://www.npmjs.com/package/ai-l10n
 
 # Test install from NPM

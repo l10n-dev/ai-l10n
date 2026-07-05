@@ -1,0 +1,63 @@
+{
+  "name": "ai-l10n-mcp",
+  "version": "1.0.0",
+  "description": "Local MCP server for l10n.dev — AI translation of i18n files to 165 languages preserving format and structure, AI glossary generation, and linguistic instructions",
+  "main": "dist/index.js",
+  "bin": {
+    "ai-l10n-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "prepare": "npm run build",
+    "verify": "node scripts/verify.js"
+  },
+  "keywords": [
+    "localization",
+    "l10n",
+    "i18n",
+    "translation",
+    "ai",
+    "internationalization",
+    "json",
+    "arb",
+    "flutter",
+    "mcp",
+    "agent",
+    "ai agent",
+    "ai translation",
+    "ai localization"
+  ],
+  "author": "l10n.dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/l10n-dev/ai-l10n.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://github.com/l10n-dev/ai-l10n#readme",
+  "bugs": {
+    "url": "https://github.com/l10n-dev/ai-l10n/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "ai-l10n-sdk": "1.9.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.0.0"
+  }
+}
