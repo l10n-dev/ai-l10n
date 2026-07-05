@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.10.0] - 2026-07-04
+## [1.10.0] - 2026-07-06
 
 ### Added
 - Initial release of `ai-l10n-mcp` — local stdio MCP server for l10n.dev

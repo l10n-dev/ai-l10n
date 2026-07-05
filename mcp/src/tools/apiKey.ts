@@ -27,7 +27,9 @@ over the stored key and this tool is not needed.`,
           apiKey: z
             .string()
             .min(1)
-            .describe(`The l10n.dev API key to store. Get yours at ${URLS.API_KEYS}`),
+            .describe(
+              `The l10n.dev API key to store. Get yours at ${URLS.API_KEYS}`,
+            ),
         })
         .strict(),
       annotations: {
@@ -55,7 +57,9 @@ over the stored key and this tool is not needed.`,
           { success: true },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -91,13 +95,17 @@ Use this to diagnose authorization errors or to confirm the key is set up correc
             envKey.length <= 12
               ? `${envKey.substring(0, 4)}...`
               : `${envKey.substring(0, 8)}...${envKey.substring(envKey.length - 4)}`;
-          parts.push(`✅ **Environment variable** (L10N_API_KEY): ${masked} _(takes precedence)_`);
+          parts.push(
+            `✅ **Environment variable** (L10N_API_KEY): ${masked} _(takes precedence)_`,
+          );
         } else {
           parts.push("❌ **Environment variable** (L10N_API_KEY): not set");
         }
 
         if (storedKey) {
-          parts.push(`✅ **Stored config** (~/.ai-l10n/config.json): ${storedDisplay.replace("✅ API Key is configured. Key: ", "")}`);
+          parts.push(
+            `✅ **Stored config** (~/.ai-l10n/config.json): ${storedDisplay.replace("✅ API Key is configured. Key: ", "")}`,
+          );
         } else {
           parts.push("❌ **Stored config**: not found");
         }
@@ -116,7 +124,9 @@ Use this to diagnose authorization errors or to confirm the key is set up correc
           isConfigured: hasKey,
         });
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );

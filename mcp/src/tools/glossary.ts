@@ -32,7 +32,9 @@ a glossary exists for a language pair before suggesting generateGlossary.`,
         const response = await manager.listGlossaries();
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to list glossaries.");
+          return buildErrorResponse(
+            response.message ?? "Failed to list glossaries.",
+          );
         }
 
         const glossaries = response.data.glossaries;
@@ -63,7 +65,9 @@ a glossary exists for a language pair before suggesting generateGlossary.`,
           })),
         });
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -78,7 +82,10 @@ a glossary exists for a language pair before suggesting generateGlossary.`,
 Use when the user wants to review or audit the terms in a glossary.`,
       inputSchema: z
         .object({
-          glossaryId: z.number().int().describe("Numeric ID of the glossary to retrieve"),
+          glossaryId: z
+            .number()
+            .int()
+            .describe("Numeric ID of the glossary to retrieve"),
         })
         .strict(),
       annotations: {
@@ -99,10 +106,14 @@ Use when the user wants to review or audit the terms in a glossary.`,
         ]);
 
         if (!glossaryRes.success) {
-          return buildErrorResponse(glossaryRes.message ?? "Failed to get glossary.");
+          return buildErrorResponse(
+            glossaryRes.message ?? "Failed to get glossary.",
+          );
         }
         if (!entriesRes.success) {
-          return buildErrorResponse(entriesRes.message ?? "Failed to get glossary entries.");
+          return buildErrorResponse(
+            entriesRes.message ?? "Failed to get glossary entries.",
+          );
         }
 
         const g = glossaryRes.data;
@@ -149,7 +160,9 @@ Use when the user wants to review or audit the terms in a glossary.`,
           })),
         });
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -174,7 +187,9 @@ in l10n_translate_file instead.`,
             .describe("Target language BCP-47 code e.g. 'de'"),
           name: z
             .string()
-            .describe("Display name for this glossary e.g. 'My App German Glossary'"),
+            .describe(
+              "Display name for this glossary e.g. 'My App German Glossary'",
+            ),
         })
         .strict(),
       annotations: {
@@ -195,7 +210,9 @@ in l10n_translate_file instead.`,
         });
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to create glossary.");
+          return buildErrorResponse(
+            response.message ?? "Failed to create glossary.",
+          );
         }
 
         const g = response.data;
@@ -213,7 +230,9 @@ in l10n_translate_file instead.`,
           },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -228,7 +247,10 @@ in l10n_translate_file instead.`,
 Setting isActive to true deactivates all other glossaries for the same language pair.`,
       inputSchema: z
         .object({
-          glossaryId: z.number().int().describe("Numeric ID of the glossary to update"),
+          glossaryId: z
+            .number()
+            .int()
+            .describe("Numeric ID of the glossary to update"),
           name: z.string().optional().describe("New display name"),
           isActive: z
             .boolean()
@@ -255,17 +277,26 @@ Setting isActive to true deactivates all other glossaries for the same language 
         });
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to update glossary.");
+          return buildErrorResponse(
+            response.message ?? "Failed to update glossary.",
+          );
         }
 
         const g = response.data;
         return buildMcpResponse(
           `✅ Glossary updated: **${g.name}** (ID: ${g.id})\n` +
             `Status: ${g.isActive ? "✅ active" : "inactive"}`,
-          { success: true, glossaryId: g.id, name: g.name, isActive: g.isActive },
+          {
+            success: true,
+            glossaryId: g.id,
+            name: g.name,
+            isActive: g.isActive,
+          },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -279,7 +310,10 @@ Setting isActive to true deactivates all other glossaries for the same language 
       description: `Permanently delete a glossary and all its term entries. This cannot be undone.`,
       inputSchema: z
         .object({
-          glossaryId: z.number().int().describe("Numeric ID of the glossary to delete"),
+          glossaryId: z
+            .number()
+            .int()
+            .describe("Numeric ID of the glossary to delete"),
         })
         .strict(),
       annotations: {
@@ -296,7 +330,9 @@ Setting isActive to true deactivates all other glossaries for the same language 
         const response = await manager.deleteGlossary(args.glossaryId);
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to delete glossary.");
+          return buildErrorResponse(
+            response.message ?? "Failed to delete glossary.",
+          );
         }
 
         return buildMcpResponse(
@@ -304,7 +340,9 @@ Setting isActive to true deactivates all other glossaries for the same language 
           { success: true, glossaryId: args.glossaryId },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -320,8 +358,14 @@ Maps a source term to a preferred translation, with an optional context note
 for disambiguating polysemous terms (e.g. 'bank' = financial institution vs. river bank).`,
       inputSchema: z
         .object({
-          glossaryId: z.number().int().describe("Numeric ID of the glossary to add to"),
-          sourceTerm: z.string().max(255).describe("Term in the source language"),
+          glossaryId: z
+            .number()
+            .int()
+            .describe("Numeric ID of the glossary to add to"),
+          sourceTerm: z
+            .string()
+            .max(255)
+            .describe("Term in the source language"),
           targetTerm: z
             .string()
             .max(255)
@@ -353,7 +397,9 @@ for disambiguating polysemous terms (e.g. 'bank' = financial institution vs. riv
         });
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to add glossary entry.");
+          return buildErrorResponse(
+            response.message ?? "Failed to add glossary entry.",
+          );
         }
 
         const e = response.data;
@@ -369,7 +415,9 @@ for disambiguating polysemous terms (e.g. 'bank' = financial institution vs. riv
           },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -384,7 +432,10 @@ for disambiguating polysemous terms (e.g. 'bank' = financial institution vs. riv
       inputSchema: z
         .object({
           glossaryId: z.number().int().describe("Numeric ID of the glossary"),
-          entryId: z.number().int().describe("Numeric ID of the entry to remove"),
+          entryId: z
+            .number()
+            .int()
+            .describe("Numeric ID of the entry to remove"),
         })
         .strict(),
       annotations: {
@@ -398,10 +449,15 @@ for disambiguating polysemous terms (e.g. 'bank' = financial institution vs. riv
       try {
         const logger = new McpLogger();
         const manager = new GlossaryManager(logger);
-        const response = await manager.deleteGlossaryEntry(args.glossaryId, args.entryId);
+        const response = await manager.deleteGlossaryEntry(
+          args.glossaryId,
+          args.entryId,
+        );
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to delete glossary entry.");
+          return buildErrorResponse(
+            response.message ?? "Failed to delete glossary entry.",
+          );
         }
 
         return buildMcpResponse(
@@ -409,7 +465,9 @@ for disambiguating polysemous terms (e.g. 'bank' = financial institution vs. riv
           { success: true, glossaryId: args.glossaryId, entryId: args.entryId },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );

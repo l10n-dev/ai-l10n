@@ -9,7 +9,26 @@ import { registerSetupPrompt } from "./prompts/setup.js";
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "l10n-mcp-server",
-    version: "1.10.0",
+    version: "1.0.0",
+    websiteUrl: "https://l10n.dev",
+    description:
+      "A Model Context Protocol (MCP) server for l10n.dev — AI translation of i18n files to 165 languages preserving format and structure, AI glossary generation, and linguistic instructions.",
+    icons: [
+      {
+        src: "https://l10n.dev/favicon.svg",
+        mimeType: "image/svg+xml",
+      },
+      {
+        src: "https://l10n.dev/favicon-96x96.png",
+        mimeType: "image/png",
+        sizes: ["96x96"],
+      },
+      {
+        src: "https://l10n.dev/apple-touch-icon.png",
+        mimeType: "image/png",
+        sizes: ["180x180"],
+      },
+    ],
   });
 
   registerTranslateTools(server);

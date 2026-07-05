@@ -45,6 +45,8 @@ Connect Claude Desktop, Cursor, Windsurf, GitHub Copilot, OpenAI Codex, or any M
 
 Create a free account and get your API key at **https://l10n.dev/ws/api-keys**
 
+> **Tip:** Instead of setting `L10N_API_KEY` in each config, you can ask the AI to store your key with `l10n_set_api_key`. The key is saved to `~/.ai-l10n/config.json` and used automatically.
+
 ### Claude Desktop
 
 In Claude Desktop, open **Settings > Developer > Edit Config**. Claude Desktop will open the correct MCP config file for your install. On macOS this is typically `~/Library/Application Support/Claude/claude_desktop_config.json`. On Windows, the backing path can vary by installation, so prefer **Edit Config** instead of navigating manually. Add:
@@ -152,8 +154,6 @@ claude mcp add --env L10N_API_KEY=your-api-key-here --transport stdio l10n -- np
 ```
 
 For a shared project setup, Claude Code can also store MCP servers in a `.mcp.json` file at your project root.
-
-> **Tip:** Instead of setting `L10N_API_KEY` in each config, you can ask the AI to store your key with `l10n_set_api_key`. The key is saved to `~/.ai-l10n/config.json` and used automatically.
 
 ---
 

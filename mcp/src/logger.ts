@@ -34,14 +34,18 @@ export class McpLogger implements ILogger {
     _url?: string,
   ): void {
     const detail =
-      error instanceof Error ? `: ${error.message}` : error ? `: ${String(error)}` : "";
+      error instanceof Error
+        ? `: ${error.message}`
+        : error
+          ? `: ${String(error)}`
+          : "";
     this.entries.push({ level: "error", text: `${message}${detail}` });
   }
 
   /** Render captured log to a human-readable string and clear the buffer. */
   flush(): string {
     const lines = this.entries.map((e) => {
-      return `${e.level}: ${e.text}`;
+      return e.text;
     });
     this.entries = [];
     return lines.join("\n");

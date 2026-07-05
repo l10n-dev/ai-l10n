@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { L10nTranslationService, ApiKeyManager, URLS } from "ai-l10n-sdk";
+import { BalanceManager, URLS } from "ai-l10n-sdk";
 import { McpLogger } from "../logger.js";
 import { buildMcpResponse, buildErrorResponse } from "../utils/response.js";
 
@@ -26,13 +26,12 @@ If balance is insufficient, suggest purchasing more characters at ${URLS.PRICING
     async () => {
       try {
         const logger = new McpLogger();
-        const apiKeyManager = new ApiKeyManager(logger);
-        const apiKey = await apiKeyManager.ensureApiKey();
-        const service = new L10nTranslationService(logger);
-        const response = await service.getBalance(apiKey);
-
+        const balanceManager = new BalanceManager(logger);
+        const response = await balanceManager.getBalance();
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to retrieve balance.");
+          return buildErrorResponse(
+            response.message ?? "Failed to retrieve balance.",
+          );
         }
 
         const balance = response.data.currentBalance;
@@ -47,7 +46,9 @@ If balance is insufficient, suggest purchasing more characters at ${URLS.PRICING
           { success: true, balance, formattedBalance: formatted },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );

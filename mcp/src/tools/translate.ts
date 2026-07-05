@@ -78,7 +78,8 @@ export function registerTranslateTools(server: McpServer): void {
   server.registerTool(
     "l10n_translate_file",
     {
-      title: "Translate i18n File, configs, md documents, and other text-based formats",
+      title:
+        "Translate i18n File, configs, md documents, and other text-based formats",
       description: `Translate an i18n source file to one or more target languages using l10n.dev AI.
 
 Supports JSON, JSONC, Flutter ARB, YAML, PO (gettext), XLIFF, MD, and all other text-based localization formats.
@@ -115,7 +116,21 @@ PRE-TRANSLATION CHECKS — perform all of these BEFORE calling translate:
    characters at ${URLS.PRICING}
 
 5. API KEY: If the error indicates unauthorized access or no API key, suggest creating a free account
-   and API key at ${URLS.API_KEYS}. Offer to store the key using the l10n_set_api_key tool.`,
+   and API key at ${URLS.API_KEYS}. Offer to store the key using the l10n_set_api_key tool.
+   
+POST-TRANSLATION CHECKS — perform all of these AFTER calling translate:
+
+1. USAGE DETAILS: Always present a character usage breakdown to the user. For each entry in results[],
+   report the output file path (outputPath) and a cost breakdown from usageDetails — omit zero values
+   and use these descriptive labels:
+     - sourceStringsCharCount  → "content"
+     - glossaryCharCount       → "glossary applied"
+     - instructionCharCount    → "linguistic instruction"
+     - terminologyCharCount    → "terminology"
+   Then report total characters used and remaining balance.
+
+2. FILTERED STRINGS: If filteredStringsPath is present in any result, tell the user that some strings
+   were excluded due to content policy violations and were saved to that path for manual review.`,
       inputSchema: TranslateInputSchema,
       annotations: {
         readOnlyHint: false,
@@ -147,7 +162,6 @@ PRE-TRANSLATION CHECKS — perform all of these BEFORE calling translate:
         const structured: Record<string, unknown> = {
           ...summary,
           glossaryGenerated: args.generateGlossary ?? false,
-          instructionUsed: !!args.instruction,
         };
 
         const textParts: string[] = [];

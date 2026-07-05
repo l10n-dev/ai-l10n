@@ -32,7 +32,9 @@ to check whether instructions are already configured.`,
         const response = await manager.listInstructions();
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to list instructions.");
+          return buildErrorResponse(
+            response.message ?? "Failed to list instructions.",
+          );
         }
 
         const instructions = response.data.instructions;
@@ -63,7 +65,9 @@ to check whether instructions are already configured.`,
           })),
         });
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -124,7 +128,9 @@ Examples:
         });
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to create instruction.");
+          return buildErrorResponse(
+            response.message ?? "Failed to create instruction.",
+          );
         }
 
         const inst = response.data;
@@ -145,7 +151,9 @@ Examples:
           },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -197,7 +205,9 @@ Setting isActive to true deactivates all other instructions for the same languag
         });
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to update instruction.");
+          return buildErrorResponse(
+            response.message ?? "Failed to update instruction.",
+          );
         }
 
         const inst = response.data;
@@ -214,7 +224,9 @@ Setting isActive to true deactivates all other instructions for the same languag
           },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
@@ -249,7 +261,9 @@ If the deleted instruction was active, no other instruction is automatically act
         const response = await manager.deleteInstruction(args.instructionId);
 
         if (!response.success) {
-          return buildErrorResponse(response.message ?? "Failed to delete instruction.");
+          return buildErrorResponse(
+            response.message ?? "Failed to delete instruction.",
+          );
         }
 
         return buildMcpResponse(
@@ -257,7 +271,9 @@ If the deleted instruction was active, no other instruction is automatically act
           { success: true, instructionId: args.instructionId },
         );
       } catch (err) {
-        return buildErrorResponse(err instanceof Error ? err.message : String(err));
+        return buildErrorResponse(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     },
   );
