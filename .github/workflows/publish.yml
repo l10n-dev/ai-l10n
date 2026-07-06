@@ -42,8 +42,8 @@ jobs:
           node-version: "22.14.0"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Read version
         id: version
@@ -117,8 +117,9 @@ jobs:
         with:
           node-version: "22.14.0"
           registry-url: "https://registry.npmjs.org"
-      - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+          
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Read version
         id: version
@@ -211,8 +212,9 @@ jobs:
         with:
           node-version: "22.14.0"
           registry-url: "https://registry.npmjs.org"
-      - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+          
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Read version
         id: version
@@ -307,8 +309,9 @@ jobs:
         with:
           node-version: "22.14.0"
           registry-url: "https://registry.npmjs.org"
-      - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+          
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Read version
         id: version
