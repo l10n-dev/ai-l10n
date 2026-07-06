@@ -4,7 +4,9 @@ import { registerInstructionTools } from "./tools/instructions.js";
 import { registerGlossaryTools } from "./tools/glossary.js";
 import { registerBalanceTool } from "./tools/balance.js";
 import { registerApiKeyTools } from "./tools/apiKey.js";
+import { registerProjectStructureTool } from "./tools/projectStructure.js";
 import { registerSetupPrompt } from "./prompts/setup.js";
+import { registerAutomationPrompt } from "./prompts/automation.js";
 
 export function createServer(): McpServer {
   const server = new McpServer({
@@ -36,7 +38,9 @@ export function createServer(): McpServer {
   registerGlossaryTools(server);
   registerBalanceTool(server);
   registerApiKeyTools(server);
+  registerProjectStructureTool(server);
   registerSetupPrompt(server);
+  registerAutomationPrompt(server);
 
   return server;
 }

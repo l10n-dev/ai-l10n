@@ -163,6 +163,7 @@ For a shared project setup, Claude Code can also store MCP servers in a `.mcp.js
 | Tool | Description |
 |------|-------------|
 | `l10n_translate_file` | Translate an i18n source file to one or more target languages |
+| `l10n_detect_project_structure` | Scan a source file to detect structure type, source language, target languages, and target file paths |
 
 ### Linguistic Instructions
 | Tool | Description |
@@ -197,6 +198,22 @@ For a shared project setup, Claude Code can also store MCP servers in a `.mcp.js
 ### `l10n_project_setup`
 
 Guides through checking and configuring linguistic instructions and glossaries for optimal translation quality. Invoke it at the start of a new project or when reviewing l10n.dev settings.
+
+**Arguments:**
+- `sourceLanguage` — source language code (default: `en`)
+- `targetLanguages` — comma-separated target language codes (e.g. `es,fr,de`)
+
+### `l10n_setup_automation`
+
+Scans the project for i18n source files (using `l10n_detect_project_structure`), checks linguistic instructions, glossary, and balance, then interactively sets up fully automated translation via GitHub Actions or npm scripts.
+
+For GitHub Actions, guides through four trigger options:
+- **A)** On every push to `main` — translate and commit back directly
+- **B)** On pull requests — translate and open a PR for review
+- **C)** On a schedule — translate nightly or on a cron
+- **D)** Manual trigger only — `workflow_dispatch`
+
+Writes `ai-l10n.config.json` and `.github/workflows/translate.yml` (or updates `package.json` scripts), then tells you where to add the API key and what happens on the next trigger.
 
 **Arguments:**
 - `sourceLanguage` — source language code (default: `en`)

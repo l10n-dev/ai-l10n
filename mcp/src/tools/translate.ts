@@ -84,7 +84,22 @@ export function registerTranslateTools(server: McpServer): void {
 
 Supports JSON, JSONC, Flutter ARB, YAML, PO (gettext), XLIFF, MD, and all other text-based localization formats.
 Format is auto-detected from the file extension.
-If targetLanguages is omitted, languages are auto-detected from the project structure.
+
+If sourceFile is omitted, scan the project for i18n source files. Common patterns to look for:
+- \`locales/en.json\`, \`locales/en-US.json\` (flat file-based)
+- \`locales/en/common.json\`, \`locales/en/messages.json\` (folder-based)
+- \`app_en.arb\` (Flutter ARB)
+- \`*.po\`, \`*.xliff\`, \`*.yaml\` files with language-code naming
+- \`ai-l10n.config.json\` if it already exists (read it to find the declared source files)
+
+For each candidate source file found, call \`l10n_detect_project_structure\` and collect:
+- Structure type, source language code, and detected target languages
+- Which target files already exist on disk
+
+If no source files can be found, ask me which file to use before continuing.
+If targetLanguages is omitted, and if target languages are not detected, ask me for them.
+
+Show a brief summary of what was found before continuing.
 
 PRE-TRANSLATION CHECKS — perform all of these BEFORE calling translate:
 
@@ -106,8 +121,7 @@ PRE-TRANSLATION CHECKS — perform all of these BEFORE calling translate:
    Do this check BEFORE translating — do not suggest a rerun after the fact.
 
 3. INCREMENTAL UPDATE: For JSON-based formats (.json, .jsonc, .arb) only: if the target language files
-   already exist on disk (i.e. this is an update to existing translations, not a first-time run) and
-   translateOnlyNewStrings was not explicitly set by the user, suggest enabling it:
+   already exist on disk and translateOnlyNewStrings was not explicitly set by the user, suggest enabling it:
    "Target files already exist — enable incremental mode to skip unchanged strings and save quota?"
    If yes, set translateOnlyNewStrings: true.
 
