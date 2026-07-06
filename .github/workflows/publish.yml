@@ -390,6 +390,7 @@ jobs:
     needs: [publish-root, publish-mcp]
     if: ${{ inputs.dry_run != true }}
     permissions:
+      id-token: write
       contents: write
 
     steps:
