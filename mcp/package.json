@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local MCP server for l10n.dev — AI translation of i18n files to 165 languages preserving format and structure, AI glossary generation, and linguistic instructions",
   "main": "dist/index.js",
   "bin": {

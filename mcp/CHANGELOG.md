@@ -1,6 +1,13 @@
 # Changelog
 
-## [1.10.0] - 2026-07-06
+## [1.1.0] - 2026-07-06
+
+### Added
+- `l10n_setup_automation` MCP Prompt — scans the project for i18n source files, asks GitHub Actions or npm scripts, guides trigger selection (push/PR/schedule/manual), and writes `ai-l10n.config.json` plus the workflow YAML or `package.json` scripts
+- `l10n_detect_project_structure` tool — wraps `I18nProjectManager` from the SDK; given a source file path returns structure type (folder-based / file-based), source language, detected target languages, and resolved target file paths with existence flags
+- Updated `l10n_setup_automation` prompt — now calls `l10n_detect_project_structure` for accurate project scanning, and adds linguistic instruction, glossary, and balance checks (matching `l10n_project_setup`) before writing automation files
+
+## [1.0.0] - 2026-07-06
 
 ### Added
 - Initial release of `ai-l10n-mcp` — local stdio MCP server for l10n.dev
