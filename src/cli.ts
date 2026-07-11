@@ -45,6 +45,10 @@ program
     "-k, --api-key <key>",
     "API key for l10n.dev (store using 'ai-l10n config --api-key <key>' or set L10N_API_KEY env variable)",
   )
+  .option(
+    "-c, --client <client>",
+    "Client or integration identifier for this translation request. Used for tracking and analytics as part of the Developer Affiliate Program. Max length: 20",
+  )
   .option("--plural", "Generate plural forms", false)
   .option("--shorten", "Use shortening in translations", false)
   .option("--no-contractions", "Don't use contractions in translations")
@@ -95,7 +99,10 @@ program
     };
 
     const translator = new AiTranslator();
-    const result = await translator.translate(config, options.apiKey);
+    const result = await translator.translate(config, {
+      apiKey: options.apiKey,
+      client: options.client ?? "ai-l10n-cli",
+    });
 
     if (!result.success) {
       process.exit(1);

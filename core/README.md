@@ -257,7 +257,7 @@ interface BalanceResponse {
 
 ```typescript
 interface TranslationRequest {
-  /** Source strings as JSON string */
+  /** The text content to be translated. Can be in JSON, YAML, PO, ARB, or other supported formats. */
   sourceStrings: string;
 
   /** Target language code (e.g., "es", "fr-FR") */
@@ -275,16 +275,16 @@ interface TranslationRequest {
   /** Translate metadata along with UI strings (e.g., ARB `@key` descriptions) */
   translateMetadata?: boolean;
 
-  /** Client identifier */
+  /** Identifies the client or integration making the translation request. 
+   * Used for tracking and analytics as part of the Developer Affiliate Program. Max length: 20. 
+   */
   client: string;
 
-  /** Only translate new strings */
+  /** Indicates whether to translate only new and changed strings */
   translateOnlyNewStrings?: boolean;
 
-  /** Existing target strings (for incremental updates) */
+  /** Existing target strings (for translating only new and changed strings) */
   targetStrings?: string | null;
-
-  /** File schema format */
   schema?: FileSchema | null;
 
   /**
@@ -310,13 +310,16 @@ interface TranslationRequest {
 
   /**
    * Glossary entries to apply during translation.
-   * null/omitted = use active glossary, [] = disable glossary, entries = replace active for this request.
+   * - `null` or omitted: use the active glossary for this language pair.
+   * - Empty array `[]`: disable glossary translation entirely.
+   * - One or more entries: replace the active glossary for this request.
    * Manage saved glossaries at https://l10n.dev/ws/translation-glossary
    */
   glossary?: GlossaryEntry[] | null;
 
   /**
-   * A list of terms for consistent translations. Synonyms are replaced by the preferred term.
+   * A list of terms to use for consistent translations.
+   * Synonyms listed per entry will be replaced by the preferred term.
    */
   terminology?: TerminologyEntry[] | null;
 
@@ -345,7 +348,7 @@ interface TranslationResult {
   /** Target language code */
   targetLanguageCode: string;
 
-  /** Translated content as JSON string */
+  /** Translated content as a string in the same format as source strings */
   translations?: string;
 
   /** Usage statistics */
@@ -363,7 +366,11 @@ interface TranslationResult {
   /** Remaining character balance */
   remainingBalance?: number;
 
-  /** Strings filtered due to content policy, in the same format as the input */
+  /**
+   * Source strings that were filtered out due to content policy violations or length limits.
+   * Populated when the finish reason is 'contentFilter' or 'length'.
+   * Raw text in the same format as the input (JSON, YAML, PO, etc.).
+   */
   filteredStrings?: string;
 }
 ```

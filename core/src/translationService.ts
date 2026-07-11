@@ -46,33 +46,54 @@ export interface TerminologyEntry {
 }
 
 export interface TranslationRequest {
+  /** The text content to be translated. Can be in JSON, YAML, PO, ARB, or other supported formats. */
   sourceStrings: string;
+
+  /** BCP-47 code of the target language (e.g., "es", "fr-FR") */
   targetLanguageCode: string;
-  /**
-   * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
-   * If not specified, the source language will be auto-detected from `sourceStrings` content.
-   */
-  sourceLanguageCode?: string | null;
+
+  /** Use contractions (e.g., "don't" vs "do not") */
   useContractions?: boolean;
+
+  /** Use shortened forms when translation is longer than source text */
   useShortening?: boolean;
+
+  /** Generate plural forms for i18next */
   generatePluralForms?: boolean;
+
+  /** Translate metadata along with UI strings (e.g., ARB `@key` descriptions) */
   translateMetadata?: boolean;
-  client: string;
+
+  /** Identifies the client or integration making the translation request.
+   * Used for tracking and analytics as part of the Developer Affiliate Program. Max length: 20.
+   */
+  client?: string;
+
+  /** Indicates whether to translate only new and changed strings */
   translateOnlyNewStrings?: boolean;
+
+  /** Existing target strings (for translating only new and changed strings) */
   targetStrings?: string | null;
   schema?: FileSchema | null;
 
   /**
    * Localization file format (e.g., "json", "arb", "po", "yaml", "xml").
    * If not specified, auto-detected from sourceStrings content.
-   * See https://l10n.dev/ws/translate-i18n-files#supported-formats for supported formats.
+   * See the [supported formats table](https://l10n.dev/ws/translate-i18n-files#supported-formats).
    */
   format?: string | null;
 
   /**
-   * When false (default), a glossary is generated internally only for large content.
-   * When true, the glossary is generated from source and target strings, saved as the active
-   * glossary for this language pair, and balance is debited for the full source content upfront.
+   * BCP-47 code of the source language (e.g., "en", "en-US", "zh-Hans-CN").
+   * If not specified, the source language will be auto-detected from `sourceStrings` content.
+   */
+  sourceLanguageCode?: string | null;
+
+  /**
+   * When true, generates a glossary from source and translated target content and saves it as the
+   * active glossary for this language pair for future translations.
+   * Balance is debited for the full source content upfront — even when translateOnlyNewStrings is true.
+   * When false (default), an internal glossary is generated only for large content at no extra cost.
    */
   generateGlossary?: boolean;
 
@@ -81,6 +102,7 @@ export interface TranslationRequest {
    * - `null` or omitted: use the active glossary for this language pair.
    * - Empty array `[]`: disable glossary translation entirely.
    * - One or more entries: replace the active glossary for this request.
+   * Manage saved glossaries at https://l10n.dev/ws/translation-glossary
    */
   glossary?: GlossaryEntry[] | null;
 
@@ -110,6 +132,8 @@ export interface TranslationRequest {
 
 export interface TranslationResult {
   targetLanguageCode: string;
+
+  /** Translated content as a string in the same format as source strings */
   translations?: string;
   usage: TranslationUsage;
   finishReason: FinishReason;

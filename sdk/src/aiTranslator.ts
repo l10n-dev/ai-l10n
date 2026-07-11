@@ -165,12 +165,14 @@ export class AiTranslator {
   /**
    * Translate a localization file to one or more target languages
    * @param config Translation configuration
-   * @param apiKey Optional API key to use for this translation. If not provided, will be retrieved from environment variable or stored config.
+   * @param authOptions Authentication options
+   *  - apiKey: Optional API key to use for this translation. If not provided, will be retrieved from environment variable or stored config.
+   *  - client: Identifies the client or integration making the translation request. Used for tracking and analytics as part of the Developer Affiliate Program. Max length: 20
    * @returns Translation summary with results for each target language
    */
   async translate(
     config: TranslationConfig,
-    apiKey?: string,
+    authOptions?: { apiKey?: string; client?: string },
   ): Promise<TranslationSummary> {
     const verbose = config.verbose ?? false;
 
@@ -193,9 +195,9 @@ export class AiTranslator {
       }
 
       // Ensure API key is available
-      if (!apiKey) {
-        apiKey = await this.apiKeyManager.ensureApiKey();
-      }
+      const apiKey =
+        authOptions?.apiKey ?? (await this.apiKeyManager.ensureApiKey());
+      const client = authOptions?.client;
 
       // Determine target languages
       let sourceLanguageCode = config.sourceLanguageCode;
@@ -304,6 +306,7 @@ export class AiTranslator {
               terminology,
               instruction,
               replace,
+              client,
             );
 
             return result;
@@ -398,6 +401,7 @@ export class AiTranslator {
     terminology: TerminologyEntry[] | null | undefined,
     instruction: string | null | undefined,
     replace: boolean,
+    client?: string,
   ): Promise<TranslationOutput & { remainingBalance?: number }> {
     // Read source file
     const sourceContent = fs.readFileSync(sourceFilePath, "utf8");
@@ -427,7 +431,7 @@ export class AiTranslator {
       useShortening,
       generatePluralForms,
       translateMetadata,
-      client: "ai-l10n-npmjs",
+      client: client ?? "ai-l10n-sdk-npmjs",
       translateOnlyNewStrings,
       targetStrings,
       schema: format === "arb" ? FileSchema.ARBFlutter : null,
