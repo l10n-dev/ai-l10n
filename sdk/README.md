@@ -267,13 +267,14 @@ Creates an instance of AiTranslator.
 
 #### Methods
 
-##### `translate(config: TranslationConfig, apiKey?: string): Promise<TranslationSummary>`
+##### `translate(config: TranslationConfig, authOptions?: {apiKey?: string, client?: string}): Promise<TranslationSummary>`
 
 Translates a i18n file to one or more target languages.
 
 **Parameters:**
 - `config: TranslationConfig` - Translation configuration object
-- `apiKey?: string` - Optional API key to use for this translation. If not provided, will be retrieved from environment variable or stored config.
+- `authOptions.apiKey?: string` - Optional API key to use for this translation. If not provided, will be retrieved from environment variable or stored config.
+- `authOptions.client?: string` - Identifies the client or integration making the translation request. Used for tracking and analytics as part of the Developer Affiliate Program. Max length: 20 
 
 **Returns:** `Promise<TranslationSummary>` - Summary of translation results
 

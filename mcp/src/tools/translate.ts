@@ -158,18 +158,21 @@ POST-TRANSLATION CHECKS — perform all of these AFTER calling translate:
         const logger = new McpLogger();
         const translator = new AiTranslator(logger);
 
-        const summary = await translator.translate({
-          sourceFile: args.sourceFile,
-          targetLanguages: args.targetLanguages,
-          translateOnlyNewStrings: args.translateOnlyNewStrings,
-          generateGlossary: args.generateGlossary,
-          instruction: args.instruction,
-          generatePluralForms: args.generatePluralForms,
-          useShortening: args.useShortening,
-          translateMetadata: args.translateMetadata,
-          replace: args.replace,
-          verbose: args.verbose ?? false,
-        });
+        const summary = await translator.translate(
+          {
+            sourceFile: args.sourceFile,
+            targetLanguages: args.targetLanguages,
+            translateOnlyNewStrings: args.translateOnlyNewStrings,
+            generateGlossary: args.generateGlossary,
+            instruction: args.instruction,
+            generatePluralForms: args.generatePluralForms,
+            useShortening: args.useShortening,
+            translateMetadata: args.translateMetadata,
+            replace: args.replace,
+            verbose: args.verbose ?? false,
+          },
+          { client: "ai-l10n-mcp-server" },
+        );
 
         const logOutput = logger.flush();
 

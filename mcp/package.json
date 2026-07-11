@@ -1,7 +1,8 @@
 {
   "name": "ai-l10n-mcp",
-  "version": "1.1.0",
-  "description": "Local MCP server for l10n.dev — AI translation of i18n files to 165 languages preserving format and structure, AI glossary generation, and linguistic instructions",
+  "version": "1.1.1",
+  "mcpName": "io.github.l10n-dev/ai-l10n-mcp",
+  "description": "MCP Server that turns your AI agent into a localization expert with token-efficient i18n translation, built on the ai-l10n SDK. Instead of loading large i18n files into the AI's context, it translates them server-side via MCP, saving tokens and keeping the agent focused on coding. It preserves file formats, placeholders, and existing translations, supports 165 languages, applies persistent glossaries and custom linguistic instructions, and translates only changed strings for fast, production-ready localization.",
   "main": "dist/index.js",
   "bin": {
     "ai-l10n-mcp": "./dist/index.js"
@@ -54,7 +55,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "ai-l10n-sdk": "^1.9.1",
+    "ai-l10n-sdk": "^1.10.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
