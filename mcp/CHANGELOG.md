@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.2] - 2026-07-13
+- Updated server.json
+
 ## [1.1.1] - 2026-07-11
 - Added mcpName for publishing to the MCP registry
 - Updated SDK dependency to pass client identification

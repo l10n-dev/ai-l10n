@@ -8,12 +8,34 @@
     "type": "git",
     "subfolder": "mcp"
   },
-  "version": "1.1.1",
+  "version": "1.1.2",
+  "websiteUrl": "https://l10n.dev",
+  "title": "L10n.dev - AI Localization Agent",
+  "icons": [
+    {
+      "src": "https://l10n.dev/favicon.svg",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "src": "https://l10n.dev/favicon-96x96.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "96x96"
+      ]
+    },
+    {
+      "src": "https://l10n.dev/apple-touch-icon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "180x180"
+      ]
+    }
+  ],
   "packages": [
     {
       "registryType": "npm",
       "identifier": "ai-l10n-mcp",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "transport": {
         "type": "stdio"
       },
