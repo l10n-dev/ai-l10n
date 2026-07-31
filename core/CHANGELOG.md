@@ -5,6 +5,29 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-07-31
+
+### Changed
+- **Dual ESM + CommonJS build.** The package now ships both an ESM build (`dist/esm`)
+  and a CommonJS build (`dist/cjs`), selected automatically via the `exports` map.
+  Bundlers (Vite, Rollup, esbuild, webpack, Angular CLI) now resolve the ESM entry
+  instead of falling back to CommonJS interop, which removes the
+  `Module 'ai-l10n-core' ... is not ESM` warning and the optimization bailout it
+  reports. Native ESM consumers (`"type": "module"`) get real named exports rather
+  than relying on CommonJS named-export detection.
+- Added `"sideEffects": false`, enabling bundlers to tree-shake unused exports.
+- Added an `exports` map with `import` / `require` / `types` conditions. `main`,
+  `module` and `types` are retained for older tooling that ignores `exports`.
+- Relative imports in the sources now carry explicit `.js` extensions, as required
+  for ESM resolution in Node and in browsers.
+
+### Fixed
+- Stale build artifacts (compiled test files under `dist/test/`) are no longer
+  published — the build now cleans `dist/` first.
+
+### Notes
+- No API changes. Existing `require("ai-l10n-core")` consumers are unaffected.
+
 ## [1.10.0] - 2026-07-11
 - API documentation is improved
 

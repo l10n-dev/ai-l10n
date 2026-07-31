@@ -3,8 +3,8 @@ import * as sinon from "sinon";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { AiTranslator, I18nProjectManager, TranslationConfig } from "../index";
-import { ApiKeyManager } from "../apiKeyManager";
+import { AiTranslator, I18nProjectManager, TranslationConfig } from "../index.js";
+import { ApiKeyManager } from "../apiKeyManager.js";
 import { FinishReason, L10nTranslationService } from "ai-l10n-core";
 
 suite("AiTranslator Test Suite", () => {

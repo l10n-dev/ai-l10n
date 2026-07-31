@@ -1,11 +1,11 @@
-import { ConsoleLogger } from "./consoleLogger";
-import { URLS } from "./constants";
-import { ILogger } from "./logger";
+import { ConsoleLogger } from "./consoleLogger.js";
+import { URLS } from "./constants.js";
+import { ILogger } from "./logger.js";
 import {
   checkApiKey,
   handleErrorResponse,
   parseErrorBody,
-} from "./serviceHelpers";
+} from "./serviceHelpers.js";
 
 /**
  * Supported file schema formats for translation requests.

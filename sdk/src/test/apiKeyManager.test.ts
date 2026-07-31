@@ -2,7 +2,7 @@ import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { ApiKeyManager } from "../apiKeyManager";
+import { ApiKeyManager } from "../apiKeyManager.js";
 
 suite("ApiKeyManager Test Suite", () => {
   let manager: ApiKeyManager;

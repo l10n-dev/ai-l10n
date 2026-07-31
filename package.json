@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Easy-to-use AI-powered localization automation for i18n files (CLI and SDK)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,7 @@
     "ai-l10n": "dist/cli.js"
   },
   "scripts": {
+    "prebuild": "node scripts/ensure-sdk-built.js",
     "build": "tsc",
     "prepare": "npm run build",
     "verify": "node scripts/verify.js",
@@ -53,7 +54,7 @@
     "mcp"
   ],
   "dependencies": {
-    "ai-l10n-sdk": "^1.10.0",
+    "ai-l10n-sdk": "^1.11.0",
     "commander": "^11.1.0"
   },
   "devDependencies": {

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-07-31
+
+### Changed
+- Version bump to stay in sync with `ai-l10n-sdk` 1.11.0, which — together with
+  `ai-l10n-core` 1.11.0 — now ships a dual ESM + CommonJS build. No CLI behaviour
+  changes.
+
 ## [1.10.0] - 2026-07-11
 - Added `client` option to identify integrations of the l10n.dev localization platform.
 

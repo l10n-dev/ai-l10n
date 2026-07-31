@@ -15,6 +15,28 @@ Powered by [l10n](https://l10n.dev).dev
 npm install ai-l10n-sdk
 ```
 
+## Module Formats
+
+The package ships both an ESM and a CommonJS build. The right one is selected
+automatically — bundlers and native ESM get the ESM build, `require()` gets the
+CommonJS build. Type definitions are provided for both.
+
+```typescript
+// ESM / TypeScript
+import { AiTranslator } from 'ai-l10n-sdk';
+```
+
+```javascript
+// CommonJS
+const { AiTranslator } = require('ai-l10n-sdk');
+```
+
+> **Node.js only.** This SDK reads and writes localization files and stores API
+> keys on disk, so it depends on `fs`, `path` and `os` and cannot run in a browser.
+> If you need a browser or edge-compatible client, use
+> [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core) directly — it has no
+> runtime dependencies and no Node.js built-ins.
+
 ## Related Packages
 
 - [ai-l10n-core](https://www.npmjs.com/package/ai-l10n-core) — Core translation API client, logger interface, and shared types

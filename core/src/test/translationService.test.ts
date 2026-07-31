@@ -1,12 +1,12 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
-import { URLS } from "../constants";
-import { ILogger } from "../logger";
+import { URLS } from "../constants.js";
+import { ILogger } from "../logger.js";
 import {
   L10nTranslationService,
   FileSchema,
   TranslationResponse,
-} from "../translationService";
+} from "../translationService.js";
 
 // Mock fetch globally
 const mockFetch = sinon.stub();

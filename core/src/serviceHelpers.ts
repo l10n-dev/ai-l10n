@@ -1,5 +1,5 @@
-import { URLS } from "./constants";
-import { ILogger } from "./logger";
+import { URLS } from "./constants.js";
+import { ILogger } from "./logger.js";
 
 /**
  * Checks that an API key is present. Returns a structured error response if the key is missing.
