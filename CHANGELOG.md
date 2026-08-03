@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.1] - 2026-08-03
+
+### Fixed
+- `batch` passed the API key to the SDK as a bare string instead of an
+  `{ apiKey, client }` options object, so `ai-l10n batch -k <key>` was silently
+  ignored and the key was always taken from `L10N_API_KEY` or the stored config.
+  The key given on the command line is now honoured.
+
+### Added
+- `batch` accepts `-c, --client <client>`, matching `translate`. Batch runs are now
+  identified as `ai-l10n-cli` by default.
+
 ## [1.11.0] - 2026-07-31
 
 ### Changed

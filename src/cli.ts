@@ -136,6 +136,10 @@ program
     "-k, --api-key <key>",
     "API key for l10n.dev (store using 'ai-l10n config --api-key <key>' or set L10N_API_KEY env variable)",
   )
+  .option(
+    "-c, --client <client>",
+    "Client or integration identifier for this translation request. Used for tracking and analytics as part of the Developer Affiliate Program. Max length: 20",
+  )
   .action(async (configFile: string, options: any) => {
     try {
       const configPath = path.resolve(configFile);
@@ -191,7 +195,10 @@ program
         );
         console.log(`${"=".repeat(60)}`);
 
-        const result = await translator.translate(config, options.apiKey);
+        const result = await translator.translate(config, {
+          apiKey: options.apiKey,
+          client: options.client ?? "ai-l10n-cli",
+        });
 
         if (result.success) {
           successCount++;
