@@ -44,7 +44,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+        run: |
+          npm install -g npm@^11.5.1
+          echo "node $(node --version) / npm v$(npm --version)"
 
       - name: Read version
         id: version
@@ -121,7 +123,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           
       - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+        run: |
+          npm install -g npm@^11.5.1
+          echo "node $(node --version) / npm v$(npm --version)"
 
       - name: Read version
         id: version
@@ -217,7 +221,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           
       - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+        run: |
+          npm install -g npm@^11.5.1
+          echo "node $(node --version) / npm v$(npm --version)"
 
       - name: Read version
         id: version
@@ -315,7 +321,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           
       - name: Install npm 11.5.1+
-        run: npm install -g npm@^11.5.1
+        run: |
+          npm install -g npm@^11.5.1
+          echo "node $(node --version) / npm v$(npm --version)"
 
       - name: Read version
         id: version

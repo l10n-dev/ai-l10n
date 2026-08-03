@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/ai-l10n.svg)](https://www.npmjs.com/package/ai-l10n)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-AI-powered translation for app localization. Automatically translate your i18n files to 165+ languages using AI. Supports JSON, JSONC, Flutter ARB, YAML, PO, XLIFF, and all other text-based localization formats with intelligent project structure detection.
+AI-powered translation for app localization. Automatically translate your i18n files to 165 languages using AI. Supports JSON, JSONC, Flutter ARB, YAML, PO, XLIFF, and all other text-based localization formats with intelligent project structure detection.
 
 Powered by [l10n](https://l10n.dev).dev
 
@@ -11,20 +11,33 @@ Powered by [l10n](https://l10n.dev).dev
 
 ## Features
 
-- 🤖 **AI-Powered Translations** - Context-aware translation to 165+ languages using advanced AI
-- 📁 **Smart Detection** - Automatically detects target languages from your project structure
-- 🔄 **Incremental Updates** - Translate only new/changed strings while preserving existing translations
-- 🔒 **Type Safety** - Preserves JSON data types—numbers stay numbers, booleans stay booleans, null stays null
-- 🎯 **Multiple Formats** - Supports JSON, JSONC, Flutter ARB, Shopify theme files, YAML, PO (gettext), XLIFF, and any other text-based localization format. See the [full supported formats list](https://l10n.dev/ws/translate-i18n-files#supported-formats)
-- ⚙️ **Flexible Configuration** - Use via CLI, programmatically, or in CI/CD pipelines
-- 🌐 **i18next Plural Forms Support** - Automatically generates all required plural form strings with correct suffixes. For languages with complex pluralization rules (like Russian, Arabic, or Polish), it ensures every necessary form is created
-- 🛠️ **Developer-Friendly** - Preserves placeholders, HTML tags, and formatting while adapting dates and numbers to target locales. Intelligently avoids translating proper names, URLs, and technical terms. Learn more about [I18N Translation Using AI](https://l10n.dev/help/i18n-translation-using-ai)
-- 🕵️ **Smart Error Detection & Chunking** - Automatically detects and retries if placeholders or formatting are lost. For large files, splits content into manageable chunks while maintaining context. Prevents issues common with direct AI uploads (Claude/GPT) where exceeding ~16,000 characters causes content loss
-- 🔍 **Content Filtering** - Automatic content filtering at moderate sensitivity. Filtered strings are saved separately in i18n JSON format for review
-- 📊 **Usage Tracking** - Monitor character usage and remaining balance
-- 💰 **Free Tier** - Get 10,000 characters free every month
-- 📚 **Translation Glossary** - Generate and save AI glossaries for consistent terminology across translations. Supply custom term mappings or terminology lists to override AI choices
-- **Linguistic Instruction** - Control the overall style, tone, and translation behavior
+One command turns your source file into 165 languages — from the CLI, an npm script, your CI pipeline, or your AI agent. No pasting files into a chat window, no broken placeholders, no re-translating everything because one string changed.
+
+```bash
+npx ai-l10n translate ./locales/en.json --update
+```
+
+**Translate**
+
+- 🤖 **165 languages** — context-aware AI translation, not word-by-word machine output
+- 🎯 **Any text-based format** — JSON, JSONC, Flutter ARB, Shopify themes, YAML, PO (gettext), XLIFF, and more ([full list](https://l10n.dev/ws/translate-i18n-files#supported-formats))
+- 📁 **Zero setup** — target languages are auto-detected from your file and folder layout
+- 🔄 **Incremental by default** — `--update` translates only new and changed strings and leaves the rest untouched
+
+**Quality you can ship**
+
+- 🛠️ **Nothing breaks** — placeholders, HTML tags, and formatting are preserved; dates and numbers are localized; proper names, URLs, and technical terms are left alone ([how it works](https://l10n.dev/help/i18n-translation-using-ai))
+- 🌐 **Correct plural forms** — every i18next suffix is generated, including complex rules in Russian, Arabic, and Polish
+- 🔒 **Type-safe JSON** — numbers stay numbers, booleans stay booleans, null stays null
+- 📚 **Glossary & terminology** — lock brand, legal, and product terms so the AI can't pick a synonym
+- ✍️ **Linguistic instructions** — set tone and style once, e.g. `--instruction "Use formal tone"`
+
+**Built for automation**
+
+- ⚙️ **Runs anywhere** — CLI, SDK, npm scripts, GitHub Action, GitLab CI, Jenkins, and MCP for AI agents
+- 🕵️ **Self-checking** — detects lost placeholders and retries; splits large files into chunks while keeping context, avoiding the silent content loss you get pasting strings into Claude or GPT
+- 🔍 **Content filtering** — filtered strings are saved to a separate file for review instead of failing the run
+- 📊 **Usage tracking** — monitor character usage and balance; 10,000 characters free every month, pay-as-you-go after that
 
 ## Installation
 
@@ -341,21 +354,6 @@ lib/l10n/
   app_zh_Hans_CN.arb   # Auto-detected
 ```
 
-### File-Based Structure (Shopify Theme)
-
-```
-theme/locales/
-  en.default.schema.json  # Source
-  es-ES.schema.json       # Auto-detected
-  fr.schema.json          # Auto-detected
-  de.schema.json          # Auto-detected
-```
-
-**Shopify Theme Notes:**
-- Files with `.default.` in the name (e.g., `en.default.schema.json`) are recognized as source files
-- Target files automatically remove `.default.` while preserving `.schema.` suffix
-- Example: `en.default.schema.json` → `es-ES.schema.json`, `fr.schema.json`
-
 ## Configuration Options
 
 | Option | Type | Default | Description |
@@ -523,11 +521,11 @@ npx ai-l10n instruction delete 1
 
 ## Language Support
 
-l10n.dev supports 165+ languages with varying proficiency levels:
+l10n.dev supports 165 languages with varying proficiency levels:
 
 - **Strong (12 languages)**: English, Spanish, French, German, Chinese, Russian, Portuguese, Italian, Japanese, Korean, Arabic, Hindi
 - **High (53 languages)**: Most European and Asian languages including Dutch, Swedish, Polish, Turkish, Vietnamese, Thai, and more
-- **Moderate (100+ languages)**: Wide range of world languages
+- **Moderate (100 languages)**: Wide range of world languages
 
 ## Language Codes
 
