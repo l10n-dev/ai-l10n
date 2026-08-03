@@ -5,6 +5,12 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.1] - 2026-08-03
+
+### Changed
+- Version bump to stay in sync with `ai-l10n` 1.11.1, which fixes the `batch`
+  command's use of `AiTranslator.translate`. No SDK behaviour changes.
+
 ## [1.11.0] - 2026-07-31
 
 ### Changed
