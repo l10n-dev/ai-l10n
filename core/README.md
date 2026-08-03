@@ -13,6 +13,27 @@ Powered by [l10n](https://l10n.dev).dev
 npm install ai-l10n-core
 ```
 
+## Module Formats
+
+The package ships both an ESM and a CommonJS build. The right one is selected
+automatically — bundlers and native ESM get the ESM build, `require()` gets the
+CommonJS build. Type definitions are provided for both.
+
+```typescript
+// ESM / TypeScript / bundlers (Vite, Rollup, esbuild, webpack, Angular CLI)
+import { ConsoleLogger, URLS } from 'ai-l10n-core';
+```
+
+```javascript
+// CommonJS
+const { ConsoleLogger, URLS } = require('ai-l10n-core');
+```
+
+The package has **no runtime dependencies** and uses no Node.js built-ins — it
+targets the global `fetch`, so it runs in Node, browsers, and edge runtimes alike.
+It is also marked `"sideEffects": false`, so bundlers can tree-shake anything you
+do not import.
+
 ## Related Packages
 
 - [ai-l10n-sdk](https://www.npmjs.com/package/ai-l10n-sdk) — High-level SDK with `AiTranslator`, file management, and project structure detection

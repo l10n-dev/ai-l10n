@@ -1,6 +1,6 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
-import { ConsoleLogger } from "../consoleLogger";
+import { ConsoleLogger } from "../consoleLogger.js";
 
 suite("ConsoleLogger Test Suite", () => {
   let logger: ConsoleLogger;

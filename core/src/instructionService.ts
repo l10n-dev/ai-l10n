@@ -1,8 +1,8 @@
-import { ConsoleLogger } from "./consoleLogger";
-import { URLS } from "./constants";
-import { ILogger } from "./logger";
-import { ApiResponse } from "./translationService";
-import { checkApiKey, handleErrorResponse } from "./serviceHelpers";
+import { ConsoleLogger } from "./consoleLogger.js";
+import { URLS } from "./constants.js";
+import { ILogger } from "./logger.js";
+import { ApiResponse } from "./translationService.js";
+import { checkApiKey, handleErrorResponse } from "./serviceHelpers.js";
 
 // ── Instruction Types ─────────────────────────────────────────────────────────
 

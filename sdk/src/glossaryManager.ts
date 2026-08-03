@@ -1,4 +1,4 @@
-import { ApiKeyManager } from "./apiKeyManager";
+import { ApiKeyManager } from "./apiKeyManager.js";
 import {
   L10nGlossaryService,
   GlossaryListResponse,

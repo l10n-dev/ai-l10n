@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { ApiKeyManager } from "./apiKeyManager";
-import { I18nProjectManager } from "./i18nProjectManager";
+import { ApiKeyManager } from "./apiKeyManager.js";
+import { I18nProjectManager } from "./i18nProjectManager.js";
 import {
   L10nTranslationService,
   TranslationRequest,

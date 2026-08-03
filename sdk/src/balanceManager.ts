@@ -5,7 +5,7 @@ import {
   ApiResponse,
   BalanceResponse,
 } from "ai-l10n-core";
-import { ApiKeyManager } from "./apiKeyManager";
+import { ApiKeyManager } from "./apiKeyManager.js";
 
 /**
  * High-level manager for account balance.

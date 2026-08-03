@@ -5,6 +5,33 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-07-31
+
+### Changed
+- **Dual ESM + CommonJS build.** The package now ships both an ESM build (`dist/esm`)
+  and a CommonJS build (`dist/cjs`), selected automatically via the `exports` map.
+  Bundlers now resolve the ESM entry instead of falling back to CommonJS interop,
+  and native ESM consumers (`"type": "module"`) get real named exports.
+- Added `"sideEffects": false`, enabling bundlers to tree-shake unused exports.
+- Added an `exports` map with `import` / `require` / `types` conditions. `main`,
+  `module` and `types` are retained for older tooling that ignores `exports`.
+- Relative imports in the sources now carry explicit `.js` extensions, as required
+  for ESM resolution.
+- Requires `ai-l10n-core` ^1.11.0.
+
+### Fixed
+- Stale build artifacts left over from earlier layouts (`l10nApiClient.js`,
+  `translationService.js`, `consoleLogger.js`, `constants.js`, `logger.js` — files
+  whose sources no longer exist) are no longer published. The build now cleans
+  `dist/` first.
+
+### Notes
+- No API changes. Existing `require("ai-l10n-sdk")` consumers are unaffected.
+- This package remains **Node-only** — it uses `fs`, `path` and `os` for API-key
+  and project-file handling, so it is not browser-compatible. The ESM build improves
+  native-ESM interop and tree-shaking; it does not change the runtime requirements.
+  For browser or edge use, depend on `ai-l10n-core` directly.
+
 ## [1.10.0] - 2026-07-11
 - Added `authOptions` as an optional arg to the `translate` method of `AITranslator` class.
   - Add `client` to identify client's usage correctly

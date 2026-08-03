@@ -1,11 +1,27 @@
 {
   "name": "ai-l10n-sdk",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Lightweight SDK for AI-powered localization automation - programmatic API (no CLI)",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/esm/index.d.ts",
+        "require": "./dist/cjs/index.d.ts"
+      },
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "build": "tsc",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prebuild": "node scripts/ensure-core-built.js",
+    "build": "npm run clean && tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && node scripts/write-type-markers.js",
     "test": "mocha",
     "prepare": "npm run build",
     "verify": "node scripts/verify.js"
@@ -46,7 +62,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "ai-l10n-core": "^1.10.0"
+    "ai-l10n-core": "^1.11.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

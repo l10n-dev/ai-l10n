@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as os from "os";
 
 // Import the I18nProjectManager and related types
-import { I18nProjectManager } from "../i18nProjectManager";
+import { I18nProjectManager } from "../i18nProjectManager.js";
 
 suite("I18nProjectManager Test Suite", () => {
   let tempDir: string;

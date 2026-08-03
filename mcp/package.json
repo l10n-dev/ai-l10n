@@ -8,6 +8,7 @@
     "ai-l10n-mcp": "./dist/index.js"
   },
   "scripts": {
+    "prebuild": "node scripts/ensure-sdk-built.js",
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
