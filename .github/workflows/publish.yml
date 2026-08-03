@@ -232,6 +232,19 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "📦 ai-l10n-mcp version: $VERSION"
 
+      # server.json drives the MCP registry publish, package.json drives npm.
+      # If they drift, the two registries end up on different versions.
+      - name: Check server.json version matches
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          SERVER_VERSION=$(node -p "require('./mcp/server.json').version")
+          PKG_VERSION=$(node -p "require('./mcp/server.json').packages[0].version")
+          if [ "$SERVER_VERSION" != "$VERSION" ] || [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "❌ mcp/server.json ($SERVER_VERSION / packages[0] $PKG_VERSION) does not match mcp/package.json ($VERSION)"
+            exit 1
+          fi
+          echo "✅ mcp/server.json matches mcp/package.json ($VERSION)"
+
       - name: Check if already published
         id: check
         run: |
@@ -493,8 +506,10 @@ jobs:
   publish-mcp-registry:
     name: Publish MCP to Registry
     runs-on: ubuntu-latest
-    needs: tag-release
-    if: ${{ inputs.dry_run != true }}
+    needs: [tag-release, publish-mcp]
+    # The MCP registry rejects duplicate versions, so only publish when
+    # ai-l10n-mcp was actually published to npm in this run.
+    if: ${{ inputs.dry_run != true && needs.publish-mcp.outputs.published == 'true' }}
 
     permissions:
       id-token: write
