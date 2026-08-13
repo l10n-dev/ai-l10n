@@ -5,3 +5,4 @@ export * from "./translationService.js";
 export * from "./glossaryService.js";
 export * from "./instructionService.js";
 export * from "./languageUtils.js";
+export * from "./languageCodes.js";

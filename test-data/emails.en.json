@@ -1,0 +1,10 @@
+{
+  "subject": "Your order has shipped",
+  "greeting": "Hi {{name}},",
+  "body": "Your order #{{orderId}} is on its way and should arrive within 3 business days.",
+  "trackButton": "Track your order",
+  "footer": {
+    "unsubscribe": "Unsubscribe from shipping updates",
+    "help": "Need help? Reply to this email."
+  }
+}

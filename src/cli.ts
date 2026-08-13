@@ -79,6 +79,11 @@ program
     "--instruction <instruction>",
     "Linguistic instruction to apply during translation",
   )
+  .option(
+    "--language-regex <pattern>",
+    'Regex locating the language code in file names, e.g. "^common\\.(?<language>[\\w-]+)\\.json$". ' +
+      "Must contain a (?<language>...) group. Use it when the language code in your file names is not detected automatically",
+  )
   .option("-v, --verbose", "Enable verbose logging", false)
   .action(async (file: string, options: any) => {
     const config: TranslationConfig = {
@@ -94,6 +99,7 @@ program
       translateOnlyNewStrings: options.update,
       generateGlossary: options.glossary,
       instruction: options.instruction,
+      languageCodeRegex: options.languageRegex,
       replace: options.replace,
       verbose: options.verbose,
     };

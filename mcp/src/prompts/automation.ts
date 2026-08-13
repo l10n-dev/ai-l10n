@@ -123,6 +123,8 @@ Use the source files detected in Step 1. Example structure:
 - Include all detected source files.
 - Use auto-detected (or user-specified) target languages.
 - Always set \`"translateOnlyNewStrings": true\` for incremental updates.
+- If \`l10n_detect_project_structure\` needed a \`languageCodeRegex\` to recognize the file names,
+  add the same \`"languageCodeRegex": "<pattern>"\` to those entries.
 - If the quality setup in Step 2 saved a new linguistic instruction, add \`"instruction": "<text>"\` to each entry.
 - If no glossary existed and you recommended generating one, add \`"generateGlossary": true\` to each entry.
 - If \`ai-l10n.config.json\` already exists, update it only if source files or languages differ.

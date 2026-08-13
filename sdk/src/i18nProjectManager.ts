@@ -4,7 +4,12 @@ import {
   ILogger,
   ConsoleLogger,
   LANGUAGE_CODE_REGEX,
+  LanguageFileNameMatch,
+  buildLanguageFileNameRegex,
   extractLanguageCode,
+  findLanguageCodeCandidatesInFileName,
+  isKnownLocale,
+  matchLanguageCodeInFileName,
 } from "ai-l10n-core";
 
 enum ProjectStructureType {
@@ -17,16 +22,42 @@ interface ProjectStructureInfo {
   type: ProjectStructureType;
   basePath: string;
   sourceLanguage?: string;
+  /**
+   * How the language code is embedded in the source file name, for file-based structures
+   * where the name holds more than the code itself (e.g. `emails.en.json`).
+   * Used to match sibling files and to build target file names.
+   */
+  fileNameMatch?: LanguageFileNameMatch;
+}
+
+/**
+ * Options controlling how language codes are detected in a project.
+ */
+export interface LanguageDetectionOptions {
+  /**
+   * Regex used to locate the language code in file names, overriding the built-in
+   * detection. Must contain a `(?<language>...)` named capture group, for example
+   * `^emails\.(?<language>[\w-]+)\.json$`.
+   * The text before and after the group is used to match sibling files and to build
+   * target file names.
+   */
+  languageCodeRegex?: string | RegExp;
 }
 
 export class I18nProjectManager {
-  constructor(private readonly logger: ILogger = new ConsoleLogger()) {}
+  constructor(
+    private readonly logger: ILogger = new ConsoleLogger(),
+    private readonly detectionOptions: LanguageDetectionOptions = {},
+  ) {}
 
-  detectLanguagesFromProject(sourceFilePath: string): string[] {
+  detectLanguagesFromProject(
+    sourceFilePath: string,
+    options?: LanguageDetectionOptions,
+  ): string[] {
     const languageCodes = new Set<string>();
 
     // Detect the source language to exclude it
-    const structureInfo = this.detectProjectStructure(sourceFilePath);
+    const structureInfo = this.detectProjectStructure(sourceFilePath, options);
     const sourceLanguage = structureInfo.sourceLanguage;
 
     // Start scanning from the appropriate directory
@@ -48,6 +79,31 @@ export class I18nProjectManager {
           "Error scanning for language directories:",
           error,
         );
+      }
+    } else if (
+      structureInfo.type === ProjectStructureType.FileBased &&
+      structureInfo.fileNameMatch
+    ) {
+      // The file name holds more than the language code, so scan the base path for files
+      // following the same naming pattern (e.g. emails.en.json -> emails.<language>.json)
+      const siblingRegex = buildLanguageFileNameRegex(
+        structureInfo.fileNameMatch,
+      );
+      try {
+        const entries = fs.readdirSync(structureInfo.basePath, {
+          withFileTypes: true,
+        });
+        for (const entry of entries) {
+          if (entry.isFile()) {
+            const languageCode = siblingRegex.exec(entry.name)?.groups
+              ?.language;
+            if (languageCode) {
+              languageCodes.add(languageCode);
+            }
+          }
+        }
+      } catch (error) {
+        this.logger.logWarning("Error scanning for language files:", error);
       }
     } else if (structureInfo.type === ProjectStructureType.FileBased) {
       // For file-based, scan the base path for language files
@@ -98,8 +154,9 @@ export class I18nProjectManager {
   generateTargetFilePath(
     sourceFilePath: string,
     targetLanguage: string,
+    options?: LanguageDetectionOptions,
   ): string {
-    const structureInfo = this.detectProjectStructure(sourceFilePath);
+    const structureInfo = this.detectProjectStructure(sourceFilePath, options);
     const fileExtension = path.extname(sourceFilePath);
     const sourceFileName = path.basename(sourceFilePath, fileExtension);
     const isArbFile = fileExtension === ".arb";
@@ -124,7 +181,24 @@ export class I18nProjectManager {
       }
 
       case ProjectStructureType.FileBased: {
-        if (isArbFile) {
+        const fileNameMatch = structureInfo.fileNameMatch;
+        if (fileNameMatch) {
+          // The file name holds more than the language code, so replace just the code
+          // and keep everything else: emails.en.json -> emails.ru-RU.json,
+          // en-US.common.json -> ja.common.json
+
+          // Follow the separator style of the source file name
+          // messages_en_US.properties -> messages_ru_RU.properties
+          const targetCode = fileNameMatch.language.includes("_")
+            ? languageCode.replace(/-/g, "_")
+            : languageCode;
+
+          const targetFilePath = path.join(
+            structureInfo.basePath,
+            `${fileNameMatch.prefix}${targetCode}${fileNameMatch.suffix}`,
+          );
+          return targetFilePath;
+        } else if (isArbFile) {
           // For ARB files, extract prefix and append target language
           // app_en_US.arb -> app_es.arb
           const sourceLanguage = structureInfo.sourceLanguage;
@@ -173,9 +247,30 @@ export class I18nProjectManager {
    * Extracts the source language code from the file path using project structure detection.
    * Returns the language code (e.g., `"en"`, `"en-US"`) or `null` if it cannot be determined.
    */
-  extractLanguageCodeFromPath(sourceFilePath: string): string | null {
-    const structureInfo = this.detectProjectStructure(sourceFilePath);
+  extractLanguageCodeFromPath(
+    sourceFilePath: string,
+    options?: LanguageDetectionOptions,
+  ): string | null {
+    const structureInfo = this.detectProjectStructure(sourceFilePath, options);
     return structureInfo.sourceLanguage ?? null;
+  }
+
+  /**
+   * Describes how the localization files of a project are organized.
+   * Returns the structure type (`"folder"`, `"file"` or `"unknown"`), the directory
+   * translations live in, the detected source language and, when the file name holds
+   * more than the language code, how that code is embedded in the file name.
+   */
+  describeProjectStructure(
+    sourceFilePath: string,
+    options?: LanguageDetectionOptions,
+  ): {
+    type: string;
+    basePath: string;
+    sourceLanguage?: string;
+    fileNameMatch?: LanguageFileNameMatch;
+  } {
+    return this.detectProjectStructure(sourceFilePath, options);
   }
 
   getUniqueFilePath(filePath: string): string {
@@ -198,9 +293,36 @@ export class I18nProjectManager {
     return uniquePath;
   }
 
-  private detectProjectStructure(sourceFilePath: string): ProjectStructureInfo {
-    // Check if the parent directory name is a language code (folder-based structure)
+  private detectProjectStructure(
+    sourceFilePath: string,
+    options?: LanguageDetectionOptions,
+  ): ProjectStructureInfo {
     const sourceDir = path.dirname(sourceFilePath);
+    const languageCodeRegex =
+      options?.languageCodeRegex ?? this.detectionOptions.languageCodeRegex;
+
+    // A custom regex is an explicit choice, so it takes precedence over detection
+    if (languageCodeRegex) {
+      const fileNameMatch = matchLanguageCodeInFileName(
+        path.basename(sourceFilePath),
+        languageCodeRegex,
+      );
+      if (fileNameMatch) {
+        return {
+          type: ProjectStructureType.FileBased,
+          basePath: sourceDir,
+          sourceLanguage: fileNameMatch.language,
+          fileNameMatch,
+        };
+      }
+      this.logger.logWarning(
+        `The configured language code regex does not match the source file name: ${path.basename(
+          sourceFilePath,
+        )}. Falling back to automatic detection.`,
+      );
+    }
+
+    // Check if the parent directory name is a language code (folder-based structure)
     const parentDirName = path.basename(sourceDir);
     if (LANGUAGE_CODE_REGEX.test(parentDirName)) {
       return {
@@ -213,6 +335,37 @@ export class I18nProjectManager {
     // Check if the source file name is a language code (file-based structure)
     const sourceFileName = path.basename(sourceFilePath);
     const languageCode = extractLanguageCode(sourceFileName);
+
+    // A structurally valid code can still be a coincidence: `app-en` parses as a
+    // language with a region. When its subtags are not known codes, a language code
+    // embedded in the file name (`app-en.json` -> `en`) is the better reading.
+    const isCompleteLanguageCode =
+      !!languageCode && isKnownLocale(languageCode);
+
+    if (languageCode && isCompleteLanguageCode) {
+      return {
+        type: ProjectStructureType.FileBased,
+        basePath: sourceDir,
+        sourceLanguage: languageCode,
+      };
+    }
+
+    // Last resort: the language code may be embedded in the file name next to other
+    // parts (e.g. emails.en.json, emails-en.json, en-US.common.json)
+    const fileNameMatch = this.findLanguageCodeInFileName(
+      sourceDir,
+      sourceFileName,
+    );
+    if (fileNameMatch) {
+      return {
+        type: ProjectStructureType.FileBased,
+        basePath: sourceDir,
+        sourceLanguage: fileNameMatch.language,
+        fileNameMatch,
+      };
+    }
+
+    // The whole file name is a language code of unknown subtags (e.g. `bal-PK.json`)
     if (languageCode) {
       return {
         type: ProjectStructureType.FileBased,
@@ -226,5 +379,43 @@ export class I18nProjectManager {
       type: ProjectStructureType.Unknown,
       basePath: sourceDir,
     };
+  }
+
+  /**
+   * Picks the language code embedded in a file name.
+   * When several candidates are possible, one whose naming pattern is shared with an
+   * existing sibling file wins - those files are the strongest evidence that the
+   * candidate really is the language code. Otherwise the highest ranked candidate is used.
+   */
+  private findLanguageCodeInFileName(
+    sourceDir: string,
+    sourceFileName: string,
+  ): LanguageFileNameMatch | undefined {
+    const candidates = findLanguageCodeCandidatesInFileName(sourceFileName);
+    if (candidates.length === 0) {
+      return undefined;
+    }
+
+    if (candidates.length > 1) {
+      let siblings: string[] = [];
+      try {
+        siblings = fs
+          .readdirSync(sourceDir, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && entry.name !== sourceFileName)
+          .map((entry) => entry.name);
+      } catch (error) {
+        this.logger.logWarning("Error scanning for language files:", error);
+      }
+
+      const corroborated = candidates.find((candidate) => {
+        const siblingRegex = buildLanguageFileNameRegex(candidate);
+        return siblings.some((sibling) => siblingRegex.test(sibling));
+      });
+      if (corroborated) {
+        return corroborated;
+      }
+    }
+
+    return candidates[0];
   }
 }

@@ -370,6 +370,17 @@ interface TranslationConfig {
   sourceLanguageCode?: string | null;
 
   /**
+   * Regex used to locate the language code in file names, overriding the built-in
+   * detection. Must contain a `(?<language>...)` named capture group, for example
+   * `"^emails\\.(?<language>[\\w-]+)\\.json$"`.
+   * The text before and after the group is used to find files of other languages and
+   * to build target file names, so `emails.en.json` produces `emails.ru-RU.json`.
+   * Useful when file names embed the language code in a way the built-in detection
+   * does not recognize.
+   */
+  languageCodeRegex?: string;
+
+  /**
    * When true, generates a glossary from source and translated target content and saves it as the
    * active glossary for this language pair for future translations.
    * Balance is debited for the full source content upfront — even when translateOnlyNewStrings is true.
@@ -501,21 +512,54 @@ const manager = new I18nProjectManager();
 // With a custom logger
 const customLogger: ILogger = new ConsoleLogger();
 const managerWithLogger = new I18nProjectManager(customLogger);
+
+// With a custom file name pattern for every call
+const managerWithRegex = new I18nProjectManager(customLogger, {
+  languageCodeRegex: '^emails\\.(?<language>[\\w-]+)\\.json$',
+});
 ```
 
 Creates an instance of I18nProjectManager.
 
 **Parameters:**
 - `logger?: ILogger` — Optional custom logger. Defaults to `ConsoleLogger` if not provided.
+- `detectionOptions?: LanguageDetectionOptions` — Optional default detection options for this instance.
+
+#### Project Structures
+
+Detection runs in this order, and every method accepts an optional `LanguageDetectionOptions` argument that overrides the instance defaults:
+
+| Type | Example | Target file for `ru-RU` |
+|------|---------|-------------------------|
+| `folder` | `locales/en/common.json` | `locales/ru-RU/common.json` |
+| `file` — whole name is the code | `locales/en.json` | `locales/ru-RU.json` |
+| `file` — code next to other parts | `lib/l10n/app_en.arb`, `locales/emails.en.json`, `locales/en-US.common.json`, `messages_en_US.properties` | `lib/l10n/app_ru_RU.arb`, `locales/emails.ru-RU.json`, `locales/ru-RU.common.json`, `messages_ru_RU.properties` |
+| `unknown` | `locales/messages.json` | `locales/messages.ru-RU.json` |
+
+When the file name holds more than the code, `describeProjectStructure` also returns a `fileNameMatch` describing where the code sits. Every part of such a code is validated against the ISO language, script and region code sets from `ai-l10n-core`, so file names such as `strings.min.json` or `config.dev.json` are not mistaken for localization files. Naming conventions outside that set are handled with `languageCodeRegex`:
+
+```typescript
+export interface LanguageDetectionOptions {
+  /**
+   * Regex used to locate the language code in file names, overriding the built-in
+   * detection. Must contain a `(?<language>...)` named capture group, for example
+   * `^emails\.(?<language>[\w-]+)\.json$`.
+   * The text before and after the group is used to match sibling files and to build
+   * target file names.
+   */
+  languageCodeRegex?: string | RegExp;
+}
+```
 
 #### Methods
 
-##### `extractLanguageCodeFromPath(sourceFilePath: string): string | null`
+##### `extractLanguageCodeFromPath(sourceFilePath: string, options?: LanguageDetectionOptions): string | null`
 
 Extracts the source language code from the file path using project structure detection.
 
 **Parameters:**
 - `sourceFilePath: string` - Path to the source file
+- `options?: LanguageDetectionOptions` - Overrides the instance detection options
 
 **Returns:** `string | null` — The detected language code (e.g., `"en"`, `"en-US"`) or `null` if the structure is unrecognised
 
@@ -526,21 +570,24 @@ const manager = new I18nProjectManager();
 manager.extractLanguageCodeFromPath('./locales/en.json');   // Returns: 'en'
 manager.extractLanguageCodeFromPath('./locales/en/common.json'); // Returns: 'en'
 manager.extractLanguageCodeFromPath('./lib/l10n/app_en_US.arb'); // Returns: 'en_US'
+manager.extractLanguageCodeFromPath('./locales/emails.en.json'); // Returns: 'en'
 manager.extractLanguageCodeFromPath('./strings.json');     // Returns: null
 ```
 
-##### `detectLanguagesFromProject(sourceFilePath: string): string[]`
+##### `detectLanguagesFromProject(sourceFilePath: string, options?: LanguageDetectionOptions): string[]`
 
 Detects target language codes from the project structure by scanning directories and files.
 
 **Parameters:**
 - `sourceFilePath: string` - Absolute path to the source file
+- `options?: LanguageDetectionOptions` - Overrides the instance detection options
 
 **Returns:** `string[]` - Array of detected language codes, sorted alphabetically
 
 **Behavior:**
 - **Folder-based structure**: Scans parent directory for language-named folders (e.g., `locales/en/`, `locales/es/`)
 - **File-based structure**: Scans directory for language-named files (e.g., `en.json`, `es.json`, `app_en.arb`)
+- **File names holding more than the code**: Scans directory for files following the same naming pattern as the source (e.g., `emails.en.json` matches `emails.es.json` but not `common.es.json`)
 - Automatically excludes the source language from results
 - Handles both `.json` and `.jsonc` files when source is JSON
 
@@ -549,9 +596,32 @@ Detects target language codes from the project structure by scanning directories
 const manager = new I18nProjectManager();
 const languages = manager.detectLanguagesFromProject('./locales/en.json');
 // Returns: ['es', 'fr', 'de']
+
+// locales/emails.en.json, locales/emails.es.json, locales/emails.fr.json
+manager.detectLanguagesFromProject('./locales/emails.en.json');
+// Returns: ['es', 'fr']
 ```
 
-##### `generateTargetFilePath(sourceFilePath: string, targetLanguage: string): string`
+##### `describeProjectStructure(sourceFilePath: string, options?: LanguageDetectionOptions)`
+
+Describes how the localization files of a project are organized.
+
+**Returns:** `{ type: string; basePath: string; sourceLanguage?: string; fileNameMatch?: LanguageFileNameMatch }` — the structure type (`"folder"`, `"file"` or `"unknown"`), the directory translations live in, the detected source language and, when the file name holds more than the language code, how that code is embedded in the file name.
+
+**Example:**
+```typescript
+const manager = new I18nProjectManager();
+
+manager.describeProjectStructure('./locales/emails.en.json');
+// Returns: {
+//   type: 'file',
+//   basePath: './locales',
+//   sourceLanguage: 'en',
+//   fileNameMatch: { language: 'en', prefix: 'emails.', suffix: '.json' },
+// }
+```
+
+##### `generateTargetFilePath(sourceFilePath: string, targetLanguage: string, options?: LanguageDetectionOptions): string`
 
 Generates the target file path for a translated file based on the detected project structure.
 
@@ -565,9 +635,10 @@ Generates the target file path for a translated file based on the detected proje
 - **Folder-based**: Creates `{basePath}/{language}/{filename}` (e.g., `locales/es/common.json`)
 - **File-based JSON**: Creates `{basePath}/{language}{suffix}.{ext}` (e.g., `locales/es.schema.json`)
 - **File-based ARB**: Creates `{basePath}/{prefix}{language}.arb` (e.g., `lib/l10n/app_es.arb`)
+- **File name with other parts**: Replaces the code inside the file name, keeping everything else (e.g., `locales/emails.es.json`)
 - Automatically creates target directories if they don't exist
 - Handles Shopify theme patterns (`.default.schema.json` → `.schema.json`)
-- Converts hyphens to underscores for ARB files
+- Converts hyphens to underscores for ARB files and for file names whose code uses underscores
 
 **Example:**
 ```typescript
@@ -588,6 +659,22 @@ manager.generateTargetFilePath('./lib/l10n/app_en_US.arb', 'es_ES');
 // Shopify theme
 manager.generateTargetFilePath('./locales/en.default.schema.json', 'es-ES');
 // Returns: './locales/es-ES.schema.json'
+
+// Language code inside the file name
+manager.generateTargetFilePath('./locales/email.en.json', 'ru-RU');
+// Returns: './locales/email.ru-RU.json'
+
+manager.generateTargetFilePath('./locales/en-US.common.json', 'ja');
+// Returns: './locales/ja.common.json'
+
+manager.generateTargetFilePath('./locales/messages_en_US.properties', 'ru-RU');
+// Returns: './locales/messages_ru_RU.properties'
+
+// Custom pattern for names the built-in detection does not recognize
+manager.generateTargetFilePath('./locales/strings.min.json', 'ru-RU', {
+  languageCodeRegex: '^strings\\.(?<language>[\\w-]+)\\.json$',
+});
+// Returns: './locales/strings.ru-RU.json'
 ```
 
 ##### `getUniqueFilePath(filePath: string): string`

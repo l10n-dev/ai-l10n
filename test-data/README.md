@@ -8,6 +8,7 @@ This directory contains sample localization files for testing the ai-l10n packag
 - `en.jsonc` - Sample English source file with comments (JSONC format)
 - `en.default.schema.json` - Sample Shopify theme localization file
 - `app_en.arb` - Sample Flutter ARB file
+- `emails.en.json` - Sample source file with the language code inside the file name
 
 ## Usage
 
@@ -27,6 +28,9 @@ npx ai-l10n translate test-data/en-us.default.schema.json --languages es-es,fr -
 
 # Test Flutter ARB file
 npx ai-l10n translate test-data/app_en.arb --languages es,fr --translate-metadata --verbose
+
+# Test file with the language code inside the file name (writes emails.es.json, emails.fr.json)
+npx ai-l10n translate test-data/emails.en.json --languages es,fr --verbose
 ```
 
 ### Code Test
@@ -85,6 +89,10 @@ After running the translation, you should see:
 - `test-data/app_es.arb`
 - `test-data/app_fr.arb`
 
+### Files with the Language Code in the Name
+- `test-data/emails.es.json`
+- `test-data/emails.fr.json`
+
 With all strings translated to Spanish and French respectively.
 
 ## Clean Up
@@ -96,10 +104,12 @@ del test-data\es.json test-data\fr.json
 del test-data\es.jsonc test-data\fr.jsonc
 del test-data\es-es.schema.json test-data\fr.schema.json
 del test-data\app_es.arb test-data\app_fr.arb
+del test-data\emails.es.json test-data\emails.fr.json
 
 # Linux/Mac
 rm test-data/es.json test-data/fr.json
 rm test-data/es.jsonc test-data/fr.jsonc
 rm test-data/es-es.schema.json test-data/fr.schema.json
 rm test-data/app_es.arb test-data/app_fr.arb
+rm test-data/emails.es.json test-data/emails.fr.json
 ```

@@ -743,4 +743,409 @@ suite("I18nProjectManager Test Suite", () => {
       });
     });
   });
+
+  suite("File-Name-Based Language Detection", () => {
+    // Creates the given files in a directory and returns the path of the first one
+    const createFiles = (dirName: string, fileNames: string[]): string => {
+      const dir = path.join(tempDir, dirName);
+      fs.mkdirSync(dir, { recursive: true });
+      for (const fileName of fileNames) {
+        fs.writeFileSync(path.join(dir, fileName), "{}");
+      }
+      return path.join(dir, fileNames[0]);
+    };
+
+    suite("Project Structure Detection", () => {
+      test("detects a language code suffixed to the file name (emails.en.json)", () => {
+        const sourceFile = createFiles("locales", ["emails.en.json"]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.basePath, path.join(tempDir, "locales"));
+        assert.strictEqual(structure.sourceLanguage, "en");
+        assert.deepStrictEqual(structure.fileNameMatch, {
+          language: "en",
+          prefix: "emails.",
+          suffix: ".json",
+        });
+      });
+
+      test("detects a language code joined with a hyphen (emails-en.json)", () => {
+        const sourceFile = createFiles("locales", ["emails-en.json"]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en");
+      });
+
+      test("detects a language code prefixed to the file name (en-US.common.json)", () => {
+        const sourceFile = createFiles("locales", ["en-US.common.json"]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en-US");
+      });
+
+      test("detects a language code with script and region (common.en-Latn-Us.yml)", () => {
+        const sourceFile = createFiles("locales", ["common.en-Latn-Us.yml"]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en-Latn-Us");
+      });
+
+      test("detects a language code joined with underscores (messages_en_US.properties)", () => {
+        const sourceFile = createFiles("locales", [
+          "messages_en_US.properties",
+        ]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en_US");
+      });
+
+      test("prefers the candidate corroborated by sibling files", () => {
+        // Both "de" and "fr" are language codes, but only the "fr" pattern has siblings
+        const sourceFile = createFiles("locales", [
+          "de.app.fr.json",
+          "de.app.es.json",
+        ]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.sourceLanguage, "fr");
+        assert.strictEqual(structure.fileNameMatch.prefix, "de.app.");
+      });
+
+      test("does not treat unknown tokens as language codes", () => {
+        for (const fileName of [
+          "strings.min.json",
+          "bundle.new.json",
+          "site.map.json",
+          "data.set.json",
+          "config.dev.json",
+        ]) {
+          const sourceFile = createFiles("unknown", [fileName]);
+
+          const structure = detector.detectProjectStructure(sourceFile);
+
+          assert.strictEqual(structure.type, "unknown", fileName);
+          assert.strictEqual(structure.sourceLanguage, undefined, fileName);
+        }
+      });
+
+      test("prefers an embedded code over a coincidental whole-name match", () => {
+        // "app-en" parses as a language code structurally ("app" + region "en"),
+        // but "app" is not a language - the embedded "en" is the real code
+        const sourceFile = createFiles("locales", ["app-en.json"]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en");
+        assert.strictEqual(
+          detector.generateTargetFilePath(sourceFile, "fr"),
+          path.join(tempDir, "locales", "app-fr.json"),
+        );
+      });
+
+      test("keeps whole-name codes with unrecognized subtags file-based", () => {
+        // "bal" is a real language code outside the bundled sets, so the previous
+        // interpretation is kept rather than discarded
+        const sourceFile = createFiles("locales", ["bal-PK.json"]);
+
+        const structure = detector.detectProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "bal-PK");
+      });
+    });
+
+    suite("Language Detection from Project", () => {
+      test("detects languages of files following the same pattern", () => {
+        const sourceFile = createFiles("locales", [
+          "emails.en.json",
+          "emails.es.json",
+          "emails.fr.json",
+          "emails.zh-Hans-CN.json",
+        ]);
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.deepStrictEqual(detectedLanguages, ["es", "fr", "zh-Hans-CN"]);
+      });
+
+      test("ignores files following a different pattern", () => {
+        const sourceFile = createFiles("locales", [
+          "emails.en.json",
+          "emails.es.json",
+          "common.de.json",
+          "emails.json",
+          "emails.es.yaml",
+        ]);
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.deepStrictEqual(detectedLanguages, ["es"]);
+      });
+
+      test("detects languages for a prefixed language code", () => {
+        const sourceFile = createFiles("locales", [
+          "en-US.common.json",
+          "ja.common.json",
+          "pt-BR.common.json",
+        ]);
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.deepStrictEqual(detectedLanguages, ["ja", "pt-BR"]);
+      });
+
+      test("returns an empty array when no other language files exist", () => {
+        const sourceFile = createFiles("locales", ["emails.en.json"]);
+
+        const detectedLanguages =
+          detector.detectLanguagesFromProject(sourceFile);
+
+        assert.deepStrictEqual(detectedLanguages, []);
+      });
+    });
+
+    suite("Target File Path Generation", () => {
+      test("replaces the language code in the file name (email.en.json -> email.ru-RU.json)", () => {
+        const sourceFile = createFiles("locales", ["email.en.json"]);
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "ru-RU");
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "locales", "email.ru-RU.json"),
+        );
+      });
+
+      test("replaces a prefixed language code (en-US.common.json -> ja.common.json)", () => {
+        const sourceFile = createFiles("locales", ["en-US.common.json"]);
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "ja");
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "locales", "ja.common.json"),
+        );
+      });
+
+      test("keeps a hyphen separator (emails-en.json -> emails-fr.json)", () => {
+        const sourceFile = createFiles("locales", ["emails-en.json"]);
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "fr");
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "locales", "emails-fr.json"),
+        );
+      });
+
+      test("follows the underscore separator of the source file name", () => {
+        const sourceFile = createFiles("locales", [
+          "messages_en_US.properties",
+        ]);
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "ru-RU");
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "locales", "messages_ru_RU.properties"),
+        );
+      });
+
+      test("replaces a code with script and region (common.en-Latn-Us.yml -> common.fr.yml)", () => {
+        const sourceFile = createFiles("locales", ["common.en-Latn-Us.yml"]);
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "fr");
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "locales", "common.fr.yml"),
+        );
+      });
+
+      test("appends the language code for unknown structures", () => {
+        // Regression: file names without a language code keep the previous behavior
+        const sourceFile = createFiles("translations", ["messages.json"]);
+
+        const targetPath = detector.generateTargetFilePath(sourceFile, "fr");
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "translations", "messages.fr.json"),
+        );
+      });
+    });
+
+    suite("Source Language Extraction", () => {
+      test("extracts the language code from the file name", () => {
+        const sourceFile = createFiles("locales", ["emails.en.json"]);
+
+        assert.strictEqual(
+          detector.extractLanguageCodeFromPath(sourceFile),
+          "en",
+        );
+      });
+
+      test("returns null for unknown structures", () => {
+        const sourceFile = createFiles("translations", ["messages.json"]);
+
+        assert.strictEqual(
+          detector.extractLanguageCodeFromPath(sourceFile),
+          null,
+        );
+      });
+    });
+
+    suite("Project Structure Description", () => {
+      test("describes a file-name-based structure", () => {
+        const sourceFile = createFiles("locales", [
+          "emails.en.json",
+          "emails.fr.json",
+        ]);
+
+        const structure = detector.describeProjectStructure(sourceFile);
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en");
+        assert.strictEqual(structure.fileNameMatch.prefix, "emails.");
+      });
+
+      test("describes the existing structure types", () => {
+        const folderSource = createFiles(path.join("locales", "en"), [
+          "common.json",
+        ]);
+        assert.strictEqual(
+          detector.describeProjectStructure(folderSource).type,
+          "folder",
+        );
+
+        const fileSource = createFiles("i18n", ["en.json"]);
+        assert.strictEqual(
+          detector.describeProjectStructure(fileSource).type,
+          "file",
+        );
+
+        const unknownSource = createFiles("translations", ["messages.json"]);
+        assert.strictEqual(
+          detector.describeProjectStructure(unknownSource).type,
+          "unknown",
+        );
+      });
+    });
+
+    suite("Custom Language Code Regex", () => {
+      const languageCodeRegex = "^strings\\.(?<language>[\\w-]+)\\.json$";
+
+      test("detects languages the built-in detection rejects", () => {
+        // "min" is not a known language code, so only the custom regex finds it
+        const sourceFile = createFiles("locales", [
+          "strings.min.json",
+          "strings.ru.json",
+          "strings.de.json",
+        ]);
+
+        assert.deepStrictEqual(
+          detector.detectLanguagesFromProject(sourceFile),
+          [],
+        );
+        assert.deepStrictEqual(
+          detector.detectLanguagesFromProject(sourceFile, {
+            languageCodeRegex,
+          }),
+          ["de", "ru"],
+        );
+      });
+
+      test("generates target paths from the custom pattern", () => {
+        const sourceFile = createFiles("locales", ["strings.min.json"]);
+
+        const targetPath = detector.generateTargetFilePath(
+          sourceFile,
+          "ru-RU",
+          { languageCodeRegex },
+        );
+
+        assert.strictEqual(
+          targetPath,
+          path.join(tempDir, "locales", "strings.ru-RU.json"),
+        );
+      });
+
+      test("accepts a regex configured on the instance", () => {
+        const sourceFile = createFiles("locales", [
+          "strings.min.json",
+          "strings.ru.json",
+        ]);
+        const configured: any = new I18nProjectManager(undefined, {
+          languageCodeRegex,
+        });
+
+        assert.strictEqual(
+          configured.detectProjectStructure(sourceFile).sourceLanguage,
+          "min",
+        );
+        assert.deepStrictEqual(
+          configured.detectLanguagesFromProject(sourceFile),
+          ["ru"],
+        );
+      });
+
+      test("takes precedence over the folder-based structure", () => {
+        const sourceFile = createFiles(path.join("locales", "en"), [
+          "strings.min.json",
+        ]);
+
+        const structure = detector.detectProjectStructure(sourceFile, {
+          languageCodeRegex,
+        });
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "min");
+      });
+
+      test("falls back to automatic detection when the regex does not match", () => {
+        const sourceFile = createFiles("locales", ["emails.en.json"]);
+
+        const structure = detector.detectProjectStructure(sourceFile, {
+          languageCodeRegex,
+        });
+
+        assert.strictEqual(structure.type, "file");
+        assert.strictEqual(structure.sourceLanguage, "en");
+      });
+
+      test("throws for an invalid regex", () => {
+        const sourceFile = createFiles("locales", ["emails.en.json"]);
+
+        assert.throws(
+          () =>
+            detector.detectLanguagesFromProject(sourceFile, {
+              languageCodeRegex: "^emails\\.([\\w-]+)\\.json$",
+            }),
+          /named capture group/,
+        );
+        assert.throws(
+          () =>
+            detector.detectLanguagesFromProject(sourceFile, {
+              languageCodeRegex: "^(?<language>[a-z",
+            }),
+          /not a valid regular expression/,
+        );
+      });
+    });
+  });
 });

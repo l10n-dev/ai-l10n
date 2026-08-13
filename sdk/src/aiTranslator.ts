@@ -1,7 +1,10 @@
 import * as fs from "fs";
 import * as path from "path";
 import { ApiKeyManager } from "./apiKeyManager.js";
-import { I18nProjectManager } from "./i18nProjectManager.js";
+import {
+  I18nProjectManager,
+  LanguageDetectionOptions,
+} from "./i18nProjectManager.js";
 import {
   L10nTranslationService,
   TranslationRequest,
@@ -80,6 +83,17 @@ export interface TranslationConfig {
    * If not specified, auto-detected from the source file path.
    */
   sourceLanguageCode?: string | null;
+
+  /**
+   * Regex used to locate the language code in file names, overriding the built-in
+   * detection. Must contain a `(?<language>...)` named capture group, for example
+   * `"^emails\\.(?<language>[\\w-]+)\\.json$"`.
+   * The text before and after the group is used to find files of other languages and
+   * to build target file names, so `emails.en.json` produces `emails.ru-RU.json`.
+   * Useful when file names embed the language code in a way the built-in detection
+   * does not recognize.
+   */
+  languageCodeRegex?: string;
 
   /**
    * When true, generates a glossary from source and translated target content and saves it as the
@@ -202,15 +216,20 @@ export class AiTranslator {
       // Determine target languages
       let sourceLanguageCode = config.sourceLanguageCode;
       let targetLanguages = config.targetLanguages;
+      const detectionOptions: LanguageDetectionOptions = {
+        languageCodeRegex: config.languageCodeRegex,
+      };
 
       if (!targetLanguages || targetLanguages.length === 0) {
         // Auto-detect from project structure
-        targetLanguages =
-          this.i18nProjectManager.detectLanguagesFromProject(sourceFilePath);
+        targetLanguages = this.i18nProjectManager.detectLanguagesFromProject(
+          sourceFilePath,
+          detectionOptions,
+        );
 
         if (targetLanguages.length === 0) {
           throw new Error(
-            "No target languages found. Please specify targetLanguages in config or ensure your project has the proper structure (e.g., folders named with language codes or files named with language codes).",
+            "No target languages found. Please specify targetLanguages in config or ensure your project has the proper structure (e.g., folders named with language codes, files named with language codes, or file names containing language codes such as emails.en.json). You can also set languageCodeRegex to describe how your file names embed the language code.",
           );
         }
 
@@ -218,7 +237,10 @@ export class AiTranslator {
         // If we can detect target languages from the project structure, we can also attempt to detect the source language code from the file path.
         if (!sourceLanguageCode) {
           sourceLanguageCode =
-            this.i18nProjectManager.extractLanguageCodeFromPath(sourceFilePath);
+            this.i18nProjectManager.extractLanguageCodeFromPath(
+              sourceFilePath,
+              detectionOptions,
+            );
         }
 
         this.logger.logInfo(
@@ -263,6 +285,7 @@ export class AiTranslator {
   - Save filtered strings: ${saveFilteredStrings}
   - Translate only new strings: ${translateOnlyNewStrings}
   - Source language: ${sourceLanguageCode ?? "auto-detect"}
+  - Language code regex: ${config.languageCodeRegex ?? "auto-detect"}
   - Generate glossary: ${generateGlossary}
   - Glossary entries: ${glossary === undefined ? "use active" : glossary === null ? "use active" : glossary.length === 0 ? "disabled" : `${glossary.length} entries`}
   - Terminology entries: ${terminology?.length ?? 0}
@@ -278,6 +301,7 @@ export class AiTranslator {
           const targetFilePath = this.i18nProjectManager.generateTargetFilePath(
             sourceFilePath,
             targetLanguage,
+            detectionOptions,
           );
 
           try {

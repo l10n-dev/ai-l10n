@@ -119,6 +119,7 @@ npx ai-l10n translate ./locales/en.json \
   --replace \                   # Replace existing files (rewrites file with new translations, overwise it adds a copy number e.g., `es (1).json`)
   --glossary \                  # Generate and save glossary for future translations
   --instruction "Be formal" \   # Control the overall style, tone, and translation behavior
+  --language-regex "^emails\.(?<language>[\w-]+)\.json$" \  # Locate the language code in file names
   --verbose                     # Detailed logging
 ```
 
@@ -354,6 +355,34 @@ lib/l10n/
   app_zh_Hans_CN.arb   # Auto-detected
 ```
 
+### Language Code Inside the File Name
+
+The language code may also sit next to other parts of the file name. Files following the
+same naming pattern are detected, and target files keep that pattern:
+
+```
+locales/
+  emails.en.json       # Source                -> emails.ru-RU.json
+  emails.es.json       # Auto-detected
+  en-US.common.json    # Source                -> ja.common.json
+  emails-en.json       # Source                -> emails-fr.json
+  common.en-Latn-US.yml
+  messages_en_US.properties  # Source          -> messages_ru_RU.properties
+```
+
+Every part of the code is validated against the known ISO language, script and region
+codes, so ordinary file names such as `strings.min.json` or `config.dev.json` are not
+mistaken for localization files. For naming conventions that are not recognized, describe
+them with `languageCodeRegex` (`--language-regex` on the CLI):
+
+```bash
+ai-l10n translate locales/emails.en.json -l ru-RU \
+  --language-regex "^emails\.(?<language>[\w-]+)\.json$"
+```
+
+The pattern must contain a `(?<language>...)` group; the text before and after it is reused
+to find files of other languages and to build target file names.
+
 ## Configuration Options
 
 | Option | Type | Default | Description |
@@ -370,6 +399,7 @@ lib/l10n/
 | `replace` | `boolean` | `false` | Replace existing files with new translations, overwise if the target file already exists it adds a copy number (e.g., `es (1).json`) |
 | `verbose` | `boolean` | `false` | Enable detailed logging |
 | `sourceLanguageCode` | `string \| null` | auto-detect | BCP-47 source language code (e.g., `"en"`, `"en-US"`). Auto-detected from the file path when not set |
+| `languageCodeRegex` | `string` | auto-detect | Regex locating the language code in file names, e.g. `"^emails\\.(?<language>[\\w-]+)\\.json$"`. Must contain a `(?<language>...)` group; the text around it is reused for target file names. Only needed when the naming convention is not detected automatically. CLI: `--language-regex` |
 | `generateGlossary` | `boolean` | `false` | Generate and save a glossary from source and translated content for this language pair. Balance debited upfront for full source content. See [Translation Glossary](#translation-glossary) |
 | `glossary` | `GlossaryEntry[] \| null` | use active | Override the active glossary: `null`/omit = use active, `[]` = disable, entries = replace for this request |
 | `instruction` | `string \| null` | use active | Override the active linquistic instruction: `null`/omit = use active, ` ` = disable, `string` = replace for this request |
@@ -555,7 +585,17 @@ export L10N_API_KEY=your_api_key_here
 
 ### No Languages Detected
 
-If auto-detection fails, specify languages explicitly:
+Auto-detection covers language-code folders (`locales/en/common.json`), language-code file
+names (`locales/en.json`, `app_en.arb`) and language codes inside file names
+(`locales/emails.en.json`). If your file names embed the code differently, describe the
+pattern:
+
+```bash
+npx ai-l10n translate ./locales/emails.en.json \
+  --language-regex "^emails\.(?<language>[\w-]+)\.json$"
+```
+
+Otherwise, specify languages explicitly:
 
 ```bash
 npx ai-l10n translate ./locales/en.json --languages es,fr,de

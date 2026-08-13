@@ -9,5 +9,12 @@
     "saveFilteredStrings": true,
     "translateOnlyNewStrings": true,
     "verbose": true
+  },
+  {
+    "sourceFile": "./test-data/emails.en.json",
+    "targetLanguages": ["es", "ru-RU"],
+    "languageCodeRegex": "^emails\\.(?<language>[\\w-]+)\\.json$",
+    "translateOnlyNewStrings": true,
+    "verbose": true
   }
 ]
