@@ -10,7 +10,7 @@
   "scripts": {
     "prebuild": "node scripts/ensure-sdk-built.js",
     "build": "tsc",
-    "prepare": "npm run build",
+    "prepare": "node scripts/build-workspaces.js",
     "verify": "node scripts/verify.js",
     "test": "cd core && npm test && cd ../sdk && npm test",
     "prepublishOnly": "node scripts/check-sdk-dependency.js"

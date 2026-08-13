@@ -23,7 +23,7 @@
     "prebuild": "node scripts/ensure-core-built.js",
     "build": "npm run clean && tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && node scripts/write-type-markers.js",
     "test": "mocha",
-    "prepare": "npm run build",
+    "prepack": "npm run build",
     "verify": "node scripts/verify.js"
   },
   "keywords": [
