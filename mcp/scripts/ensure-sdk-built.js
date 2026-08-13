@@ -7,10 +7,9 @@
  * a build there are no declarations to resolve and tsc fails with
  * "Cannot find module 'ai-l10n-sdk' or its corresponding type declarations".
  *
- * npm does not run workspace `prepare` scripts in dependency order, so a plain
- * `npm install` at the repo root can start this build first and abort the whole
- * install. Building the dependency on demand makes the order irrelevant; the
- * SDK's own guard then does the same for ai-l10n-core.
+ * Building the dependency on demand makes build order irrelevant, so `npm run
+ * build -w ai-l10n-mcp` works on a fresh checkout; the SDK's own guard then does
+ * the same for ai-l10n-core.
  */
 
 const path = require('path');

@@ -65,6 +65,17 @@ const TranslateInputSchema = z
       .describe(
         "Replace existing target files in-place. When false (default), uniquely-named copies are created.",
       ),
+    languageCodeRegex: z
+      .string()
+      .optional()
+      .describe(
+        "Regex locating the language code in file names, overriding the built-in detection. " +
+          "Must contain a (?<language>...) named capture group, e.g. " +
+          "'^common\\\\.(?<language>[\\\\w-]+)\\\\.json$'. " +
+          "The text around the group is reused for target files, so common.en.json produces common.ru-RU.json. " +
+          "Only needed when l10n_detect_project_structure reports an unknown structure even though " +
+          "localization files exist.",
+      ),
     verbose: z
       .boolean()
       .optional()
@@ -88,6 +99,7 @@ Format is auto-detected from the file extension.
 If sourceFile is omitted, scan the project for i18n source files. Common patterns to look for:
 - \`locales/en.json\`, \`locales/en-US.json\` (flat file-based)
 - \`locales/en/common.json\`, \`locales/en/messages.json\` (folder-based)
+- \`locales/common.en.json\`, \`locales/en-US.common.json\` (language code inside the file name)
 - \`app_en.arb\` (Flutter ARB)
 - \`*.po\`, \`*.xliff\`, \`*.yaml\` files with language-code naming
 - \`ai-l10n.config.json\` if it already exists (read it to find the declared source files)
@@ -168,6 +180,7 @@ POST-TRANSLATION CHECKS — perform all of these AFTER calling translate:
             generatePluralForms: args.generatePluralForms,
             useShortening: args.useShortening,
             translateMetadata: args.translateMetadata,
+            languageCodeRegex: args.languageCodeRegex,
             replace: args.replace,
             verbose: args.verbose ?? false,
           },

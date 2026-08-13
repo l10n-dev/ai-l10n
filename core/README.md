@@ -585,7 +585,16 @@ URLS.API_BASE    // Base URL for l10n.dev API
 Pure utility functions for working with BCP 47 language codes.
 
 ```typescript
-import { validateLanguageCode, normalizeLanguageCode, extractLanguageCode } from 'ai-l10n-core';
+import {
+  validateLanguageCode,
+  normalizeLanguageCode,
+  extractLanguageCode,
+  findLanguageCodeCandidatesInFileName,
+  matchLanguageCodeInFileName,
+  resolveLanguageCodeRegex,
+  buildLanguageFileNameRegex,
+  formatLanguageFileNamePattern,
+} from 'ai-l10n-core';
 ```
 
 ##### `validateLanguageCode(code: string): boolean`
@@ -690,7 +699,160 @@ extractLanguageCode('es-ES.schema.json');          // 'es-ES'
 // Invalid files
 extractLanguageCode('readme.md');                  // null
 extractLanguageCode('invalid.json');               // null
+
+// The whole file name must be the code - see
+// findLanguageCodeCandidatesInFileName for codes embedded in a longer name
+extractLanguageCode('emails.en.json');             // null
 ```
+
+---
+
+##### `findLanguageCodeCandidatesInFileName(fileName: string): LanguageFileNameMatch[]`
+
+Finds language codes embedded as part of a longer file name — for layouts where the name is not a language code by itself.
+
+**Parameters:**
+- `fileName: string` — File name (not a full path)
+
+**Returns:** `LanguageFileNameMatch[]` — Ranked candidates, one per position holding a language code, or an empty array when none is found
+
+```typescript
+interface LanguageFileNameMatch {
+  language: string; // The code as it appears in the file name
+  prefix: string;   // Everything before it
+  suffix: string;   // Everything after it, including the extension
+}
+```
+
+`prefix + language + suffix === fileName`, so the same match locates the code and builds the file name for another language.
+
+**Behavior:**
+- Splits the file name on `.`, `-` and `_`, then tries each token as a language subtag, optionally followed by a script and a region subtag
+- Validates every subtag against the known ISO code sets, because the structure alone cannot tell a language code from any other short token
+- Produces one candidate per position, taking the longest code starting there
+- Ranks candidates by likelihood: longest code first, then the one appearing last in the name. Several candidates mean the name holds several language codes — the caller decides between them, e.g. by checking which pattern existing sibling files follow
+
+**Example:**
+```typescript
+findLanguageCodeCandidatesInFileName('emails.en.json')[0];
+// { language: 'en', prefix: 'emails.', suffix: '.json' }
+
+findLanguageCodeCandidatesInFileName('en-US.common.json')[0];
+// { language: 'en-US', prefix: '', suffix: '.common.json' }
+
+findLanguageCodeCandidatesInFileName('messages_en_US.properties')[0];
+// { language: 'en_US', prefix: 'messages_', suffix: '.properties' }
+
+// The longest code per position — not 'zh' or 'zh-Hans'
+findLanguageCodeCandidatesInFileName('web.zh-Hans-CN.yaml')[0];
+// { language: 'zh-Hans-CN', prefix: 'web.', suffix: '.yaml' }
+
+// Several positions hold a language code, ranked by likelihood
+findLanguageCodeCandidatesInFileName('a.de.b.fr.json').map(m => m.language);
+// ['fr', 'de']
+
+// Not localization files
+findLanguageCodeCandidatesInFileName('strings.min.json');   // []
+findLanguageCodeCandidatesInFileName('config.dev.json');    // []
+findLanguageCodeCandidatesInFileName('messages.json');      // []
+```
+
+---
+
+##### `matchLanguageCodeInFileName(fileName: string, pattern: string | RegExp): LanguageFileNameMatch | null`
+
+Matches a file name against a custom language code pattern, for naming conventions the built-in detection does not recognize.
+
+**Parameters:**
+- `fileName: string` — File name (not a full path)
+- `pattern: string | RegExp` — Regex containing a `(?<language>...)` named capture group
+
+**Returns:** `LanguageFileNameMatch | null` — The match, or `null` when the pattern does not match
+
+**Throws:** `Error` when the pattern is not a valid regex or has no `language` group. Use `resolveLanguageCodeRegex(pattern)` to validate and compile a pattern on its own.
+
+**Example:**
+```typescript
+matchLanguageCodeInFileName('emails.en.json', '^emails\\.(?<language>[\\w-]+)\\.json$');
+// { language: 'en', prefix: 'emails.', suffix: '.json' }
+
+matchLanguageCodeInFileName('common.en.json', '^emails\\.(?<language>[\\w-]+)\\.json$');
+// null
+```
+
+---
+
+##### `buildLanguageFileNameRegex(match: LanguageFileNameMatch): RegExp`
+
+Builds a regex matching files that follow the same naming pattern as the given match, capturing their language code as `language`.
+
+**Example:**
+```typescript
+const regex = buildLanguageFileNameRegex({
+  language: 'en',
+  prefix: 'emails.',
+  suffix: '.json',
+});
+
+regex.exec('emails.es.json')?.groups?.language;  // 'es'
+regex.exec('emails.pt-BR.json')?.groups?.language; // 'pt-BR'
+regex.test('common.es.json');                    // false
+```
+
+---
+
+##### `formatLanguageFileNamePattern(match: LanguageFileNameMatch): string`
+
+Formats a match as a human-readable pattern.
+
+**Example:**
+```typescript
+formatLanguageFileNamePattern({ language: 'en', prefix: 'emails.', suffix: '.json' });
+// 'emails.{language}.json'
+```
+
+---
+
+### Known Language Code Sets
+
+Sets of known BCP 47 subtags used to validate language codes found inside file names.
+
+```typescript
+import {
+  ISO_639_1_LANGUAGE_CODES,
+  ISO_639_3_LANGUAGE_CODES,
+  ISO_15924_SCRIPT_CODES,
+  ISO_3166_1_REGION_CODES,
+  isKnownLanguageSubtag,
+  isKnownScriptSubtag,
+  isKnownRegionSubtag,
+  isKnownLocale,
+} from 'ai-l10n-core';
+```
+
+All sets are `ReadonlySet<string>` holding lower-case codes, and all predicates are case-insensitive.
+
+| Export | Contents |
+|--------|----------|
+| `ISO_639_1_LANGUAGE_CODES` | Two-letter ISO 639-1 language codes |
+| `ISO_639_3_LANGUAGE_CODES` | Three-letter codes commonly used in localization (`fil`, `ceb`, `yue`, `eng`, `spa`, …) — curated, not exhaustive |
+| `ISO_15924_SCRIPT_CODES` | Four-letter script codes (`latn`, `cyrl`, `hans`, …) |
+| `ISO_3166_1_REGION_CODES` | Two-letter ISO 3166-1 alpha-2 region codes |
+
+**Example:**
+```typescript
+isKnownLanguageSubtag('en');    // true
+isKnownLanguageSubtag('min');   // false — a real ISO 639-3 code, but far more common as a file name token
+isKnownScriptSubtag('Latn');    // true
+isKnownRegionSubtag('US');      // true
+isKnownRegionSubtag('419');     // true — UN M49 area code
+
+isKnownLocale('zh-Hans-CN');    // true
+isKnownLocale('en_US');         // true
+isKnownLocale('en-QQ');         // false — unknown region
+```
+
+The three-letter set is deliberately curated: the full ISO 639-3 register contains codes such as `min`, `new`, `map` and `set`, which occur far more often as ordinary file name tokens than as languages. Codes outside these sets can still be handled with a custom regex — see `matchLanguageCodeInFileName`.
 
 ---
 

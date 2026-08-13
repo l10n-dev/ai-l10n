@@ -1,6 +1,6 @@
 {
   "name": "ai-l10n-core",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "description": "Platform-independent core for AI-powered localization — translation API client, language utilities, and shared types",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -21,7 +21,7 @@
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "npm run clean && tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && node scripts/write-type-markers.js",
-    "prepare": "npm run build",
+    "prepack": "npm run build",
     "test": "mocha",
     "verify": "node scripts/verify.js"
   },

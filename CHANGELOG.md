@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-08-13
+
+### Added
+- Target languages are now auto-detected for source files whose name contains the language
+  code next to other parts — `emails.en.json`, `emails-en.json`, `en-US.common.json`,
+  `common.en-Latn-US.yml`, `messages_en_US.properties`. These layouts previously failed with
+  *"No target languages found"*. Target files keep the naming pattern, so
+  `ai-l10n translate locales/email.en.json -l ru-RU` writes `locales/email.ru-RU.json`
+  instead of `locales/email.en.ru-RU.json`.
+- `translate` accepts `--language-regex <pattern>` for naming conventions that are not
+  detected automatically. The pattern must contain a `(?<language>...)` group, for example
+  `--language-regex "^emails\.(?<language>[\w-]+)\.json$"`. In config files used with
+  `batch` the same value is set as `"languageCodeRegex"`; see
+  `examples/translate-config.json`.
+
 ## [1.11.1] - 2026-08-03
 
 ### Fixed

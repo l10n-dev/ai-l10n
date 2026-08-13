@@ -9,10 +9,10 @@
  * been built, those paths do not exist and tsc reports a wall of misleading
  * "has no exported member" errors instead of the real cause.
  *
- * npm does not run workspace `prepare` scripts in dependency order, so a plain
- * `npm install` at the repo root can start this build before core's. Building
- * the dependency on demand makes the order irrelevant. Core does not depend on
- * the SDK, so this cannot recurse.
+ * Building the dependency on demand makes build order irrelevant, so `npm run
+ * build -w ai-l10n-sdk` works on a fresh checkout. Core does not depend on the
+ * SDK, so this cannot recurse. (On the install path, ../../scripts/
+ * build-workspaces.js has already built core in order.)
  */
 
 const path = require('path');

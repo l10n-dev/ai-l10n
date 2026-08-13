@@ -5,6 +5,43 @@ All notable changes to the SDK package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-08-13
+
+### Added
+- **Language codes embedded in file names are now detected.** The `"file"` structure already
+  covered names holding more than the code (`app_en_US.arb`, `en.default.schema.json`); it now
+  also covers `emails.en.json`, `emails-en.json`, `en-US.common.json`, `common.en-Latn-US.yml`
+  and `messages_en_US.properties`. Such projects previously resolved to `"unknown"`, so no
+  target languages were detected and translations failed with *"No target languages found"*.
+  - `detectLanguagesFromProject` scans for files following the same naming pattern, so
+    `emails.en.json` next to `emails.es.json` and `emails.fr.json` detects `es` and `fr`
+    while ignoring `common.de.json`.
+  - `generateTargetFilePath` replaces the code instead of appending it:
+    `email.en.json` + `ru-RU` produces `email.ru-RU.json` (previously
+    `email.en.ru-RU.json`), and the separator style of the source name is preserved, so
+    `messages_en_US.properties` produces `messages_ru_RU.properties`.
+  - Detection runs only after the existing folder-based and file-based detection fail, and
+    every subtag is validated against the ISO code sets in `ai-l10n-core`, so ordinary file
+    names such as `strings.min.json` or `config.dev.json` are left alone.
+- **`languageCodeRegex` option** for naming conventions the built-in detection does not
+  recognize. Available on `TranslationConfig`, as the new second `I18nProjectManager`
+  constructor argument, and as an optional `LanguageDetectionOptions` parameter on
+  `detectLanguagesFromProject`, `generateTargetFilePath` and `extractLanguageCodeFromPath`.
+  The regex must contain a `(?<language>...)` named capture group; the text around the group
+  is reused to find files of other languages and to build target file names.
+- **`I18nProjectManager.describeProjectStructure`** returns the detected structure type,
+  base path, source language and, when the file name holds more than the language code, a
+  `fileNameMatch` describing where the code sits — previously this was only available through
+  the private detection method.
+
+### Changed
+- When the whole file name parses as a language code only by coincidence, an embedded code
+  now wins: `app-en.json` is read as `en` with the prefix `app-` (producing `app-fr.json`)
+  instead of as the language `app-en` (which produced `fr.json` and dropped the prefix).
+  Whole-name codes whose subtags are not in the bundled ISO sets, such as `bal-PK.json`,
+  keep their previous interpretation.
+- Requires `ai-l10n-core` ^1.12.0.
+
 ## [1.11.1] - 2026-08-03
 
 ### Changed

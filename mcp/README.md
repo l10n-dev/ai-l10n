@@ -165,6 +165,14 @@ For a shared project setup, Claude Code can also store MCP servers in a `.mcp.js
 | `l10n_translate_file` | Translate an i18n source file to one or more target languages |
 | `l10n_detect_project_structure` | Scan a source file to detect structure type, source language, target languages, and target file paths |
 
+Both tools detect language codes in language-code folders (`locales/en/common.json`,
+reported as `folder-based`) and in file names (`file-based`) — whether the name is the code
+itself (`locales/en.json`) or holds it alongside other parts (`app_en.arb`,
+`locales/emails.en.json`, `locales/en-US.common.json`, `messages_en_US.properties`). For
+naming conventions that are not recognized, pass `languageCodeRegex`, a regex containing a
+`(?<language>...)` group, e.g. `^emails\.(?<language>[\w-]+)\.json$`. The text around the
+group is reused for target files, so `emails.en.json` produces `emails.ru-RU.json`.
+
 ### Linguistic Instructions
 | Tool | Description |
 |------|-------------|

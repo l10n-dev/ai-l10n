@@ -5,6 +5,32 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-08-13
+
+### Added
+- **Detection of language codes embedded in file names.** New helpers find the language
+  code inside names that are not language codes by themselves — `emails.en.json`,
+  `emails-en.json`, `en-US.common.json`, `common.en-Latn-US.yml`,
+  `messages_en_US.properties`:
+  - `findLanguageCodeCandidatesInFileName(fileName)` returns ranked
+    `LanguageFileNameMatch` candidates (`{ language, prefix, suffix }`, where
+    `prefix + language + suffix === fileName`), so the same match can locate the code and
+    build the file name for another language.
+  - `buildLanguageFileNameRegex(match)` matches sibling files following the same pattern.
+  - `resolveLanguageCodeRegex(pattern)` and `matchLanguageCodeInFileName(fileName, pattern)`
+    apply a custom regex containing a `(?<language>...)` named capture group.
+  - `formatLanguageFileNamePattern(match)` renders a match as `emails.{language}.json`.
+- **Known BCP 47 subtag sets** in the new `languageCodes` module:
+  `ISO_639_1_LANGUAGE_CODES`, `ISO_639_3_LANGUAGE_CODES`, `ISO_15924_SCRIPT_CODES`,
+  `ISO_3166_1_REGION_CODES` with the predicates `isKnownLanguageSubtag`,
+  `isKnownScriptSubtag`, `isKnownRegionSubtag` and `isKnownLocale`.
+  File name detection validates every subtag against these sets, because the structure
+  alone cannot tell a language code from any other short token — without validation
+  `strings.min.json`, `app-ios.json` and `config.dev.json` would look like localization
+  files. The three-letter set is curated rather than exhaustive; codes outside it can be
+  handled with a custom regex.
+- Unit tests for the language utilities, which previously had none.
+
 ## [1.11.1] - 2026-08-03
 
 ### Changed

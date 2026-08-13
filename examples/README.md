@@ -50,8 +50,27 @@ npx ai-l10n batch examples/translate-config-multi.json
 
 ## Configuration Files
 
-- `translate-config.json` - Simple single file translation
+- `translate-config.json` - Simple single file translation, plus an entry using a custom `languageCodeRegex`
 - `translate-config-multi.json` - Multiple files with different settings
+
+### Custom file name patterns
+
+Language codes embedded in file names (`emails.en.json`, `emails-en.json`, `en-US.common.json`,
+`messages_en_US.properties`) are detected automatically. When a naming convention is not
+recognized, describe it with `languageCodeRegex` — a regex containing a `(?<language>...)`
+group that marks the language code in the file name:
+
+```json
+{
+  "sourceFile": "./test-data/emails.en.json",
+  "targetLanguages": ["es", "ru-RU"],
+  "languageCodeRegex": "^emails\\.(?<language>[\\w-]+)\\.json$"
+}
+```
+
+The text before and after the group is reused for the target files, so this writes
+`emails.es.json` and `emails.ru-RU.json`. The same pattern is available on the CLI as
+`--language-regex`.
 
 ## Running Examples
 

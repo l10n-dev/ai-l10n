@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0] - 2026-08-13
+
+### Added
+- `l10n_detect_project_structure` recognizes projects whose file names contain the language
+  code next to other parts (`locales/emails.en.json`, `locales/en-US.common.json`,
+  `messages_en_US.properties`). These are reported as `file-based` together with the detected
+  file name pattern (e.g. `emails.{language}.json`); they previously came back as `unknown`
+  with no target languages.
+- Both `l10n_detect_project_structure` and `l10n_translate_file` accept a
+  `languageCodeRegex` input — a regex with a `(?<language>...)` group describing how file
+  names embed the language code — for conventions that are not detected automatically.
+- `l10n_setup_automation` adds `languageCodeRegex` to the generated `ai-l10n.config.json`
+  when the detected project needs it.
+
+### Changed
+- Structure types now come from the SDK instead of being re-derived in the tool. The reported
+  values are unchanged (`folder-based`, `file-based`, `unknown`), but they are now consistent
+  with the paths the SDK actually generates.
+- Updated SDK dependency to `ai-l10n-sdk` ^1.12.0.
+
 ## [1.1.2] - 2026-07-13
 - Updated server.json
 
