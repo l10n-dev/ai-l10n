@@ -5,6 +5,13 @@ All notable changes to the core package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.1] - 2026-11-09
+
+### Changed
+- The `paymentRequired` (HTTP 402) message from `translate` now suggests upgrading the plan or
+  renewing early on the Billing page (unused characters carry over), not buying more
+  characters, because l10n.dev now uses monthly subscription plans.
+
 ## [1.12.0] - 2026-08-13
 
 ### Added

@@ -126,7 +126,7 @@ runs:
           echo ""
           echo "Common issues:"
           echo "  - Invalid API key"
-          echo "  - Insufficient balance"
+          echo "  - Insufficient balance (upgrade your plan or renew early: https://l10n.dev/#pricing)"
           echo "  - Network connectivity issues"
           echo "  - Invalid source file format"
           exit $EXIT_CODE

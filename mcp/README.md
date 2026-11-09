@@ -43,7 +43,7 @@ Connect Claude Desktop, Cursor, Windsurf, GitHub Copilot, OpenAI Codex, or any M
 
 ### Getting an API key
 
-Create a free account and get your API key at **https://l10n.dev/ws/api-keys**
+Create an account and get your API key at **https://l10n.dev/ws/keys**. New users get a 3-day free trial with 10,000 characters; after that a monthly plan is required — see [Pricing](#pricing).
 
 > **Tip:** Instead of setting `L10N_API_KEY` in each config, you can ask the AI to store your key with `l10n_set_api_key`. The key is saved to `~/.ai-l10n/config.json` and used automatically.
 
@@ -266,9 +266,10 @@ For CI/CD automation and command-line usage, see:
 
 ## Pricing
 
-- **Free tier** — 10,000 characters free every month, no credit card required.
-- **Pay-as-you-go** — Affordable character-based pricing with no subscription required.
-- **Current packages** — Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date pricing.
+- **Free trial** — New users get 3 days free with 10,000 characters.
+- **Monthly plans** — Basic (100,000 characters/month), Standard (1,000,000 characters/month) and Pro (5,000,000 characters/month).
+- **Flexible** — Renews monthly; cancel anytime on the Billing page. Unused characters carry over when you renew or upgrade early.
+- **Current prices** — Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date prices in your currency.
 
 ---
 

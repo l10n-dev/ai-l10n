@@ -78,7 +78,8 @@ Before configuring automation, check that quality settings are in place for the 
    - If some exist: show them.
 
 3. Call \`l10n_get_balance\` and show the remaining character balance.
-   If balance is below 10,000 characters, flag it now so I can top up before automation goes live.
+   If balance is below 10,000 characters, flag it now so I can upgrade my plan or renew early on the
+   Billing page before automation goes live (unused characters carry over).
 
 ---
 

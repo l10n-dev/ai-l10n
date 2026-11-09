@@ -10,7 +10,7 @@ npm install ai-l10n
 
 ## 2. Get API Key
 
-Visit [l10n.dev/ws/keys](https://l10n.dev/ws/keys) to get your free API key.
+Visit [l10n.dev/ws/keys](https://l10n.dev/ws/keys) to create an account and get your API key. New users get a 3-day free trial with 10,000 characters; after that a monthly plan is required — see [l10n.dev/#pricing](https://l10n.dev/#pricing).
 
 ## 3. Set API Key
 

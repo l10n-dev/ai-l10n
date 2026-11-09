@@ -14,7 +14,8 @@ Each translation consumes characters from the balance.
 Use this when the user asks how many characters they have left, or proactively
 if a translation result shows a low remaining balance.
 
-If balance is insufficient, suggest purchasing more characters at ${URLS.PRICING}`,
+If balance is insufficient, suggest upgrading the plan or renewing early on the Billing page of
+the user's l10n.dev account (unused characters carry over). Plans: ${URLS.PRICING}`,
       inputSchema: z.object({}).strict(),
       annotations: {
         readOnlyHint: true,
@@ -38,7 +39,7 @@ If balance is insufficient, suggest purchasing more characters at ${URLS.PRICING
         const formatted = balance.toLocaleString();
         const lowWarning =
           balance < 10_000
-            ? `\n\n⚠️ Low balance. Purchase more characters at ${URLS.PRICING}`
+            ? `\n\n⚠️ Low balance. Upgrade your plan or renew early on the Billing page (unused characters carry over). Plans: ${URLS.PRICING}`
             : "";
 
         return buildMcpResponse(

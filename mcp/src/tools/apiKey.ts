@@ -14,7 +14,8 @@ export function registerApiKeyTools(server: McpServer): void {
       description: `Store an l10n.dev API key locally in the user's home directory (~/.ai-l10n/config.json).
 Once stored, the key is used automatically by all l10n tools without needing to set L10N_API_KEY.
       
-Get a free API key at ${URLS.API_KEYS}
+Get an API key at ${URLS.API_KEYS} (new users get a 3-day free trial with 10,000 characters,
+then a monthly plan is required: ${URLS.PRICING})
 
 Use this when:
 - The user provides an API key and wants to save it
@@ -113,7 +114,7 @@ Use this to diagnose authorization errors or to confirm the key is set up correc
         const hasKey = !!(envKey || storedKey);
         if (!hasKey) {
           parts.push(
-            `\nNo API key found. Get a free key at ${URLS.API_KEYS} then use l10n_set_api_key to store it.`,
+            `\nNo API key found. Create an account and get a key at ${URLS.API_KEYS} (3-day free trial for new users), then use l10n_set_api_key to store it.`,
           );
         }
 

@@ -418,11 +418,11 @@ export class L10nTranslationService {
       );
       const errorData = await parseErrorBody(response, this.logger);
       let message =
-        "Not enough characters remaining for this translation. You can try translating a smaller portion of your content or purchase more characters.";
+        "Not enough characters remaining for this translation. You can try translating a smaller portion of your content, or upgrade your plan or renew early on the Billing page (unused characters carry over).";
       const requiredBalance = errorData?.data?.requiredBalance as number;
       const currentBalance = errorData?.data?.currentBalance as number;
       if (requiredBalance && currentBalance !== undefined) {
-        message = `This translation requires ${requiredBalance.toLocaleString()} characters, but you only have ${currentBalance.toLocaleString()} characters available. You can try translating a smaller portion of your content or purchase more characters.`;
+        message = `This translation requires ${requiredBalance.toLocaleString()} characters, but you only have ${currentBalance.toLocaleString()} characters available. You can try translating a smaller portion of your content, or upgrade your plan or renew early on the Billing page (unused characters carry over).`;
       }
       this.logger.showAndLogError(
         message,

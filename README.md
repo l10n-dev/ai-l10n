@@ -37,7 +37,7 @@ npx ai-l10n translate ./locales/en.json --update
 - ⚙️ **Runs anywhere** — CLI, SDK, npm scripts, GitHub Action, GitLab CI, Jenkins, and MCP for AI agents
 - 🕵️ **Self-checking** — detects lost placeholders and retries; splits large files into chunks while keeping context, avoiding the silent content loss you get pasting strings into Claude or GPT
 - 🔍 **Content filtering** — filtered strings are saved to a separate file for review instead of failing the run
-- 📊 **Usage tracking** — monitor character usage and balance; 10,000 characters free every month, pay-as-you-go after that
+- 📊 **Usage tracking** — monitor character usage and balance; start with a 3-day free trial, then pick a monthly plan ([pricing](https://l10n.dev/#pricing))
 
 ## Installation
 
@@ -71,7 +71,7 @@ npm install ai-l10n-sdk
 
 ### 1. Get Your API Key
 
-Get your free API key from [l10n.dev/ws/keys](https://l10n.dev/ws/keys)
+Create an account and get your API key from [l10n.dev/ws/keys](https://l10n.dev/ws/keys). New users get a 3-day free trial with 10,000 characters; after that a monthly plan is required — see [Pricing](#pricing).
 
 ### 2. Configure API Key
 
@@ -603,7 +603,7 @@ npx ai-l10n translate ./locales/en.json --languages es,fr,de
 
 ### Insufficient Balance
 
-Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
+Translate a smaller portion of your content, or upgrade your plan or renew early on the Billing page of your l10n.dev account. Unused characters carry over when you renew or upgrade early. Plans: [l10n.dev/#pricing](https://l10n.dev/#pricing)
 
 ## Related Projects
 
@@ -618,9 +618,10 @@ Purchase more characters at [l10n.dev/#pricing](https://l10n.dev/#pricing)
 
 ## Pricing
 
-- **Free Characters**: 10,000 characters free every month
-- **Pay-as-you-go**: Affordable character-based pricing with no subscription required
-- **Current Pricing**: Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date rates
+- **Free Trial**: New users get 3 days free with 10,000 characters
+- **Monthly Plans**: Basic (100,000 characters/month), Standard (1,000,000 characters/month) and Pro (5,000,000 characters/month)
+- **Flexible**: Renews monthly; cancel anytime on the Billing page. Unused characters carry over when you renew or upgrade early
+- **Current Prices**: Visit [l10n.dev/#pricing](https://l10n.dev/#pricing) for up-to-date prices in your currency
 
 ## Privacy & Security
 
