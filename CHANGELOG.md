@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.1] - 2026-11-09
+
+### Changed
+- l10n.dev now uses monthly subscription plans instead of a monthly free allowance and
+  pay-as-you-go packages. The README, Quick Start and the GitHub Action's failure hints now
+  describe the 3-day free trial (10,000 characters for new users) and the monthly plans, and
+  point to [l10n.dev/#pricing](https://l10n.dev/#pricing) for current prices.
+- When a translation fails because there are not enough characters left, the message now
+  suggests upgrading the plan or renewing early on the Billing page (unused characters carry
+  over), not buying more characters.
+- Updated SDK dependency to `ai-l10n-sdk` ^1.12.1.
+
 ## [1.12.0] - 2026-08-13
 
 ### Added

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.1] - 2026-11-09
+
+### Changed
+- l10n.dev now uses monthly subscription plans. The tool descriptions and prompts
+  (`l10n_get_balance`, `l10n_translate_file`, `l10n_set_api_key`, `l10n_setup_automation`)
+  no longer tell the agent to suggest buying more characters or getting a free key. Agents now
+  mention the 3-day free trial (10,000 characters for new users), and when the balance is low
+  or insufficient they suggest upgrading the plan or renewing early on the Billing page.
+  Unused characters carry over.
+- The README's Pricing section describes the free trial and the monthly plans, and links to
+  [l10n.dev/#pricing](https://l10n.dev/#pricing) for current prices. The API key link now
+  points to `https://l10n.dev/ws/keys`, as the tools do.
+- Updated SDK dependency to `ai-l10n-sdk` ^1.12.1.
+
 ## [1.2.0] - 2026-08-13
 
 ### Added

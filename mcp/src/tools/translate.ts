@@ -138,11 +138,12 @@ PRE-TRANSLATION CHECKS — perform all of these BEFORE calling translate:
    If yes, set translateOnlyNewStrings: true.
 
 4. BALANCE: If the translation fails with paymentRequired (HTTP 402 / Insufficient balance), analyze
-   the error message (it contains current balance and required balance). Suggest purchasing more
-   characters at ${URLS.PRICING}
+   the error message (it contains current balance and required balance). Suggest translating a smaller
+   portion, or upgrading the plan or renewing early on the Billing page of the user's l10n.dev account
+   (unused characters carry over). Plans: ${URLS.PRICING}
 
-5. API KEY: If the error indicates unauthorized access or no API key, suggest creating a free account
-   and API key at ${URLS.API_KEYS}. Offer to store the key using the l10n_set_api_key tool.
+5. API KEY: If the error indicates unauthorized access or no API key, suggest creating an account
+   and API key at ${URLS.API_KEYS} (new users get a 3-day free trial with 10,000 characters). Offer to store the key using the l10n_set_api_key tool.
    
 POST-TRANSLATION CHECKS — perform all of these AFTER calling translate:
 
