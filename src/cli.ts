@@ -71,7 +71,8 @@ program
   .option(
     "--glossary",
     "Generate and save a glossary from source and translated content for this language pair. " +
-      "Your balance is debited for the full source content upfront — even when 'Translate only new strings' is on. " +
+      "With 'Translate only new strings' (--update), you pay only for new and changed strings; " +
+      "the Pro plan builds the glossary from the whole content for more context. " +
       "Disable to let the system generate a temporary internal glossary only for large content that exceeds the AI limits, at no extra cost.",
     false,
   )

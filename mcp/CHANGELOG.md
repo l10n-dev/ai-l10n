@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.2] - 2026-11-11
+
+### Changed
+- `l10n_translate_file`: the `generateGlossary` and `translateOnlyNewStrings` descriptions and
+  the pre-translation glossary prompt now say that, in incremental mode, glossary generation
+  charges only new and changed strings instead of the whole source. On the Pro plan, the
+  glossary is built from the whole content for more context.
+- README: added a glossary generation note to Incremental Translation.
+- Updated SDK dependency to `ai-l10n-sdk` ^1.12.2.
+
 ## [1.2.1] - 2026-11-09
 
 ### Changed

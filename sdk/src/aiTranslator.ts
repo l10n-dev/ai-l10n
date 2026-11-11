@@ -98,7 +98,8 @@ export interface TranslationConfig {
   /**
    * When true, generates a glossary from source and translated target content and saves it as the
    * active glossary for this language pair for future translations.
-   * Balance is debited for the full source content upfront — even when `translateOnlyNewStrings` is true.
+   * With `translateOnlyNewStrings`, only new and changed strings are charged; on the Pro plan the
+   * glossary is built from the whole content for more context.
    * When false (default), an internal glossary is generated only for large content that exceeds the AI
    * chunk size, at no extra cost. (default: false)
    */

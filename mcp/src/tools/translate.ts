@@ -23,15 +23,14 @@ const TranslateInputSchema = z
       .describe(
         "Only translate new/changed strings, skipping strings that already exist in the target file. " +
           "Saves character quota. Default false. " +
-          "Note: on first run, only added strings are translated because the hash table is empty. " +
-          "Note: when generateGlossary is also enabled, quota is debited for full source content regardless.",
+          "Note: on first run, only added strings are translated because the hash table is empty.",
       ),
     generateGlossary: z
       .boolean()
       .optional()
       .describe(
         "Generate and save a glossary from this translation for consistent future translations. " +
-          "Costs extra characters (full source content debited upfront). Default false.",
+          "With translateOnlyNewStrings, only new and changed strings are charged. Default false.",
       ),
     instruction: z
       .string()
@@ -128,7 +127,7 @@ PRE-TRANSLATION CHECKS — perform all of these BEFORE calling translate:
    whether an active glossary exists for the requested target language pairs. If glossaries exist for OTHER
    language pairs but NOT the requested targets, mention this gap. Then ask the user:
    "No glossary found for [language(s)] — enabling glossary generation saves key terms for consistent
-   future translations (costs extra characters). Enable it for this run?"
+   future translations (with incremental mode, only new and changed strings are charged). Enable it for this run?"
    If yes, set generateGlossary: true. If no, proceed without it.
    Do this check BEFORE translating — do not suggest a rerun after the fact.
 

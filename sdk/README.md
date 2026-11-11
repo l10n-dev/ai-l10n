@@ -199,7 +199,7 @@ for (const file of files) {
 
 When `generateGlossary` is enabled, a glossary is built from the source and translated target content and saved as the active glossary for this source/target language pair. It is then used automatically on future translations.
 
-> **Balance note:** Balance is debited for the full source content upfront — even when `translateOnlyNewStrings` is `true`. When disabled (default), a temporary internal glossary is generated at no extra cost only for content that exceeds the AI chunk size.
+> **Balance note:** With `translateOnlyNewStrings: true`, you pay only for the new and changed strings — not for the whole source. On the Pro plan, the glossary is still built from the whole content for more context. When disabled (default), a temporary internal glossary is generated at no extra cost only for content that exceeds the AI chunk size.
 
 ```typescript
 const result = await translator.translate({
@@ -383,7 +383,8 @@ interface TranslationConfig {
   /**
    * When true, generates a glossary from source and translated target content and saves it as the
    * active glossary for this language pair for future translations.
-   * Balance is debited for the full source content upfront — even when translateOnlyNewStrings is true.
+   * With translateOnlyNewStrings, only new and changed strings are charged; on the Pro plan the
+   * glossary is built from the whole content for more context.
    * When false (default), an internal glossary is generated only for large content at no extra cost.
    */
   generateGlossary?: boolean;
