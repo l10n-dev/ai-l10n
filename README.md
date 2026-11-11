@@ -400,7 +400,7 @@ to find files of other languages and to build target file names.
 | `verbose` | `boolean` | `false` | Enable detailed logging |
 | `sourceLanguageCode` | `string \| null` | auto-detect | BCP-47 source language code (e.g., `"en"`, `"en-US"`). Auto-detected from the file path when not set |
 | `languageCodeRegex` | `string` | auto-detect | Regex locating the language code in file names, e.g. `"^emails\\.(?<language>[\\w-]+)\\.json$"`. Must contain a `(?<language>...)` group; the text around it is reused for target file names. Only needed when the naming convention is not detected automatically. CLI: `--language-regex` |
-| `generateGlossary` | `boolean` | `false` | Generate and save a glossary from source and translated content for this language pair. Balance debited upfront for full source content. See [Translation Glossary](#translation-glossary) |
+| `generateGlossary` | `boolean` | `false` | Generate and save a glossary from source and translated content for this language pair. With `translateOnlyNewStrings`, only new and changed strings are charged. See [Translation Glossary](#translation-glossary) |
 | `glossary` | `GlossaryEntry[] \| null` | use active | Override the active glossary: `null`/omit = use active, `[]` = disable, entries = replace for this request |
 | `instruction` | `string \| null` | use active | Override the active linquistic instruction: `null`/omit = use active, ` ` = disable, `string` = replace for this request |
 | `terminology` | `TerminologyEntry[]` | none | Terms for consistent translation — synonyms are replaced with the preferred term |
@@ -434,7 +434,7 @@ npx ai-l10n translate ./locales/en.json --languages de,fr --glossary
 Once saved, the glossary is applied automatically on all future translations for the same language pair. 
 Manage your saved glossaries at [l10n.dev/ws/translation-glossary](https://l10n.dev/ws/translation-glossary).
 
-> **Balance note:** When `--glossary` is enabled, your balance is debited for the full source content upfront — even when `--update` is on. When disabled (default), a temporary internal glossary is generated automatically at no extra cost only for large files that exceed the AI chunk size.
+> **Balance note:** When `--glossary` is combined with `--update` (Translate only new strings), you pay only for the new and changed strings. On the Pro plan, the glossary is built from the whole content for more context. When disabled (default), a temporary internal glossary is generated automatically at no extra cost only for large files that exceed the AI chunk size.
 
 ### Manual Glossary Override (`glossary`)
 

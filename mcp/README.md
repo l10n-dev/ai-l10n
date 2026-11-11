@@ -254,6 +254,8 @@ For JSON-based formats, enable `translateOnlyNewStrings: true` to skip strings t
 
 > **Note:** First translation it translates only added strings, because hash table is empty to detect changed strings.
 
+> **Glossary generation:** Combined with `generateGlossary: true`, you pay only for the new and changed strings. On the Pro plan, the glossary is built from the whole content for more context.
+
 ---
 
 ## Automation: CLI and GitHub Actions

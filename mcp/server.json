@@ -8,7 +8,7 @@
     "type": "git",
     "subfolder": "mcp"
   },
-  "version": "1.2.1",
+  "version": "1.2.2",
   "websiteUrl": "https://l10n.dev",
   "title": "L10n.dev - AI Localization Agent",
   "icons": [
@@ -35,7 +35,7 @@
     {
       "registryType": "npm",
       "identifier": "ai-l10n-mcp",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "transport": {
         "type": "stdio"
       },

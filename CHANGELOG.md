@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.2] - 2026-11-11
+
+### Changed
+- AI glossary generation (`--glossary` / `generateGlossary`) no longer charges for the whole
+  source on incremental updates. With "Translate only new strings" (`--update` /
+  `translateOnlyNewStrings`), you pay only for new and changed strings. On the Pro plan, the
+  glossary is built from the whole content for more context.
+- Updated the `--glossary` help text and the README balance notes accordingly.
+- Updated SDK dependency to `ai-l10n-sdk` ^1.12.2.
+
 ## [1.12.1] - 2026-11-09
 
 ### Changed
